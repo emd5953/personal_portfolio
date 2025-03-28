@@ -164,8 +164,8 @@ section{
 #profile {
   display: flex;
   justify-content: center;
-  gap: 5rem;
-  height: 80vh;
+  gap: 2rem;
+  height: 60vh;
 }
 
 .section__pic-container {
@@ -189,6 +189,7 @@ section{
 }
 
 .section__text__p2 {
+  text-align: center;
   font-size: 1.75rem;
   margin-bottom: 1rem;
 }
