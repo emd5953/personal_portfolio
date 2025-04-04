@@ -396,10 +396,10 @@ section{
   border-color: rgb(163, 163, 163);
   background: (250, 250, 250);
   margin: 2rem auto;
-  padding: 0.5;
+  padding: 0.5rem;
 }
 
-.conatact-info-container {
+.contact-info-container {
   display: flex;
   align-items: center;
   justify-content: center;
