@@ -1,26 +1,1142 @@
 <!DOCTYPE html>
 <html lang="en">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Portfolio</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="mediaqueries.css" />
- </head>
- <body>
+  <title>Enrin Debbarma - Full-Stack Developer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f1eb;
+      background-image: 
+        radial-gradient(circle at 25% 25%, rgba(139, 115, 85, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(139, 115, 85, 0.03) 0%, transparent 50%);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: #f5f1eb;
+    }
+
+    p {
+      color: rgb(60, 60, 60);
+      line-height: 1.6;
+    }
+
+    /* TRANSITION */
+    a, .btn {
+      transition: all 300ms ease;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .slide-in-right {
+      animation: slideInRight 0.8s ease-out;
+    }
+
+    /* NAVIGATION */
+    nav, .nav-links {
+      display: flex;
+    }
+
+    nav {
+      justify-content: space-between;
+      align-items: center;
+      height: 17vh;
+      background: rgba(245, 241, 235, 0.95);
+      backdrop-filter: blur(10px);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      box-shadow: 0 2px 20px rgba(139, 115, 85, 0.1);
+      padding: 0 5%;
+    }
+
+    .nav-links {
+      gap: 2rem;
+      list-style: none;
+      font-size: 1.2rem;
+    }
+
+    a {
+      color: #2c2c2c;
+      text-decoration: none;
+      position: relative;
+    }
+
+    a::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: #8b7355;
+      transition: width 0.3s ease;
+    }
+
+    a:hover::after {
+      width: 100%;
+    }
+
+    a:hover {
+      color: #8b7355;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #2c2c2c 0%, #8b7355 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo:hover {
+      cursor: default;
+      animation: pulse 1s ease-in-out;
+    }
+
+    /* HAMBURGER MENU */
+    #hamburger-nav {
+      display: none;
+    }
+
+    .hamburger-menu {
+      position: relative;
+      display: inline-block;
+    }
+
+    .hamburger-icon {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 24px;
+      width: 30px;
+      cursor: pointer; 
+    }
+
+    .hamburger-icon span {
+      width: 100%;
+      height: 2px;
+      background-color: #2c2c2c;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .menu-links {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: rgba(44, 44, 44, 0.95);
+      backdrop-filter: blur(10px);
+      width: fit-content;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+      border-radius: 1rem;
+    }
+
+    .menu-links a {
+      display: block;
+      padding: 10px;
+      text-align: center;
+      font-size: 1.2rem;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .menu-links li {
+      list-style: none;
+    }
+
+    .menu-links.open {
+      max-height: 300px;
+    }
+
+    .hamburger-icon.open span:first-child {
+      transform: rotate(45deg) translate(10px, 5px);
+    }
+    .hamburger-icon.open span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-icon.open span:last-child {
+      transform: rotate(-45deg) translate(10px, -5px);
+    }
+
+    /* SECTIONS */
+    section {
+      padding-top: 10vh;
+      min-height: 100vh;
+      margin: 0 5%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .section-container {
+      display: flex;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    /* PROFILE SECTION */
+    #profile {
+      display: flex;
+      justify-content: center;
+      gap: 6rem;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(139, 115, 85, 0.05) 0%, rgba(245, 241, 235, 0.05) 100%);
+      border-radius: 3rem;
+      padding: 4rem;
+      margin-top: 8vh;
+      min-height: auto;
+    }
+
+    .section__pic-container {
+      display: block;
+      height: 400px;
+      width: 400px;
+      margin: 0 auto; 
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(139, 115, 85, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .section__pic-container::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+      background: linear-gradient(45deg, #8b7355, #2c2c2c, #8b7355);
+      border-radius: 50%;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .section__pic-container:hover::before {
+      opacity: 1;
+    }
+
+    .section__pic-container:hover {
+      transform: scale(1.02);
+      box-shadow: 0 25px 80px rgba(139, 115, 85, 0.4);
+    }
+
+    .section__pic-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .section_text {
+      align-self: center;
+      text-align: center;
+      flex: 1;
+    }
+
+    .section__text p {
+      font-weight: 600;
+    }
+
+    .section__text__p1 {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #8b7355;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .section__text__p2 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      color: #2c2c2c;
+      font-weight: 400;
+    }
+
+    .title {
+      font-size: 3.5rem;
+      text-align: center;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #2c2c2c 0%, #8b7355 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #socials-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 2rem;
+      gap: 1.5rem;
+    }
+
+    /* ICONS */
+    .icon {
+      cursor: pointer;
+      height: 2.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .icon:hover {
+      transform: translateY(-3px) scale(1.1);
+      filter: drop-shadow(0 5px 15px rgba(139, 115, 85, 0.3));
+    }
+
+    /* BUTTONS */
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-weight: 600;
+      transition: all 300ms ease;
+      padding: 1.2rem 2.5rem;
+      width: auto;
+      min-width: 10rem;
+      border-radius: 3rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border: none;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-color-1, .btn-color-2 {
+      border: #2c2c2c 0.1rem solid;
+    }
+
+    .btn-color-1:hover, .btn-color-2:hover {
+      cursor: pointer;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(44, 44, 44, 0.3);
+    }
+
+    .btn-color-1, .btn-color-2:hover {
+      background: #2c2c2c;
+      color: white;
+    }
+
+    .btn-color-1:hover {
+      background: #1a1a1a;
+      box-shadow: 0 8px 25px rgba(26, 26, 26, 0.4);
+    }
+
+    .btn-color-2 {
+      background: none;
+      color: #2c2c2c;
+    }
+
+    .btn-color-2:hover {
+      border: #2c2c2c 0.1rem solid;
+      color: white;
+    }
+
+    /* ABOUT SECTION */
+    #about {
+      position: relative;
+      padding: 6rem 0;
+    } 
+
+    .about-containers {
+      gap: 3rem;
+      margin-bottom: 3rem;
+      margin-top: 3rem;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .about-details-container {
+      justify-content: center;
+      flex-direction: column;
+      display: flex;
+      flex: 1;
+    }
+
+    .about-pic {
+      border-radius: 2rem;
+      transition: transform 0.3s ease;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .about-pic:hover {
+      transform: scale(1.02);
+    }
+
+    .arrow {
+      position: absolute;
+      right: -5rem;
+      bottom: 2.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .arrow:hover {
+      transform: translateX(10px);
+      filter: drop-shadow(0 5px 15px rgba(139, 115, 85, 0.3));
+    }
+
+    .details-container {
+      padding: 2.5rem;
+      flex: 1;
+      background: #ebe5dd;
+      border-radius: 2rem;
+      min-width: 300px;
+      border: #8b7355 0.1rem solid;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(139, 115, 85, 0.15);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .details-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #8b7355, #2c2c2c);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .details-container:hover::before {
+      transform: scaleX(1);
+    }
+
+    .details-container:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 50px rgba(139, 115, 85, 0.25);
+    }
+
+    .details-container h3 {
+      color: #2c2c2c;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .text-container {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .text-container p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+
+    .section__pic_about-container {
+      display: flex;
+      height: 500px;
+      width: 500px;
+      margin: auto 0;
+      border-radius: 2rem;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(139, 115, 85, 0.2);
+      flex-shrink: 0;
+    }
+
+    /* PROJECTS SECTION */
+    #projects {
+      position: relative;
+      padding: 6rem 0;
+    }
+
+    .experience-details-container {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .color-container {
+      border-color: #8b7355;
+      background: #ebe5dd;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .color-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 115, 85, 0.1), transparent);
+      transition: left 0.8s ease;
+    }
+
+    .color-container:hover::before {
+      left: 100%;
+    }
+
+    .article-container {
+      display: flex;
+      text-align: initial;
+      flex-direction: column;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .project-img {
+      border-radius: 1.5rem;
+      width: 90%;
+      height: 300px;
+      object-fit: cover;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(139, 115, 85, 0.2);
+    }
+
+    .project-img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 15px 40px rgba(139, 115, 85, 0.3);
+    }
+
+    .project-title {
+      margin: 1.5rem;
+      color: #2c2c2c;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .experience-sub-title {
+      color: #2c2c2c;
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .project-btn {
+      color: #2c2c2c;
+      border-color: #8b7355;
+      padding: 0.8rem 1.5rem;
+      font-size: 0.9rem;
+      margin: 0.2rem;
+    }
+
+    .project-btn:hover {
+      background: #8b7355;
+      color: white;
+      border-color: #8b7355;
+    }
+
+    /* TECH STACK BADGES */
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem;
+      justify-content: center;
+    }
+
+    .tech-badge {
+      background: #8b7355;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    /* SKILLS SECTION */
+    #skills {
+      padding: 6rem 0;
+    }
+
+    .skill-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(139, 115, 85, 0.05);
+      border-radius: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .skill-item:hover {
+      background: rgba(139, 115, 85, 0.1);
+      transform: translateX(5px);
+    }
+
+    .skill-name {
+      font-weight: 600;
+      color: #2c2c2c;
+    }
+
+    .skill-level {
+      font-size: 0.9rem;
+      color: #8b7355;
+      font-weight: 500;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(139, 115, 85, 0.2);
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b7355, #2c2c2c);
+      border-radius: 4px;
+      transition: width 1s ease-in-out;
+      width: 0;
+    }
+
+    .progress-fill.animate {
+      width: var(--progress-width);
+    }
+
+    /* TIMELINE SECTION */
+    .journey-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+    }
+
+    .journey-card {
+      background: #ebe5dd;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 8px 30px rgba(139, 115, 85, 0.15);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+    }
+
+    .journey-card::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #8b7355, #2c2c2c);
+      border-radius: 2rem;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .journey-card:hover::after {
+      opacity: 1;
+    }
+
+    .journey-card:hover {
+      transform: perspective(1000px) rotateX(-5deg) rotateY(5deg) translateY(-15px) scale(1.02);
+      box-shadow: 
+        0 25px 60px rgba(139, 115, 85, 0.3),
+        0 0 0 1px rgba(139, 115, 85, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .journey-date {
+      color: #8b7355;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .journey-date::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #8b7355, #2c2c2c);
+      transition: width 0.4s ease;
+    }
+
+    .journey-card:hover .journey-date::after {
+      width: 100%;
+    }
+
+    .journey-content h3 {
+      color: #2c2c2c;
+      font-weight: 600;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      transform: translateY(0);
+    }
+
+    .journey-card:hover .journey-content h3 {
+      transform: translateY(-3px);
+      color: #1a1a1a;
+    }
+
+    .journey-content p {
+      color: rgb(60, 60, 60);
+      line-height: 1.6;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      transform: translateY(0);
+    }
+
+    .journey-card:hover .journey-content p {
+      transform: translateY(-2px);
+      color: rgb(40, 40, 40);
+    }
+
+    /* CONTACT */
+    #contact {
+      padding: 6rem 0;
+    }
+
+    .contact-section {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      min-height: 70vh;
+    }
+
+    .contact-info-upper-container {
+      display: flex;
+      justify-content: center;
+      border-radius: 2rem;
+      border: #8b7355 0.1rem solid;
+      background: #ebe5dd;
+      margin: 2rem auto;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(139, 115, 85, 0.15);
+      transition: all 0.3s ease;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .contact-info-upper-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 50px rgba(139, 115, 85, 0.25);
+    }
+
+    .contact-info-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem;
+      padding: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .contact-info-container:hover {
+      transform: scale(1.05);
+    }
+
+    .contact-info-container p {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .contact-info-container a {
+      color: #2c2c2c;
+      font-weight: 600;
+    }
+
+    .contact-info-container a:hover {
+      color: #8b7355;
+    }
+
+    .contact-icon {
+      cursor: default;
+    }
+
+    .email-icon {
+      height: 2.5rem;
+    }
+
+    /* FOOTER */
+    footer {
+      background: linear-gradient(135deg, #2c2c2c 0%, #8b7355 100%);
+      color: white;
+      padding: 4rem 2rem 2rem;
+      margin-top: 4rem;
+    }
+
+    footer nav {
+      position: static;
+      background: none;
+      box-shadow: none;
+      justify-content: center;
+      margin-bottom: 2rem;
+      height: auto;
+    }
+
+    footer .nav-links a {
+      color: white;
+    }
+
+    footer .nav-links a::after {
+      background-color: white;
+    }
+
+    footer p {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.95);
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    /* SCROLL ANIMATIONS */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 0.8s ease;
+    }
+
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* RESPONSIVE DESIGN */
+    @media screen and (max-width: 1400px) {
+      section {
+        margin: 0 4%;
+      }
+      
+      .title {
+        font-size: 3rem;
+      }
+      
+      #profile {
+        gap: 4rem;
+      }
+    }
+
+    @media screen and (max-width: 1200px) {
+      #desktop-nav {
+        display: none;
+      }
+      
+      #hamburger-nav {
+        display: flex;
+      }
+      
+      .arrow {
+        display: none;
+      }
+      
+      section {
+        margin: 0 3%;
+      }
+      
+      .title {
+        font-size: 2.5rem;
+      }
+      
+      .section__pic_about-container {
+        width: 100%;
+        max-width: 400px;
+        height: 400px;
+        margin: 0 auto 2rem;
+      }
+    }
+
+    @media screen and (max-width: 968px) {
+      #profile {
+        flex-direction: column;
+        gap: 3rem;
+        padding: 3rem 2rem;
+      }
+      
+      .section__pic-container {
+        width: 300px;
+        height: 300px;
+      }
+      
+      .section-container {
+        flex-direction: column;
+        gap: 3rem;
+      }
+      
+      .about-containers {
+        flex-direction: column;
+      }
+      
+      .details-container {
+        min-width: auto;
+        margin-bottom: 1rem;
+      }
+      
+      .btn-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+      
+      .btn {
+        width: 200px;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      nav {
+        padding: 0 3%;
+        height: 15vh;
+      }
+      
+      section {
+        margin: 0 2%;
+        padding-top: 8vh;
+      }
+      
+      .title {
+        font-size: 2rem;
+      }
+      
+      .section__text__p2 {
+        font-size: 1.5rem;
+      }
+      
+      .section__pic-container {
+        width: 250px;
+        height: 250px;
+      }
+      
+      .section__pic_about-container {
+        max-width: 300px;
+        height: 300px;
+      }
+      
+      .experience-sub-title {
+        font-size: 1.5rem;
+      }
+      
+      .nav-links {
+        font-size: 1rem;
+        gap: 1rem;
+      }
+      
+      .logo {
+        font-size: 1.5rem;
+      }
+      
+      .journey-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+      }
+      
+      .contact-info-upper-container {
+        flex-direction: column;
+        margin: 1rem auto;
+        padding: 1.5rem;
+      }
+      
+      .contact-info-container {
+        margin: 0.5rem;
+        padding: 0.5rem;
+      }
+    }
+
+    @media screen and (max-width: 600px) {
+      nav {
+        height: 12vh;
+      }
+      
+      section {
+        margin: 0 1%;
+        padding-top: 6vh;
+      }
+      
+      #profile {
+        padding: 2rem 1rem;
+        margin-top: 4vh;
+      }
+      
+      .title {
+        font-size: 1.8rem;
+      }
+      
+      .section__text__p2 {
+        font-size: 1.2rem;
+      }
+      
+      .section__pic-container {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .btn {
+        width: 180px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+      }
+      
+      .details-container {
+        padding: 1.5rem;
+      }
+      
+      .text-container p {
+        font-size: 1rem;
+      }
+      
+      .nav-links {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+      }
+      
+      footer nav .nav-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .title {
+        font-size: 1.5rem;
+      }
+      
+      .section__text__p1 {
+        font-size: 1rem;
+      }
+      
+      .section__text__p2 {
+        font-size: 1rem;
+      }
+      
+      .section__pic-container {
+        width: 180px;
+        height: 180px;
+      }
+      
+      .btn {
+        width: 160px;
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+      }
+      
+      .details-container {
+        padding: 1rem;
+      }
+      
+      .journey-card {
+        padding: 1.5rem;
+      }
+      
+      .logo {
+        font-size: 1.2rem;
+      }
+      
+      .nav-links {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
   <nav id="desktop-nav">
     <div class="logo">Enrin Debbarma</div>
     <div>
       <ul class="nav-links">
         <li><a href="#about">About</a></li>
         <li><a href="#projects">Projects</a></li>
-        <li><a href="#experience">Experience</a></li>
         <li><a href="#skills">Skills</a></li>
+        <li><a href="#timeline">Experience</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
     </div>
   </nav>
+  
   <nav id="hamburger-nav">
     <div class="logo">Enrin Debbarma</div>
     <div class="hamburger-menu">
@@ -32,278 +1148,471 @@
       <div class="menu-links">
         <li><a href="#about" onclick="toggleMenu()">About</a></li>
         <li><a href="#projects" onclick="toggleMenu()">Projects</a></li>
-        <li><a href="#experience"onclick="toggleMenu()">Experience</a></li>
         <li><a href="#skills" onclick="toggleMenu()">Skills</a></li>
+        <li><a href="#timeline" onclick="toggleMenu()">Experience</a></li>
         <li><a href="#contact" onclick="toggleMenu()">Contact</a></li>
       </div>
     </div>
   </nav>
-  <section id="profile">
+
+  <section id="profile" class="scroll-reveal">
     <div class="section__pic-container">
       <img src="./assets/profile-pic.jpg" alt="Enrin Debbarma profile picture"/> 
     </div>
-    <div class="section__text">
+    <div class="section__text slide-in-right">
       <p class="section__text__p1">Hello, I'm</p>
       <h1 class="title">Enrin Debbarma</h1>
-      <p class="section__text__p2">Full-Stack Developer</p>
+      <p class="section__text__p2">Full-Stack Developer & Problem Solver</p>
+      <p style="margin: 1rem 0; font-size: 1.1rem; color: #8b7355;">
+        Building digital experiences that make a difference
+      </p>
       <div class="btn-container">
-        <button 
-          class="btn btn-color-2"
-          OnClick="window.open('./assets/ResumeEnrinDebbarma.pdf')"
-        >
+        <button class="btn btn-color-2" onclick="window.open('./assets/ResumeEnrinDebbarma.pdf')">
           Download CV
         </button>
-        <button 
-          class="btn btn-color-1"
-          OnClick="location.href='./#contact'">
-          Contact Info
+        <button class="btn btn-color-1" onclick="location.href='#contact'">
+          Let's Connect
         </button>
       </div>
       <div id="socials-container">
-        <img src="./assets/linkedin.png" alt="My LinkedIn Profile"
-        class="icon" onclick="location.href='https://www.linkedin.com/in/enrinjr/'"/>
-        <img src="./assets/github.png" alt="My GitHub Profile"
-        class="icon" onclick="location.href='https://github.com/emd5953'"/>
+        <svg class="icon" onclick="location.href='https://www.linkedin.com/in/enrinjr/'" viewBox="0 0 24 24" fill="#0077B5">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+        <svg class="icon" onclick="location.href='https://github.com/emd5953'" viewBox="0 0 24 24" fill="#333">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
       </div>
     </div>
   </section>
-  <section id="about">
+
+  <section id="about" class="scroll-reveal">
     <p class="section__text__p1">Get To Know More</p>
     <h1 class="title">About Me</h1>
     <div class="section-container">
       <div class="section__pic_about-container">
-        <img src="./assets/about-pic.png" alt="Profile Picture"
-        class="about-pic"/>
+        <img src="./assets/about-pic.png" alt="Profile Picture" class="about-pic"/>
       </div>
       <div class="about-details-container">
         <div class="about-containers">
           <div class="details-container">
-            <img src="./assets/experience.png" alt="Experience Icon" 
-            class="icon"/>
+            <svg class="icon" viewBox="0 0 24 24" fill="#8b7355" width="48" height="48">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
             <h3>Experience</h3>
-            <p>2+ years <br />Full-Stack Developer</p>
+            <p>2+ years <br />Full-Stack Development</p>
           </div>
           <div class="details-container">
-            <img src="./assets/education.png" alt="Education Icon" 
-            class="icon"/>
+            <svg class="icon" viewBox="0 0 24 24" fill="#8b7355" width="48" height="48">
+              <path d="M5,3H7V5H5V10A2,2 0 0,0 3,8V5A2,2 0 0,1 5,3M19,3A2,2 0 0,1 21,5V8A2,2 0 0,0 19,10V5H17V3H19M16,12L18,14H22L20,16L22,18H18L16,20L14,18H10L12,16L10,14H14L16,12Z"/>
+            </svg>
             <h3>Education</h3>
-            <p>B.Sc. Computer Science <br />The Pennsylvania State University, Harrisburg</p>
+            <p>B.Sc. Computer Science <br />Penn State Harrisburg</p>
           </div>
         </div>
         <div class="text-container">
-          <p>Currently, in my Final Year of pursuing my Bachelor of Science in Computer Science at Penn State Capital College, I’ve gained hands-on experience in IT Operations, Product Testing, and Full-Stack Project Development. </p>            
-          <p>My tech stack includes JavaScript, TypeScript, React.js, Node.js, Express.js, MongoDB, REST APIs, Redux, HTML, CSS, Next.js, Firebase, React Native, SQL, and Python—these tools align with my interests and empower me to deliver user-focused applications across web and mobile platforms.</p>  
-          <p>I'm excited to connect with fellow tech enthusiasts and professionals who are passionate about their craft.</p>
+          <p>Currently in my final year pursuing my Bachelor of Science in Computer Science at Penn State Capital College, I've gained hands-on experience in Full-Stack Development, IT Operations and Product Testing .</p>            
+          <p>My main tech stack includes JavaScript, TypeScript, React.js, Node.js, Express.js, MongoDB, Firebase, REST APIs, HTML, CSS, Next.js, React Native—empowering me to deliver user-focused applications across web and mobile platforms.</p>  
+          <p>When I'm not coding, you'll find me exploring new technologies, contributing to open-source projects, or enjoying photography. I'm passionate about creating solutions that bridge the gap between complex technology and user-friendly experiences.</p>
         </div>
       </div>
     </div>
-    <img src="./assets/arrow.png" alt="Arrow icon" class="icon arrow"
-    onclick="location.href='./#projects'"/>
+    <svg class="arrow icon" viewBox="0 0 24 24" fill="#8b7355" width="48" height="48" onclick="location.href='#projects'">
+      <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </svg>
   </section>
-  <section id="projects">
+
+  <section id="projects" class="scroll-reveal">
     <p class="section__text__p1">Browse My Recent</p>
     <h1 class="title">Projects</h1>
     <div class="experience-details-container">
       <div class="about-containers">
-      <div class="details-container color-container">
-        <div class="article-container">
-          <img src="./assets/nextstep.png" alt="Project 1"
-          class="project-img"/>
-          <div>
-            <h2 class="experience-sub-title project-title">NextStep: A Swipe-Based Job Matchinig App</h2>
-            <div class="btn-container">
-              <button class="btn btn-color-2 project-btn"
-              onclick="location.href='https://github.com/emd5953/NextStep'">
-                GitHub 
-              </button>
-              <button class="btn btn-color-2 project-btn"
-              onclick="location.href='https://nextstep4.com/'">
-                Website 
-              </button>
-              <button class="btn btn-color-2 project-btn"
-              OnClick="window.open('./imagesNS.html')"
-              >
-                Mobile Version 
-              </button>
+        <div class="details-container color-container">
+          <div class="article-container">
+            <img src="./assets/nextstep.png" alt="NextStep Project" class="project-img"/>
+            <div>
+              <h2 class="experience-sub-title project-title">NextStep: A Swipe-Based Job Matching App</h2>
+              <div class="tech-stack">
+                <span class="tech-badge">React.js</span>
+                <span class="tech-badge">React Native</span>
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">MongoDB</span>
+                <span class="tech-badge">Express.js</span>
+                <span class="tech-badge">OpenAI API</span>
+                <span class="tech-badge">Gemini LLM</span>
+                <span class="tech-badge">Google OAuth</span>
+                <span class="tech-badge">JWT Token</span>
+              </div>
+              <p style="margin: 1rem; color: #2c2c2c; line-height: 1.6;">
+                Revolutionary job matching platform using swipe mechanics to connect job seekers with opportunities. Features real-time matching, chat integration, and AI-powered recommendations.
+              </p>
+              <div class="btn-container">
+                <button class="btn btn-color-2 project-btn" onclick="location.href='https://github.com/emd5953/NextStep'">
+                  GitHub 
+                </button>
+                <button class="btn btn-color-2 project-btn" onclick="location.href='https://nextstep4.com/'">
+                  Website 
+                </button>
+                <button class="btn btn-color-2 project-btn" onclick="window.open('./imagesNS.html')">
+                  Mobile Preview 
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="details-container color-container">
+          <div class="article-container">
+            <img src="./assets/aspot1.png" alt="aSpot Project" class="project-img"/>
+            <div>
+              <h2 class="experience-sub-title project-title">aSpot: Smart Itinerary Maker</h2>
+              <div class="tech-stack">
+                <span class="tech-badge">Typescript</span>
+                <span class="tech-badge">PostgreSQL</span>
+                <span class="tech-badge">Google Maps API</span>
+                <span class="tech-badge">Tailwind CSS</span>
+              </div>
+              <p style="margin: 1rem; color: #2c2c2c; line-height: 1.6;">
+                Intelligent travel planning application that creates personalized itineraries based on user preferences, location data, and real-time information.
+              </p>
+              <div class="btn-container">
+                <button class="btn btn-color-2 project-btn" onclick="location.href='https://github.com/emd5953/itinerary_maker'">
+                  GitHub 
+                </button>
+                <button class="btn btn-color-2 project-btn" onclick="window.open('./assets/aSpot2.png')">
+                  Mobile Preview 
+                </button>
+              </div>
+            </div> 
+          </div>
+        </div>
+        
+        <div class="details-container color-container">
+          <div class="article-container">
+            <img src="./assets/GMLogo.png" alt="GitMatch Project" class="project-img"/>
+            <div>
+              <h2 class="experience-sub-title project-title">GitMatch: Social Media For Developers</h2>
+              <div class="tech-stack">
+                <span class="tech-badge">Vite + React.js</span>
+                <span class="tech-badge">Python</span>
+                <span class="tech-badge">PostgreSQL (NeonDB)</span>
+                <span class="tech-badge">GitHub API</span>
+                <span class="tech-badge">Fast API</span>
+                <span class="tech-badge">OpenAI API</span>
+                <span class="tech-badge">Groq</span>
+                <span class="tech-badge">MiniLM Model</span>
+                <span class="tech-badge">Mistral LLM</span>
+                <span class="tech-badge">JWT Token</span>
+              </div>
+              <p style="margin: 1rem; color: #2c2c2c; line-height: 1.6;">
+                A social platform designed specifically for developers to connect, share similar interests, and collaborate on code. Features GitHub integration and code snippet sharing.
+              </p>
+              <div class="btn-container">
+                <button class="btn btn-color-2 project-btn" onclick="location.href='https://github.com/emd5953'">
+                  GitHub
+                </button>
+                <button class="btn btn-color-2 project-btn" onclick="window.open('./imagesGitMatch.html')">
+                  Development Progress
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="details-container color-container">
-        <div class="article-container">
-          <img src="./assets/aspot1.png" alt="Project 2"
-          class="project-img"/>
-          <div>
-            <h2 class="experience-sub-title project-title">aSpot: An Itinerary Maker</h2>
-            <div class="btn-container">
-              <button class="btn btn-color-2 project-btn"
-              onclick="location.href='https://github.com/emd5953/itinerary_maker'">
-                GitHub 
-              </button>
-              <button class="btn btn-color-2 project-btn"
-              OnClick="window.open('./assets/aspot2.png')"
-              >
-                First Look 
-              </button>
-            </div>
-          </div> 
-        </div>
-      </div>
-      <div class="details-container color-container">
-        <div class="article-container">
-          <img src="./assets/GMLogo.png" alt="Project 3"
-          class="project-img"/>
-          <div>
-            <h2 class="experience-sub-title project-title">GitMatch: Tinder for Devs</h2>
-            <div class="btn-container">
-              <button class="btn btn-color-2 project-btn"
-              onclick="location.href='https://github.com/emd5953'">
-                GitHub
-              </button>
-              <button class="btn btn-color-2 project-btn"
-              OnClick="window.open('./imagesGitMatch.html')"
-              >
-                Progress
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div></div>
-    <img src="./assets/arrow.png" alt="Arrow icon" class="icon arrow"
-    onclick="location.href='./#experience'"/>
+    </div>
+    <svg class="arrow icon" viewBox="0 0 24 24" fill="#8b7355" width="48" height="48" onclick="location.href='#skills'">
+      <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </svg>
   </section>
-  <section id="skills">
+
+  <section id="skills" class="scroll-reveal">
     <p class="section__text__p1">Explore My</p>
-    <h1 class="title">Skills</h1>
+    <h1 class="title">Skills & Expertise</h1>
     <div class="experience-details-container">
       <div class="about-containers">
         <div class="details-container">
           <h2 class="experience-sub-title">Full-Stack Development</h2>
-          <div class="article-container">
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>JavaScript</h3>
-                <p>Experienced</p>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">JavaScript</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 90%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>React.js</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Expert</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">React.js</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 85%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>Node.js</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Advanced</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">Node.js</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 80%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>MongoDB</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Advanced</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">MongoDB</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 75%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>REST APIs</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Proficient</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">REST APIs</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 85%"></div>
               </div>
-            </article>
+            </div>
+            <div class="skill-level">Advanced</div>
           </div>
         </div> 
+        
         <div class="details-container">
-          <h2 class="experience-sub-title">AI/ML & Data Analytics</h2>
-          <div class="article-container">
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>Data Manipulation & Analysis</h3>
-                <p>Experienced</p>
+          <h2 class="experience-sub-title">Data & Analytics</h2>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">Python</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 80%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>Data Preprocessing</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Advanced</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">SQL</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 85%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>Data Visualization</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Advanced</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">Data Visualization</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 75%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>SQL</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Proficient</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">PostgreSQL</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 80%"></div>
               </div>
-            </article>
-            <article>
-              <img src="./assets/checkmark.png" alt="Experience Icon"
-              class="icon"/>
-              <div>
-                <h3>PostgreSQL</h3>
-                <p>Experienced</p>
+            </div>
+            <div class="skill-level">Advanced</div>
+          </div>
+          <div class="skill-item">
+            <div>
+              <div class="skill-name">Data Analysis</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="--progress-width: 75%"></div>
               </div>
-            </article>
+            </div>
+            <div class="skill-level">Proficient</div>
           </div>
         </div> 
       </div>
     </div>
-    <img src="./assets/arrow.png" alt="Arrow icon" class="icon arrow"
-    onclick="location.href='./#skills'"/>
+    <svg class="arrow icon" viewBox="0 0 24 24" fill="#8b7355" width="48" height="48" onclick="location.href='#timeline'">
+      <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </svg>
   </section>
-  <section id="contact">
+
+  <section id="timeline" class="scroll-reveal">
+    <p class="section__text__p1">My Professional</p>
+    <h1 class="title">Journey</h1>
+    <div class="journey-grid">
+      <div class="journey-card">
+        <div class="journey-date">2023 - Present</div>
+        <div class="journey-content">
+          <h3>Full-Stack Developer</h3>
+          <p>Leading multiple projects in web and mobile development, focusing on user experience and scalable architecture. Specializing in React ecosystem and modern JavaScript frameworks.</p>
+        </div>
+      </div>
+      
+      <div class="journey-card">
+        <div class="journey-date">2022 - 2023</div>
+        <div class="journey-content">
+          <h3>Junior Developer & IT Operations</h3>
+          <p>Gained hands-on experience in product testing, bug fixing, and system maintenance. Developed strong problem-solving skills and learned agile development methodologies.</p>
+        </div>
+      </div>
+      
+      <div class="journey-card">
+        <div class="journey-date">2021 - Present</div>
+        <div class="journey-content">
+          <h3>Computer Science Student</h3>
+          <p>Pursuing Bachelor's degree at Penn State Harrisburg. Focusing on software engineering, data structures, algorithms, and database management systems.</p>
+        </div>
+      </div>
+      
+      <div class="journey-card">
+        <div class="journey-date">2021</div>
+        <div class="journey-content">
+          <h3>Started Programming Journey</h3>
+          <p>Began learning programming with Python and web development fundamentals. Discovered passion for creating digital solutions and user-centered design.</p>
+        </div>
+      </div>
+    </div>
+    <svg class="arrow icon" viewBox="0 0 24 24" fill="#8b7355" width="48" height="48" onclick="location.href='#contact'">
+      <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+    </svg>
+  </section>
+
+  <section id="contact" class="scroll-reveal">
     <p class="section__text__p1">Get In Touch</p>
-    <h1 class="title">Contact Me</h1>
+    <h1 class="title">Let's Build Something Amazing Together</h1>
+    
     <div class="contact-info-upper-container">
       <div class="contact-info-container">
-        <img src="./assets/email.png"
-        alt="Email icon"
-        class="icon contact-icon email-icon"/> 
+        <svg class="icon contact-icon email-icon" viewBox="0 0 24 24" fill="#8b7355">
+          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+        </svg>
         <p><a href="mailto:nrndbrma@gmail.com">nrndbrma@gmail.com</a></p>    
       </div>
       <div class="contact-info-container">
-        <img src="./assets/linkedin.png"
-        alt="LinkedIn icon"
-        class="icon contact-icon"/> 
+        <svg class="icon contact-icon" viewBox="0 0 24 24" fill="#0077B5">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
         <p><a href="https://www.linkedin.com/in/enrinjr/">LinkedIn</a></p>    
+      </div>
     </div>
   </section>
+
   <footer>
     <nav>
       <div class="nav-links-container">
         <ul class="nav-links">
           <li><a href="#about">About</a></li>
           <li><a href="#projects">Projects</a></li>
-          <li><a href="#experience">Experience</a></li>
           <li><a href="#skills">Skills</a></li>
+          <li><a href="#timeline">Journey</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
       </div>
     </nav>
-    <p>Copyright &#169; 2025 Enrin Debbarma. All Rights Reserved.</p>
+    <p>Copyright © 2025 Enrin Debbarma. All Rights Reserved. | Built with passion and lots of coffee ☕</p>
   </footer>
-  <script src="script.js"></script>
- </body>
+
+  <script>
+    // Hamburger menu toggle
+    function toggleMenu() {
+      const menu = document.querySelector(".menu-links");
+      const icon = document.querySelector(".hamburger-icon");
+      menu.classList.toggle("open");
+      icon.classList.toggle("open");
+    }
+
+    // Scroll animations
+    function revealOnScroll() {
+      const reveals = document.querySelectorAll('.scroll-reveal');
+      
+      for (let i = 0; i < reveals.length; i++) {
+        const windowHeight = window.innerHeight;
+        const elementTop = reveals[i].getBoundingClientRect().top;
+        const elementVisible = 150;
+        
+        if (elementTop < windowHeight - elementVisible) {
+          reveals[i].classList.add('revealed');
+        }
+      }
+    }
+
+    // Animate progress bars when skills section comes into view
+    function animateProgressBars() {
+      const skillsSection = document.getElementById('skills');
+      const rect = skillsSection.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      if (rect.top < windowHeight && rect.bottom >= 0) {
+        const progressFills = document.querySelectorAll('.progress-fill');
+        progressFills.forEach(fill => {
+          fill.classList.add('animate');
+        });
+      }
+    }
+
+    // Animate journey cards when they come into view
+    function animateJourneyCards() {
+      const journeyCards = document.querySelectorAll('.journey-card');
+      
+      journeyCards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        
+        if (rect.top < windowHeight - 100) {
+          card.classList.add('animate-in');
+        }
+      });
+    }
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add scroll event listeners
+    window.addEventListener('scroll', () => {
+      revealOnScroll();
+      animateProgressBars();
+      animateJourneyCards();
+    });
+
+    // Initial check for elements in view
+    document.addEventListener('DOMContentLoaded', () => {
+      revealOnScroll();
+      animateProgressBars();
+      animateJourneyCards();
+    });
+
+    // Add navbar background on scroll
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('desktop-nav');
+      const hamburgerNav = document.getElementById('hamburger-nav');
+      if (window.scrollY > 100) {
+        if (nav) {
+          nav.style.background = 'rgba(245, 241, 235, 0.98)';
+          nav.style.backdropFilter = 'blur(20px)';
+        }
+        if (hamburgerNav) {
+          hamburgerNav.style.background = 'rgba(245, 241, 235, 0.98)';
+          hamburgerNav.style.backdropFilter = 'blur(20px)';
+        }
+      } else {
+        if (nav) {
+          nav.style.background = 'rgba(245, 241, 235, 0.95)';
+          nav.style.backdropFilter = 'blur(10px)';
+        }
+        if (hamburgerNav) {
+          hamburgerNav.style.background = 'rgba(245, 241, 235, 0.95)';
+          hamburgerNav.style.backdropFilter = 'blur(10px)';
+        }
+      }
+    });
+  </script>
+</body>
 </html>
