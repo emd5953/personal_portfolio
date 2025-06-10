@@ -67,21 +67,21 @@ export default async function handler(req, res) {
         Key: newFileName,
         Body: fileBuffer,
         ContentType: file.mimetype,
-        ACL: 'public-read', // Make file publicly accessible
       };
 
       const command = new PutObjectCommand(uploadParams);
       await s3Client.send(command);
 
-      // Generate public URL
-      const publicUrl = `https://${process.env.AWS_S3_BUCKET}.s3express-${process.env.AWS_REGION}.amazonaws.com/${newFileName}`;
+      // Generate private S3 URL (you'll need signed URLs to access)
+      const s3Url = `s3://${process.env.AWS_S3_BUCKET}/${newFileName}`;
 
       uploadedFiles.push({
         original_name: file.originalFilename,
         saved_name: newFileName,
         size: file.size,
         type: file.mimetype,
-        url: publicUrl
+        s3_key: newFileName,
+        message: 'File uploaded privately to S3'
       });
     }
 
