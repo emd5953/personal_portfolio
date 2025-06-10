@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.826.0",
     "express": "^5.1.0",
+    "formidable": "^3.5.4",
     "multer": "^2.0.1"
   }
 }
