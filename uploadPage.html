@@ -277,7 +277,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Uploading...';
             
-            fetch('/upload', {
+            fetch('/api/upload', {
                 method: 'POST',
                 body: formData
             })
