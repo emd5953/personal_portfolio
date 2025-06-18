@@ -87,6 +87,24 @@ nav {
 .hero-content {
   text-align: center;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.section__pic-container {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.section__pic-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .hero h1 {
@@ -103,6 +121,12 @@ nav {
   margin-bottom: 30px;
   font-weight: 300;
   letter-spacing: 1px;
+}
+
+.btn-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
 .cta-button {
@@ -123,6 +147,22 @@ nav {
   color: white;
 }
 
+#socials-container {
+  display: flex;
+  gap: 20px;
+}
+
+#socials-container .icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+#socials-container .icon:hover {
+  transform: scale(1.1);
+}
+
 .hero-bg {
   position: absolute;
   top: 0;
@@ -135,72 +175,125 @@ nav {
   background-position: center;
 }
 
-/* Content Grid */
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+/* Remove old grid layout and replace with sections */
+.about-section, .projects-section, .skills-section {
+  padding: 80px 20px;
   min-height: 100vh;
-}
-
-.grid-item {
-  position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.grid-item img {
+.about-section {
+  background: #e8e8e8;
+}
+
+.projects-section {
+  background: #333;
+  color: white;
+}
+
+.skills-section {
+  background: #f0f0f0;
+}
+
+.about-container, .projects-container, .skills-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.about-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.section__pic_about-container {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.about-pic {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.grid-item-1 {
-  background: #e8e8e8;
-  flex-direction: column;
-  padding: 60px 40px;
-  text-align: center;
-}
-
-.grid-item-1 h2 {
+.about-container h2 {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 20px;
   color: #333;
+  text-transform: lowercase;
 }
 
-.grid-item-1 p {
+.about-container p {
   font-size: 1rem;
   color: #666;
   line-height: 1.8;
-  max-width: 300px;
+  max-width: 600px;
+  margin-bottom: 15px;
 }
 
-.grid-item-2 {
-  background: #333;
-  color: white;
+.projects-container {
+  display: flex;
   flex-direction: column;
-  padding: 60px 40px;
+  gap: 30px;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: white;
+  text-transform: lowercase;
+  margin-bottom: 20px;
 }
 
 .project-card {
   background: rgba(255,255,255,0.1);
+  border-radius: 12px;
   padding: 30px;
-  margin-bottom: 20px;
   backdrop-filter: blur(10px);
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
 }
 
-.project-card h3 {
-  font-size: 1.2rem;
+.project-img {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.project-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.project-info h3 {
+  font-size: 1.3rem;
   font-weight: 600;
-  margin-bottom: 10px;
+  color: white;
+  text-transform: lowercase;
+  margin: 0;
 }
 
-.project-card p {
+.project-info p {
   font-size: 0.9rem;
-  opacity: 0.8;
-  margin-bottom: 15px;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
+  margin: 0;
 }
 
 .tech-tags {
@@ -212,21 +305,71 @@ nav {
 .tech-tag {
   background: white;
   color: #333;
-  padding: 4px 12px;
+  padding: 5px 10px;
   font-size: 11px;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: lowercase;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
-.grid-item-3 {
-  background: #f0f0f0;
-  flex-direction: column;
-  padding: 60px 40px;
+.project-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.project-btn {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.7);
+  padding: 10px 15px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: lowercase;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.project-btn:hover {
+  background: white;
+  color: #333;
+  border-color: white;
+}
+
+.skills-container {
+  text-align: center;
+}
+
+.skills-container h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: #333;
+  text-transform: lowercase;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.skills-column h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+  text-transform: lowercase;
 }
 
 .skill-list {
   list-style: none;
+  text-align: left;
 }
 
 .skill-list li {
@@ -245,13 +388,14 @@ nav {
 
 /* Section with restock vibe */
 .restock-section {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), #666;
   color: white;
   text-align: center;
+  padding: 60px 40px;
 }
 
 .restock-content h2 {
@@ -269,6 +413,44 @@ nav {
   line-height: 1.8;
 }
 
+.contact-info-upper-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 40px 0;
+  flex-wrap: wrap;
+}
+
+.contact-info-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255,255,255,0.1);
+  padding: 20px 30px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.contact-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.contact-info-container p {
+  margin: 0;
+}
+
+.contact-info-container a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.contact-info-container a:hover {
+  opacity: 0.8;
+}
+
 .contact-button {
   background: transparent;
   color: white;
@@ -280,6 +462,7 @@ nav {
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: lowercase;
+  border-radius: 4px;
 }
 
 .contact-button:hover {
@@ -287,14 +470,66 @@ nav {
   color: #333;
 }
 
+/* Footer */
+footer {
+  background: #333;
+  color: white;
+  padding: 40px 20px 20px;
+  text-align: center;
+}
+
+footer nav {
+  background: transparent;
+  border: none;
+  padding: 0;
+  position: static;
+  margin-bottom: 20px;
+}
+
+.nav-links-container {
+  display: flex;
+  justify-content: center;
+}
+
+footer .nav-links {
+  gap: 20px;
+}
+
+footer .nav-links a {
+  color: white;
+  opacity: 0.8;
+  text-transform: lowercase;
+}
+
+footer .nav-links a:hover {
+  opacity: 1;
+}
+
+footer p {
+  font-size: 12px;
+  opacity: 0.6;
+  margin: 0;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  .content-grid {
-    grid-template-columns: 1fr;
+  .about-section, .projects-section, .skills-section {
+    padding: 60px 20px;
+    min-height: auto;
   }
   
   .hero h1 {
     font-size: 2.5rem;
+  }
+  
+  .section__pic-container {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .section__pic_about-container {
+    width: 150px;
+    height: 150px;
   }
   
   .nav-links {
@@ -305,8 +540,197 @@ nav {
     padding: 15px 20px;
   }
   
-  .grid-item-1, .grid-item-2, .grid-item-3 {
+  .about-container h2, .section-title, .skills-container h2 {
+    font-size: 2rem;
+  }
+  
+  .project-card {
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .project-img {
+    width: 100%;
+    height: 180px;
+  }
+  
+  .project-info h3 {
+    font-size: 1.1rem;
+  }
+  
+  .project-info p {
+    font-size: 0.85rem;
+  }
+  
+  .tech-tag {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  
+  .project-btn {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+  
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .btn-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .contact-info-upper-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .contact-info-container {
+    padding: 15px 20px;
+  }
+  
+  .restock-section {
     padding: 40px 20px;
+    min-height: 80vh;
+  }
+  
+  .restock-content h2 {
+    font-size: 2rem;
+  }
+  
+  .about-container p {
+    max-width: 100%;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .about-section, .projects-section, .skills-section {
+    padding: 40px 15px;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .section__pic-container {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .section__pic_about-container {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .about-container h2, .section-title, .skills-container h2 {
+    font-size: 1.7rem;
+  }
+  
+  .project-card {
+    padding: 15px;
+  }
+  
+  .project-img {
+    height: 150px;
+  }
+  
+  .project-info h3 {
+    font-size: 1rem;
+  }
+  
+  .project-info p {
+    font-size: 0.8rem;
+  }
+  
+  .tech-tag {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  
+  .project-btn {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+  
+  .skills-column h3 {
+    font-size: 1.1rem;
+  }
+  
+  .restock-content h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .section__pic-container {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .grid-item {
+    padding: 25px 15px;
+  }
+  
+  .grid-item-2 {
+    padding: 20px 10px;
+  }
+  
+  .projects-title {
+    font-size: 1.5rem;
+  }
+  
+  .project-card {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .project-img {
+    height: 120px;
+  }
+  
+  .project-card h3 {
+    font-size: 0.9rem;
+  }
+  
+  .project-card p {
+    font-size: 0.75rem;
+  }
+  
+  .tech-tags {
+    gap: 4px;
+  }
+  
+  .tech-tag {
+    font-size: 8px;
+    padding: 2px 5px;
+  }
+  
+  .project-btn {
+    font-size: 9px;
+    padding: 5px 8px;
+  }
+  
+  .project-links {
+    gap: 5px;
+  }
+  
+  .restock-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .grid-item-1 h2 {
+    font-size: 1.5rem;
   }
 }
 
