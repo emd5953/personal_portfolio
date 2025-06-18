@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>enrin:dev</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/careerPage.css">
+</head>
+<body>
+  <div class="top-banner">
+    available for hire • remote opportunities worldwide • let's build something amazing
+  </div>
+
+  <nav>
+    <a href="#" class="logo">enrin:dev</a>
+    <ul class="nav-links">
+      <li><a href="#about">about</a></li>
+      <li><a href="#projects">projects</a></li>
+      <li><a href="#skills">skills</a></li>
+      <li><a href="#contact">contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="#contact">hire me</a>
+      <a href="mailto:nrndbrma@gmail.com">email</a>
+      <a href="https://github.com/emd5953">github</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content fade-in">
+      <h1>full-stack developer</h1>
+      <p>building digital experiences that make a difference</p>
+      <button class="cta-button" onclick="document.getElementById('about').scrollIntoView()">
+        explore:work
+      </button>
+    </div>
+  </section>
+
+  <div class="content-grid" id="about">
+    <div class="grid-item grid-item-1">
+      <h2>about:me</h2>
+      <p>
+        final year computer science student at penn state. passionate about creating user-focused applications 
+        across web and mobile platforms. when i'm not coding, you'll find me exploring new technologies 
+        or contributing to open-source projects.
+      </p>
+    </div>
+
+    <div class="grid-item grid-item-2" id="projects">
+      <div class="project-card">
+        <h3>nextstep</h3>
+        <p>revolutionary job matching platform using swipe mechanics</p>
+        <div class="tech-tags">
+          <span class="tech-tag">react</span>
+          <span class="tech-tag">node.js</span>
+          <span class="tech-tag">mongodb</span>
+          <span class="tech-tag">ai</span>
+        </div>
+      </div>
+      
+      <div class="project-card">
+        <h3>aspot</h3>
+        <p>intelligent travel planning with personalized itineraries</p>
+        <div class="tech-tags">
+          <span class="tech-tag">next.js</span>
+          <span class="tech-tag">postgresql</span>
+          <span class="tech-tag">maps api</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <h3>gitmatch</h3>
+        <p>social media platform designed for developers</p>
+        <div class="tech-tags">
+          <span class="tech-tag">react</span>
+          <span class="tech-tag">python</span>
+          <span class="tech-tag">github api</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-item grid-item-3" id="skills">
+      <ul class="skill-list">
+        <li>
+          <span>javascript</span>
+          <span class="skill-level">expert</span>
+        </li>
+        <li>
+          <span>react.js</span>
+          <span class="skill-level">advanced</span>
+        </li>
+        <li>
+          <span>node.js</span>
+          <span class="skill-level">advanced</span>
+        </li>
+        <li>
+          <span>python</span>
+          <span class="skill-level">advanced</span>
+        </li>
+        <li>
+          <span>mongodb</span>
+          <span class="skill-level">proficient</span>
+        </li>
+        <li>
+          <span>postgresql</span>
+          <span class="skill-level">advanced</span>
+        </li>
+        <li>
+          <span>rest apis</span>
+          <span class="skill-level">advanced</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="restock-section" id="contact">
+    <div class="restock-content">
+      <h2>let's collaborate</h2>
+      <p>
+        currently seeking opportunities in full-stack development. 
+        experienced in modern javascript frameworks, database design, and creating 
+        scalable web applications. ready to bring fresh ideas and technical expertise to your team.
+      </p>
+      <button class="contact-button" onclick="window.open('mailto:nrndbrma@gmail.com')">
+        get:in:touch
+      </button>
+    </div>
+  </section>
+
+  <script src="../scripts/careerPage.js"></script>
+</body>
+</html>
