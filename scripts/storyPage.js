@@ -86,7 +86,7 @@ function initDynamicMusicPlayer() {
 
 async function loadSpotifyData() {
     try {
-        const response = await fetch('enrinjr.com/api/spotify');
+        const response = await fetch('https://enrinjr.com/api/spotify');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
