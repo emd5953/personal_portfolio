@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enrin Debbarma</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400;500;600;700&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/style.css">
     
     <!-- Vercel Analytics -->
@@ -14,17 +14,21 @@
     <!-- Custom cursor -->
     <div class="cursor"></div>
 
-    <!-- Background particles -->
-    <div class="particles"></div>
+    <!-- Subtle grid background -->
+    <div class="grid-background"></div>
+
+    <!-- Floating shapes -->
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
 
     <!-- Name in corner -->
-    <div class="name">Enrin.......?</div>
+    <div class="name">@enrinjr</div>
 
     <!-- Main container -->
     <div class="container">
         <!-- Center button -->
         <button class="choose-path-btn" id="choosePathBtn">
-            Choose A Path
+            Choose Your Path
         </button>
 
         <!-- Paths container -->
@@ -32,11 +36,11 @@
             <!-- Left path - Career Mode -->
             <div class="path path-left">
                 <div class="path-line left"></div>
-                <div class="path-content" onclick="goToCareer()">
-                    <span class="path-icon">💼</span>
-                    <h2 class="path-title">Career Mode</h2>
+                <div class="path-content" onclick="goToCareer()" tabindex="0">
+                    <span class="path-icon">◐</span>
+                    <h2 class="path-title">Career</h2>
                     <p class="path-description">
-                        Explore my technical journey, skills, projects, and professional experience in the world of software development.
+                        Technical expertise, innovative projects, and professional milestones in software development.
                     </p>
                 </div>
             </div>
@@ -44,11 +48,11 @@
             <!-- Right path - Story Mode -->
             <div class="path path-right">
                 <div class="path-line right"></div>
-                <div class="path-content" onclick="goToStory()">
-                    <span class="path-icon">📖</span>
-                    <h2 class="path-title">Story Mode</h2>
+                <div class="path-content" onclick="goToStory()" tabindex="0">
+                    <span class="path-icon">◑</span>
+                    <h2 class="path-title">Story</h2>
                     <p class="path-description">
-                        Discover the human behind the code. My personal journey, experiences, and the stories that shaped who I am today.
+                        Personal journey, creative pursuits, and the experiences that shape perspective.
                     </p>
                 </div>
             </div>

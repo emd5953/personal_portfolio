@@ -90,7 +90,7 @@ nav {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 0px;
 }
 
 .section__pic-container {
@@ -353,9 +353,9 @@ nav {
 
 .skills-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 40px;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -511,9 +511,222 @@ footer p {
   margin: 0;
 }
 
+/* Experience Section */
+.experience-section {
+  background: #f0f0f0;
+  padding: 80px 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.experience-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.experience-container .section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+  text-transform: lowercase;
+  margin-bottom: 50px;
+}
+
+.experience-card {
+  background: white;
+  border-radius: 12px;
+  padding: 35px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.experience-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.experience-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.experience-title h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  text-transform: lowercase;
+  margin: 0 0 5px 0;
+}
+
+.company {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 400;
+}
+
+.experience-date {
+  font-size: 0.85rem;
+  color: #999;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+.experience-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.experience-details li {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.experience-details li:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #333;
+  font-weight: 700;
+}
+
+.experience-details li:last-child {
+  margin-bottom: 0;
+}
+
+.company a:hover {
+  color: #333 !important;
+}
+
+/* Education Section */
+.education-section {
+  background: #e8e8e8;
+  padding: 80px 20px;
+  min-height: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.education-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.education-container .section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+  text-transform: lowercase;
+  margin-bottom: 50px;
+}
+
+.education-card {
+  background: white;
+  border-radius: 12px;
+  padding: 35px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.education-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.education-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.education-title h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  text-transform: lowercase;
+  margin: 0 0 5px 0;
+}
+
+.degree {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.education-info {
+  text-align: right;
+}
+
+.location {
+  font-size: 0.85rem;
+  color: #999;
+  font-weight: 300;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.education-date {
+  font-size: 0.85rem;
+  color: #999;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+.coursework {
+  margin-top: 20px;
+}
+
+.coursework h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  text-transform: lowercase;
+  margin-bottom: 12px;
+}
+
+.course-list {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.7;
+}
+
 /* Mobile responsiveness */
+@media (max-width: 968px) {
+  .skills-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  
+  .skills-column:last-child {
+    grid-column: 1 / -1;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 768px) {
-  .about-section, .projects-section, .skills-section {
+  .about-section, .projects-section, .skills-section, .experience-section, .education-section {
     padding: 60px 20px;
     min-height: auto;
   }
@@ -540,7 +753,7 @@ footer p {
     padding: 15px 20px;
   }
   
-  .about-container h2, .section-title, .skills-container h2 {
+  .about-container h2, .section-title, .skills-container h2, .experience-container .section-title, .education-container .section-title {
     font-size: 2rem;
   }
   
@@ -578,6 +791,10 @@ footer p {
     gap: 30px;
   }
   
+  .skills-column:last-child {
+    max-width: none;
+  }
+  
   .btn-container {
     flex-direction: column;
     align-items: center;
@@ -606,11 +823,55 @@ footer p {
     max-width: 100%;
     font-size: 0.9rem;
   }
+  
+  .experience-container .section-title, .education-container .section-title {
+    margin-bottom: 30px;
+  }
+  
+  .experience-card, .education-card {
+    padding: 25px;
+    margin-bottom: 20px;
+  }
+  
+  .experience-header, .education-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .experience-title h3, .education-title h3 {
+    font-size: 1.1rem;
+  }
+  
+  .company, .degree {
+    font-size: 0.85rem;
+  }
+  
+  .experience-date, .education-date, .location {
+    font-size: 0.8rem;
+  }
+  
+  .experience-details li {
+    font-size: 0.85rem;
+    padding-left: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .coursework h4 {
+    font-size: 0.9rem;
+  }
+  
+  .course-list {
+    font-size: 0.85rem;
+  }
+  
+  .education-info {
+    text-align: left;
+  }
 }
 
 /* Extra small devices */
 @media (max-width: 480px) {
-  .about-section, .projects-section, .skills-section {
+  .about-section, .projects-section, .skills-section, .experience-section, .education-section {
     padding: 40px 15px;
   }
   
@@ -628,7 +889,7 @@ footer p {
     height: 120px;
   }
   
-  .about-container h2, .section-title, .skills-container h2 {
+  .about-container h2, .section-title, .skills-container h2, .experience-container .section-title, .education-container .section-title {
     font-size: 1.7rem;
   }
   
@@ -665,18 +926,6 @@ footer p {
   .restock-content h2 {
     font-size: 1.5rem;
   }
-}
-
-/* Extra small devices */
-@media (max-width: 480px) {
-  .hero h1 {
-    font-size: 2rem;
-  }
-  
-  .section__pic-container {
-    width: 150px;
-    height: 150px;
-  }
   
   .grid-item {
     padding: 25px 15px;
@@ -691,7 +940,6 @@ footer p {
   }
   
   .project-card {
-    padding: 15px;
     margin-bottom: 15px;
   }
   
@@ -725,12 +973,34 @@ footer p {
     gap: 5px;
   }
   
-  .restock-content h2 {
+  .grid-item-1 h2 {
     font-size: 1.5rem;
   }
   
-  .grid-item-1 h2 {
-    font-size: 1.5rem;
+  .experience-card, .education-card {
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .experience-title h3, .education-title h3 {
+    font-size: 1rem;
+  }
+  
+  .company, .degree {
+    font-size: 0.8rem;
+  }
+  
+  .experience-details li {
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  
+  .coursework h4 {
+    font-size: 0.85rem;
+  }
+  
+  .course-list {
+    font-size: 0.8rem;
   }
 }
 
