@@ -1,10 +1,10 @@
-// Clean, minimal story page interactions
+// Clean, minimal story page interactions with dynamic music
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📄 Story loaded');
     
     initNavigation();
     initScrollAnimations();
-    initMusicPlayer();
+    initDynamicMusicPlayer(); // Updated to use dynamic content
     initProgressIndicator();
     
     console.log('✨ Ready');
@@ -75,80 +75,54 @@ function initScrollAnimations() {
     });
 }
 
-// Music player functionality
-function initMusicPlayer() {
-    const controlBtns = document.querySelectorAll('.control-btn');
-    const tracks = [
-        { title: "obstacles", artist: "syd matters", mood: "nostalgic" },
-        { title: "spanish sahara", artist: "foals", mood: "melancholy" },
-        { title: "mountains", artist: "message to bears", mood: "dreamy" },
-        { title: "something good", artist: "alt-j", mood: "hopeful" },
-        { title: "crosses", artist: "josé gonzález", mood: "peaceful" }
-    ];
+// Dynamic Music Player functionality with Spotify Integration
+function initDynamicMusicPlayer() {
+    // Load Spotify data from your API
+    loadSpotifyData();
     
-    let currentTrack = 0;
-    
-    controlBtns.forEach((btn, index) => {
-        btn.addEventListener('click', function() {
-            // Simple click feedback
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 100);
-            
-            if (index === 1) { // Play button
-                playTrack();
-            } else if (index === 2) { // Next button
-                nextTrack();
-            } else if (index === 0) { // Previous button
-                prevTrack();
-            }
-        });
-    });
-    
-    function updateTrackDisplay() {
-        const track = tracks[currentTrack];
-        const titleEl = document.querySelector('.track-title');
-        const artistEl = document.querySelector('.track-artist');
-        const moodEl = document.querySelector('.track-mood');
+    // Refresh every 5 minutes
+    setInterval(loadSpotifyData, 5 * 60 * 1000);
+}
+
+async function loadSpotifyData() {
+    try {
+        // Replace with your actual Vercel URL after deployment
+        const response = await fetch('/api/spotify');
+        const data = await response.json();
         
-        if (titleEl && artistEl && moodEl) {
-            titleEl.textContent = track.title;
-            artistEl.textContent = track.artist;
-            moodEl.textContent = track.mood;
-        }
-    }
-    
-    function playTrack() {
-        updateTrackDisplay();
-        showNotification(`♪ playing ${tracks[currentTrack].title}`);
-    }
-    
-    function nextTrack() {
-        currentTrack = (currentTrack + 1) % tracks.length;
-        updateTrackDisplay();
-        showNotification(`→ ${tracks[currentTrack].title}`);
-    }
-    
-    function prevTrack() {
-        currentTrack = currentTrack === 0 ? tracks.length - 1 : currentTrack - 1;
-        updateTrackDisplay();
-        showNotification(`← ${tracks[currentTrack].title}`);
-    }
-    
-    // Playlist interactions
-    document.querySelectorAll('.playlist-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const name = this.querySelector('.playlist-name').textContent;
-            showNotification(`🎵 ${name}`);
+        if (data.mostPlayed) {
+            // Update the main track embed
+            document.getElementById('spotify-embed').src = 
+                `https://open.spotify.com/embed/track/${data.mostPlayed.trackId}?utm_source=generator&theme=0`;
             
-            // Visual feedback
-            this.style.transform = 'translateY(-4px)';
-            setTimeout(() => {
-                this.style.transform = 'translateY(0)';
-            }, 200);
-        });
-    });
+            // Show play count
+            const indicator = document.querySelector('.today-indicator');
+            indicator.innerHTML = `today's most played <span style="color: var(--text-secondary); font-weight: normal;">(${data.mostPlayed.playCount} plays)</span>`;
+        }
+        
+        if (data.playlists && data.playlists.length > 0) {
+            // Update playlist embeds
+            const container = document.querySelector('.spotify-playlists');
+            container.innerHTML = data.playlists.map(playlist => `
+                <div class="spotify-playlist-item">
+                    <iframe style="border-radius:12px" 
+                            src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0" 
+                            width="100%" 
+                            height="152" 
+                            frameBorder="0" 
+                            allowfullscreen="" 
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                            loading="lazy">
+                    </iframe>
+                </div>
+            `).join('');
+        }
+        
+    } catch (error) {
+        console.error('Error loading Spotify data:', error);
+        // Fallback to default embeds if API fails
+        console.log('Using fallback Spotify embeds');
+    }
 }
 
 // Progress indicator functionality
@@ -351,7 +325,12 @@ window.addEventListener('scroll', throttle(function() {
 
 // Console info
 console.log(`
-📄 story mode
+📄 story mode - dynamic edition
+
+today's music updates automatically!
+- most played song of the day is featured
+- 3 random playlists rotate daily
+- play counts track your listening
 
 navigation:
 - scroll or arrow keys: move between sections

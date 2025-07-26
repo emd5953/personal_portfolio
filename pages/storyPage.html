@@ -113,10 +113,11 @@
             </div>
 
             <div class="music-player scroll-reveal">
+                <div class="today-indicator">today's most played</div>
                 <div class="current-track">
-                    <div class="track-title">obstacles</div>
-                    <div class="track-artist">syd matters</div>
-                    <div class="track-mood">nostalgic</div>
+                    <div class="track-title">loading...</div>
+                    <div class="track-artist">loading...</div>
+                    <div class="track-mood">loading...</div>
                 </div>
 
                 <div class="player-controls">
@@ -126,27 +127,9 @@
                     <button class="control-btn">🔀</button>
                 </div>
 
-                <div class="playlist-grid">
-                    <div class="playlist-item">
-                        <div class="playlist-icon">🌙</div>
-                        <div class="playlist-name">late night coding</div>
-                        <div class="playlist-description">ambient beats for deep focus</div>
-                    </div>
-                    <div class="playlist-item">
-                        <div class="playlist-icon">☔</div>
-                        <div class="playlist-name">rainy day acoustics</div>
-                        <div class="playlist-description">gentle melodies for reflection</div>
-                    </div>
-                    <div class="playlist-item">
-                        <div class="playlist-icon">🎸</div>
-                        <div class="playlist-name">indie discoveries</div>
-                        <div class="playlist-description">fresh finds and hidden gems</div>
-                    </div>
-                    <div class="playlist-item">
-                        <div class="playlist-icon">📻</div>
-                        <div class="playlist-name">nostalgic hits</div>
-                        <div class="playlist-description">songs that shaped my taste</div>
-                    </div>
+                <div class="featured-playlists-header">featured playlists today</div>
+                <div class="playlist-grid" id="dynamic-playlists">
+                    <!-- Playlists will be dynamically inserted here -->
                 </div>
             </div>
         </div>
@@ -223,5 +206,26 @@
     </section>
 
     <script src="../scripts/storyPage.js"></script>
+    
+    <style>
+        /* Additional styles for the dynamic music section */
+        .today-indicator {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        
+        .featured-playlists-header {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: lowercase;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+    </style>
 </body>
 </html>
