@@ -3,8 +3,8 @@ export default async function handler(req, res) {
     const { code } = req.query;
     
     // REPLACE THESE WITH YOUR ACTUAL VALUES
-    const CLIENT_ID = SPOTIFY_CLIENT_ID;
-    const CLIENT_SECRET = SPOTIFY_CLIENT_SECRET;
+    const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+    const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
     const REDIRECT_URI = 'https://www.enrinjr.com/api/get-token';
     
     if (!code) {
