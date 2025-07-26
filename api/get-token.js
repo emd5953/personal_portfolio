@@ -3,8 +3,8 @@ export default async function handler(req, res) {
     const { code } = req.query;
     
     // REPLACE THESE WITH YOUR ACTUAL VALUES
-    const CLIENT_ID = 'paste_your_client_id_here';
-    const CLIENT_SECRET = 'paste_your_client_secret_here';
+    const CLIENT_ID = SPOTIFY_CLIENT_ID;
+    const CLIENT_SECRET = SPOTIFY_CLIENT_SECRET;
     const REDIRECT_URI = 'https://www.enrinjr.com/api/get-token';
     
     if (!code) {
