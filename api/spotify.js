@@ -1,4 +1,4 @@
-// api/spotify.js - Place this in your project's api folder
+// api/spotify.js - Updated to show only playlists YOU created
 export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -34,6 +34,18 @@ export default async function handler(req, res) {
         }
         
         const { access_token } = await tokenResponse.json();
+        
+        // Get current user info
+        const userResponse = await fetch('https://api.spotify.com/v1/me', {
+            headers: { 'Authorization': `Bearer ${access_token}` }
+        });
+        
+        if (!userResponse.ok) {
+            return res.status(500).json({ error: 'Failed to get user info' });
+        }
+        
+        const userData = await userResponse.json();
+        const userId = userData.id;
         
         // Get recently played tracks
         const recentResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
@@ -96,10 +108,22 @@ export default async function handler(req, res) {
             const playlistsData = await playlistsResponse.json();
             
             if (playlistsData.items && playlistsData.items.length > 0) {
-                // Filter only public playlists and select 3 random ones
-                const publicPlaylists = playlistsData.items.filter(p => p.public);
-                const shuffled = publicPlaylists.sort(() => Math.random() - 0.5);
+                // Filter only playlists created by YOU (not followed playlists)
+                const myPlaylists = playlistsData.items.filter(p => 
+                    p.owner.id === userId && // Only playlists you own
+                    p.public // Only public playlists
+                );
+                
+                console.log(`Found ${myPlaylists.length} playlists created by ${userId}`);
+                
+                // Randomly select 3 of your own playlists
+                const shuffled = myPlaylists.sort(() => Math.random() - 0.5);
                 selectedPlaylists = shuffled.slice(0, 3);
+                
+                // If you have fewer than 3 playlists, just use what's available
+                if (selectedPlaylists.length === 0) {
+                    console.log('No public playlists found created by you');
+                }
             }
         }
         
@@ -117,8 +141,11 @@ export default async function handler(req, res) {
                 id: p.id,
                 name: p.name,
                 tracks: p.tracks.total,
-                image: p.images[0]?.url
+                image: p.images[0]?.url,
+                owner: p.owner.display_name || p.owner.id
             })),
+            userId: userId,
+            playlistsFound: selectedPlaylists.length,
             lastUpdated: new Date().toISOString()
         };
         
