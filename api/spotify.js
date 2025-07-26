@@ -80,35 +80,3 @@ export default async function handler(req, res) {
     }
 }
 
-// ===== SETUP INSTRUCTIONS =====
-/*
-1. Create a Spotify App:
-   - Go to https://developer.spotify.com/dashboard
-   - Create an app
-   - Add https://your-site.vercel.app/callback as redirect URI
-   - Copy Client ID and Client Secret
-
-2. Get your refresh token (one-time setup):
-   OPTION A - Use the online tool (easiest):
-   - Go to: https://spotify-refresh-token.herokuapp.com/
-   - Follow the instructions there
-   
-   OPTION B - Use your own domain:
-   - Visit this URL in your browser (replace YOUR_CLIENT_ID and YOUR_DOMAIN):
-     https://accounts.spotify.com/authorize?client_id=YOUR_CLIENT_ID&response_type=code&redirect_uri=https://YOUR_DOMAIN/callback&scope=user-read-recently-played,playlist-read-private
-   
-   - After authorizing, you'll get a code in the URL
-   - Exchange it for a refresh token using Postman or curl
-
-3. Add to Vercel Environment Variables:
-   - Go to your Vercel project settings
-   - Add these environment variables:
-     SPOTIFY_CLIENT_ID = your_client_id
-     SPOTIFY_CLIENT_SECRET = your_client_secret  
-     SPOTIFY_REFRESH_TOKEN = your_refresh_token
-
-4. Deploy to Vercel
-
-5. Your API will be available at:
-   https://your-site.vercel.app/api/spotify
-*/
