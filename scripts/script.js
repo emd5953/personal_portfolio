@@ -93,14 +93,68 @@ function resetPaths() {
     }
 }
 
+// Reset page state function
+function resetPageState() {
+    // Reset all states
+    pathsRevealed = false;
+    pathsContainer.classList.remove('visible');
+    choosePathBtn.classList.remove('hidden');
+    
+    // Reset body opacity
+    document.body.style.opacity = '1';
+    
+    // Reset cursor position
+    currentX = window.innerWidth / 2;
+    currentY = window.innerHeight / 2;
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+    
+    console.log('Page state reset');
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if we're coming back via back button
+    if (performance.navigation.type === 2) {
+        console.log('Page loaded from cache - resetting state');
+        resetPageState();
+    }
+    
     // Add entrance animation
     document.body.style.opacity = '0';
     setTimeout(() => {
         document.body.style.transition = 'opacity 0.6s ease';
         document.body.style.opacity = '1';
     }, 100);
+});
+
+// Handle page show event (fires when coming back via back button)
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        console.log('Page restored from bfcache');
+        resetPageState();
+        // Force a small delay then reload to ensure clean state
+        setTimeout(() => {
+            window.location.reload();
+        }, 10);
+    }
+});
+
+// Handle visibility change
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        // Page is visible again, check if we need to reset
+        if (sessionStorage.getItem('needsReset') === 'true') {
+            sessionStorage.removeItem('needsReset');
+            resetPageState();
+        }
+    }
+});
+
+// Mark that we're leaving the page
+window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('needsReset', 'true');
 });
 
 // Keyboard navigation
@@ -164,15 +218,6 @@ document.addEventListener('wheel', (e) => {
 // Prevent context menu
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-});
-
-// Handle visibility change (pause animations when tab is not visible)
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        // Pause animations if needed
-    } else {
-        // Resume animations if needed
-    }
 });
 
 // Window resize handler
