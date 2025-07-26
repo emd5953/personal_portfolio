@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initNavigation();
     initScrollAnimations();
-    initDynamicMusicPlayer(); // Updated to use dynamic content
+    initDynamicMusicPlayer();
     initProgressIndicator();
     
     console.log('✨ Ready');
@@ -86,42 +86,132 @@ function initDynamicMusicPlayer() {
 
 async function loadSpotifyData() {
     try {
-        // Replace with your actual Vercel URL after deployment
-        const response = await fetch('/api/spotify');
+        const response = await fetch('enrinjr.com/api/spotify');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.mostPlayed) {
-            // Update the main track embed
-            document.getElementById('spotify-embed').src = 
-                `https://open.spotify.com/embed/track/${data.mostPlayed.trackId}?utm_source=generator&theme=0`;
-            
-            // Show play count
+            // Update the current track display
+            const trackTitle = document.querySelector('.track-title');
+            const trackArtist = document.querySelector('.track-artist');
+            const trackMood = document.querySelector('.track-mood');
             const indicator = document.querySelector('.today-indicator');
-            indicator.innerHTML = `today's most played <span style="color: var(--text-secondary); font-weight: normal;">(${data.mostPlayed.playCount} plays)</span>`;
+            
+            if (trackTitle) trackTitle.textContent = data.mostPlayed.name;
+            if (trackArtist) trackArtist.textContent = data.mostPlayed.artist;
+            if (trackMood) trackMood.textContent = 'vibes';
+            if (indicator) {
+                indicator.innerHTML = `today's most played <span style="color: var(--text-secondary); font-weight: normal;">(${data.mostPlayed.playCount} plays)</span>`;
+            }
+            
+            // Add Spotify embed for the most played track
+            const musicPlayer = document.querySelector('.music-player');
+            let embedContainer = document.getElementById('spotify-embed-container');
+            
+            if (!embedContainer) {
+                embedContainer = document.createElement('div');
+                embedContainer.id = 'spotify-embed-container';
+                embedContainer.style.marginTop = '20px';
+                musicPlayer.insertBefore(embedContainer, document.querySelector('.featured-playlists-header'));
+            }
+            
+            embedContainer.innerHTML = `
+                <iframe style="border-radius:12px" 
+                        src="https://open.spotify.com/embed/track/${data.mostPlayed.trackId}?utm_source=generator&theme=0" 
+                        width="100%" 
+                        height="152" 
+                        frameBorder="0" 
+                        allowfullscreen="" 
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        loading="lazy">
+                </iframe>
+            `;
         }
         
         if (data.playlists && data.playlists.length > 0) {
-            // Update playlist embeds
-            const container = document.querySelector('.spotify-playlists');
-            container.innerHTML = data.playlists.map(playlist => `
-                <div class="spotify-playlist-item">
-                    <iframe style="border-radius:12px" 
-                            src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0" 
-                            width="100%" 
-                            height="152" 
-                            frameBorder="0" 
-                            allowfullscreen="" 
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                            loading="lazy">
-                    </iframe>
-                </div>
-            `).join('');
+            // Update playlist grid
+            const playlistGrid = document.getElementById('dynamic-playlists');
+            if (playlistGrid) {
+                playlistGrid.innerHTML = data.playlists.map(playlist => `
+                    <div class="playlist-item">
+                        <iframe style="border-radius:12px" 
+                                src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0" 
+                                width="100%" 
+                                height="152" 
+                                frameBorder="0" 
+                                allowfullscreen="" 
+                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                                loading="lazy">
+                        </iframe>
+                        <div class="playlist-name">${playlist.name}</div>
+                    </div>
+                `).join('');
+            }
         }
         
     } catch (error) {
         console.error('Error loading Spotify data:', error);
-        // Fallback to default embeds if API fails
+        // Fallback to static example embeds
         console.log('Using fallback Spotify embeds');
+        
+        // Update display with fallback data
+        const trackTitle = document.querySelector('.track-title');
+        const trackArtist = document.querySelector('.track-artist');
+        const trackMood = document.querySelector('.track-mood');
+        
+        if (trackTitle) trackTitle.textContent = 'No data available';
+        if (trackArtist) trackArtist.textContent = 'Connect Spotify API';
+        if (trackMood) trackMood.textContent = 'offline mode';
+        
+        // Add example embed
+        const musicPlayer = document.querySelector('.music-player');
+        let embedContainer = document.getElementById('spotify-embed-container');
+        
+        if (!embedContainer) {
+            embedContainer = document.createElement('div');
+            embedContainer.id = 'spotify-embed-container';
+            embedContainer.style.marginTop = '20px';
+            musicPlayer.insertBefore(embedContainer, document.querySelector('.featured-playlists-header'));
+        }
+        
+        // Example track embed (replace with your favorite track ID)
+        embedContainer.innerHTML = `
+            <iframe style="border-radius:12px" 
+                    src="https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp?utm_source=generator&theme=0" 
+                    width="100%" 
+                    height="152" 
+                    frameBorder="0" 
+                    allowfullscreen="" 
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                    loading="lazy">
+            </iframe>
+        `;
+        
+        // Add example playlists
+        const playlistGrid = document.getElementById('dynamic-playlists');
+        if (playlistGrid) {
+            playlistGrid.innerHTML = `
+                <div class="playlist-item">
+                    <div class="playlist-icon">🎵</div>
+                    <div class="playlist-name">late night coding</div>
+                    <div class="playlist-description">focus mode activated</div>
+                </div>
+                <div class="playlist-item">
+                    <div class="playlist-icon">☕</div>
+                    <div class="playlist-name">morning vibes</div>
+                    <div class="playlist-description">start the day right</div>
+                </div>
+                <div class="playlist-item">
+                    <div class="playlist-icon">🌃</div>
+                    <div class="playlist-name">midnight thoughts</div>
+                    <div class="playlist-description">deep contemplation</div>
+                </div>
+            `;
+        }
     }
 }
 
