@@ -2,13 +2,31 @@
 const cursor = document.querySelector('.cursor');
 let mouseX = 0;
 let mouseY = 0;
+let currentX = 0;
+let currentY = 0;
 
+// Update mouse position
 document.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    cursor.style.left = mouseX + 'px';
-    cursor.style.top = mouseY + 'px';
 });
+
+// Smooth cursor animation
+function animateCursor() {
+    const dx = mouseX - currentX;
+    const dy = mouseY - currentY;
+    
+    currentX += dx * 0.2;
+    currentY += dy * 0.2;
+    
+    cursor.style.left = currentX + 'px';
+    cursor.style.top = currentY + 'px';
+    
+    requestAnimationFrame(animateCursor);
+}
+
+// Start cursor animation
+animateCursor();
 
 // Cursor hover effects
 const hoverElements = document.querySelectorAll('.choose-path-btn, .path-content');
@@ -22,37 +40,14 @@ hoverElements.forEach(element => {
     });
 });
 
-// Create floating particles
-function createParticles() {
-    const particlesContainer = document.querySelector('.particles');
-    const particleCount = 50;
-
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('particle');
-        
-        // Random position
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.top = Math.random() * 100 + '%';
-        
-        // Random animation delay
-        particle.style.animationDelay = Math.random() * 6 + 's';
-        particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
-        
-        particlesContainer.appendChild(particle);
-    }
-}
-
 // Path reveal functionality
 const choosePathBtn = document.getElementById('choosePathBtn');
 const pathsContainer = document.getElementById('pathsContainer');
 let pathsRevealed = false;
 
-choosePathBtn.addEventListener('mouseenter', () => {
+choosePathBtn.addEventListener('click', () => {
     if (!pathsRevealed) {
-        setTimeout(() => {
-            revealPaths();
-        }, 300);
+        revealPaths();
     }
 });
 
@@ -67,47 +62,29 @@ function revealPaths() {
     // Show the paths
     setTimeout(() => {
         pathsContainer.classList.add('visible');
-    }, 400);
+    }, 300);
 }
 
 // Navigation functions
 function goToCareer() {
-    // Add exit animation
-    document.body.style.transition = 'opacity 0.5s ease';
+    document.body.style.transition = 'opacity 0.3s ease';
     document.body.style.opacity = '0';
     
     setTimeout(() => {
-        window.location.href = '../pages/careerPage.html'; // Your existing portfolio
-    }, 500);
+        window.location.href = '../pages/careerPage.html';
+    }, 300);
 }
 
 function goToStory() {
-    // Add exit animation
-    document.body.style.transition = 'opacity 0.5s ease';
+    document.body.style.transition = 'opacity 0.3s ease';
     document.body.style.opacity = '0';
     
     setTimeout(() => {
-        window.location.href = '../pages/storyPage.html'; // Your story page
-    }, 500);
+        window.location.href = '../pages/storyPage.html';
+    }, 300);
 }
 
-// Initialize particles when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    createParticles();
-    
-    // Add entrance animation
-    document.body.style.opacity = '0';
-    setTimeout(() => {
-        document.body.style.transition = 'opacity 1s ease';
-        document.body.style.opacity = '1';
-    }, 100);
-});
-
-// Reset functionality if user moves mouse away
-document.addEventListener('mouseleave', () => {
-    resetPaths();
-});
-
+// Reset paths function
 function resetPaths() {
     if (pathsRevealed) {
         pathsRevealed = false;
@@ -116,15 +93,31 @@ function resetPaths() {
     }
 }
 
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+    // Add entrance animation
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+        document.body.style.transition = 'opacity 0.6s ease';
+        document.body.style.opacity = '1';
+    }, 100);
+});
+
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
     if (pathsRevealed) {
-        if (e.key === 'ArrowLeft' || e.key === '1') {
-            goToCareer();
-        } else if (e.key === 'ArrowRight' || e.key === '2') {
-            goToStory();
-        } else if (e.key === 'Escape') {
-            resetPaths();
+        switch(e.key) {
+            case 'ArrowLeft':
+            case '1':
+                goToCareer();
+                break;
+            case 'ArrowRight':
+            case '2':
+                goToStory();
+                break;
+            case 'Escape':
+                resetPaths();
+                break;
         }
     } else {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -134,7 +127,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Touch support for mobile
+// Touch support
 let touchStartTime = 0;
 
 choosePathBtn.addEventListener('touchstart', (e) => {
@@ -143,27 +136,24 @@ choosePathBtn.addEventListener('touchstart', (e) => {
 
 choosePathBtn.addEventListener('touchend', (e) => {
     e.preventDefault();
-    const touchDuration = Date.now() - touchStartTime;
-    
-    if (touchDuration > 500) { // Long press
+    if (!pathsRevealed) {
         revealPaths();
-    } else if (touchDuration < 200) { // Quick tap
-        // On mobile, show paths immediately on tap
-        if (!pathsRevealed) {
-            revealPaths();
-        }
     }
 });
 
-// Handle mobile path selection
-if (window.innerWidth <= 768) {
-    // On mobile, make the button more responsive
-    choosePathBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!pathsRevealed) {
-            revealPaths();
+// Path card keyboard support
+document.querySelectorAll('.path-content').forEach(card => {
+    card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            card.click();
         }
     });
+});
+
+// Hide cursor on touch devices
+if ('ontouchstart' in window) {
+    cursor.style.display = 'none';
 }
 
 // Smooth scroll prevention
@@ -176,21 +166,24 @@ document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });
 
-// Performance optimization: Throttle mouse move events
-let ticking = false;
-
-function updateCursor() {
-    cursor.style.left = mouseX + 'px';
-    cursor.style.top = mouseY + 'px';
-    ticking = false;
-}
-
-document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    
-    if (!ticking) {
-        requestAnimationFrame(updateCursor);
-        ticking = true;
+// Handle visibility change (pause animations when tab is not visible)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Pause animations if needed
+    } else {
+        // Resume animations if needed
     }
 });
+
+// Window resize handler
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        // Handle any resize-specific logic
+    }, 250);
+});
+
+// Export functions for external use if needed
+window.goToCareer = goToCareer;
+window.goToStory = goToStory;
