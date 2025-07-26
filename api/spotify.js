@@ -1,4 +1,4 @@
-// api/spotify.js - Updated to show only playlists YOU created
+// api/spotify.js - Updated with more accurate play counting
 export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,6 +14,55 @@ export default async function handler(req, res) {
             error: 'Missing Spotify credentials',
             details: 'Please set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REFRESH_TOKEN in Vercel environment variables'
         });
+    }
+    
+    // Helper function to fetch extended history
+    async function getExtendedHistory(access_token) {
+        let allTracks = [];
+        let after = null;
+        const today = new Date().toDateString();
+        
+        // Fetch up to 5 pages (250 tracks total)
+        for (let i = 0; i < 5; i++) {
+            const url = after 
+                ? `https://api.spotify.com/v1/me/player/recently-played?limit=50&after=${after}`
+                : 'https://api.spotify.com/v1/me/player/recently-played?limit=50';
+                
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${access_token}` }
+            });
+            
+            if (!response.ok) {
+                console.error(`Failed to fetch page ${i + 1} of history`);
+                break;
+            }
+            
+            const data = await response.json();
+            if (!data.items || data.items.length === 0) break;
+            
+            // Add tracks to our collection
+            allTracks = [...allTracks, ...data.items];
+            
+            // Check if we've gone past today
+            const oldestTrack = data.items[data.items.length - 1];
+            const oldestDate = new Date(oldestTrack.played_at).toDateString();
+            
+            if (oldestDate !== today) {
+                console.log(`Reached tracks from ${oldestDate}, stopping fetch`);
+                // Filter to only include today's tracks from this batch
+                allTracks = allTracks.filter(item => 
+                    new Date(item.played_at).toDateString() === today
+                );
+                break;
+            }
+            
+            // Get cursor for next page
+            after = data.cursors?.after;
+            if (!after) break;
+        }
+        
+        console.log(`Fetched ${allTracks.length} tracks from today`);
+        return allTracks;
     }
     
     try {
@@ -47,54 +96,65 @@ export default async function handler(req, res) {
         const userData = await userResponse.json();
         const userId = userData.id;
         
-        // Get recently played tracks
-        const recentResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
-            headers: { 'Authorization': `Bearer ${access_token}` }
-        });
+        // Get extended history for accurate counts
+        const allRecentTracks = await getExtendedHistory(access_token);
         
-        if (!recentResponse.ok) {
-            const errorData = await recentResponse.json();
-            console.error('Recent tracks error:', errorData);
-            return res.status(500).json({ error: 'Failed to get recent tracks', details: errorData });
-        }
-        
-        const recentData = await recentResponse.json();
-        
-        // Calculate today's most played
-        const today = new Date().toDateString();
+        // Calculate today's most played with better accuracy
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const todaysTracks = {};
         
-        if (recentData.items && recentData.items.length > 0) {
-            recentData.items.forEach(item => {
-                if (new Date(item.played_at).toDateString() === today) {
-                    const trackId = item.track.id;
-                    if (!todaysTracks[trackId]) {
-                        todaysTracks[trackId] = {
-                            track: item.track,
-                            count: 0
-                        };
-                    }
-                    todaysTracks[trackId].count++;
+        allRecentTracks.forEach(item => {
+            const playedAt = new Date(item.played_at);
+            
+            // Only count if played after today's start
+            if (playedAt >= todayStart) {
+                const trackId = item.track.id;
+                if (!todaysTracks[trackId]) {
+                    todaysTracks[trackId] = {
+                        track: item.track,
+                        count: 0,
+                        plays: [] // Store play times for debugging
+                    };
                 }
-            });
-        }
+                todaysTracks[trackId].count++;
+                todaysTracks[trackId].plays.push(playedAt);
+            }
+        });
         
-        // Get most played track (today's or most recent)
-        let mostPlayed;
+        // Get most played track with additional stats
+        let mostPlayed = null;
         const todaysTracksList = Object.values(todaysTracks);
         
         if (todaysTracksList.length > 0) {
-            // If we have today's tracks, get the most played
+            // Sort by play count
             mostPlayed = todaysTracksList.sort((a, b) => b.count - a.count)[0];
-        } else if (recentData.items && recentData.items.length > 0) {
-            // Otherwise, get the most recent track
-            mostPlayed = { 
-                track: recentData.items[0].track, 
-                count: 1 
+            
+            // Calculate listening pattern
+            const firstPlay = new Date(Math.min(...mostPlayed.plays.map(d => d.getTime())));
+            const lastPlay = new Date(Math.max(...mostPlayed.plays.map(d => d.getTime())));
+            const timeSpan = lastPlay - firstPlay;
+            const hoursSpan = Math.round(timeSpan / 3600000 * 10) / 10; // Round to 1 decimal
+            
+            console.log(`Most played: "${mostPlayed.track.name}" - ${mostPlayed.count} plays over ${hoursSpan} hours`);
+            
+            // Add extra stats to mostPlayed
+            mostPlayed.stats = {
+                firstPlayToday: firstPlay.toLocaleTimeString(),
+                lastPlayToday: lastPlay.toLocaleTimeString(),
+                hoursSpan: hoursSpan
             };
-        } else {
-            // No tracks available
-            mostPlayed = null;
+        } else if (allRecentTracks.length > 0) {
+            // Fallback to most recent track if no plays today
+            mostPlayed = { 
+                track: allRecentTracks[0].track, 
+                count: 1,
+                stats: {
+                    firstPlayToday: new Date(allRecentTracks[0].played_at).toLocaleTimeString(),
+                    lastPlayToday: new Date(allRecentTracks[0].played_at).toLocaleTimeString(),
+                    hoursSpan: 0
+                }
+            };
         }
         
         // Get user's playlists
@@ -116,18 +176,27 @@ export default async function handler(req, res) {
                 
                 console.log(`Found ${myPlaylists.length} playlists created by ${userId}`);
                 
-                // Randomly select 3 of your own playlists
-                const shuffled = myPlaylists.sort(() => Math.random() - 0.5);
+                // Daily rotation based on date seed
+                const dailySeed = new Date().toDateString().split('').reduce((a, b) => {
+                    return ((a << 5) - a) + b.charCodeAt(0);
+                }, 0);
+                
+                // Consistently shuffle based on daily seed
+                const shuffled = [...myPlaylists].sort((a, b) => {
+                    const seedA = Math.sin(dailySeed + a.id.charCodeAt(0)) * 10000;
+                    const seedB = Math.sin(dailySeed + b.id.charCodeAt(0)) * 10000;
+                    return (seedA - Math.floor(seedA)) - (seedB - Math.floor(seedB));
+                });
+                
                 selectedPlaylists = shuffled.slice(0, 3);
                 
-                // If you have fewer than 3 playlists, just use what's available
                 if (selectedPlaylists.length === 0) {
                     console.log('No public playlists found created by you');
                 }
             }
         }
         
-        // Build response
+        // Build response with debug info
         const response = {
             mostPlayed: mostPlayed ? {
                 trackId: mostPlayed.track.id,
@@ -135,7 +204,11 @@ export default async function handler(req, res) {
                 artist: mostPlayed.track.artists[0].name,
                 playCount: mostPlayed.count,
                 album: mostPlayed.track.album.name,
-                image: mostPlayed.track.album.images[0]?.url
+                image: mostPlayed.track.album.images[0]?.url,
+                // Include timing stats
+                firstPlayedToday: mostPlayed.stats.firstPlayToday,
+                lastPlayedToday: mostPlayed.stats.lastPlayToday,
+                listeningSpan: `${mostPlayed.stats.hoursSpan} hours`
             } : null,
             playlists: selectedPlaylists.map(p => ({
                 id: p.id,
@@ -144,6 +217,19 @@ export default async function handler(req, res) {
                 image: p.images[0]?.url,
                 owner: p.owner.display_name || p.owner.id
             })),
+            debug: {
+                totalTracksAnalyzed: allRecentTracks.length,
+                uniqueTracksToday: todaysTracksList.length,
+                totalPlaysToday: todaysTracksList.reduce((sum, t) => sum + t.count, 0),
+                topTracks: todaysTracksList
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5)
+                    .map(t => ({
+                        name: t.track.name,
+                        artist: t.track.artists[0].name,
+                        plays: t.count
+                    }))
+            },
             userId: userId,
             playlistsFound: selectedPlaylists.length,
             lastUpdated: new Date().toISOString()
