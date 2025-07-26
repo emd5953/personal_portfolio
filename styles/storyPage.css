@@ -576,3 +576,45 @@ html {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-grey);
 }
+
+/* Add these styles to your storyPage.css or in a <style> tag in your HTML */
+
+/* Spotify embed styling */
+#spotify-embed-container {
+    margin: 30px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.playlist-embed-container {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.playlist-embed-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Adjust the playlist grid for embeds */
+#dynamic-playlists {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+}
+
+/* Hide the mock player controls when using real embeds */
+.player-controls {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #dynamic-playlists {
+        grid-template-columns: 1fr;
+    }
+}
