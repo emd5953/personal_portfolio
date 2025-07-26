@@ -84,8 +84,13 @@ function initDynamicMusicPlayer() {
     setInterval(loadSpotifyData, 5 * 60 * 1000);
 }
 
+// Add this to your storyPage.js - Replace the loadSpotifyData function
+
 async function loadSpotifyData() {
+    console.log('🎵 Loading Spotify data...');
+    
     try {
+        // Use your working API endpoint
         const response = await fetch('https://enrinjr.com/api/spotify');
         
         if (!response.ok) {
@@ -93,6 +98,7 @@ async function loadSpotifyData() {
         }
         
         const data = await response.json();
+        console.log('✅ Spotify data loaded:', data);
         
         if (data.mostPlayed) {
             // Update the current track display
@@ -103,7 +109,7 @@ async function loadSpotifyData() {
             
             if (trackTitle) trackTitle.textContent = data.mostPlayed.name;
             if (trackArtist) trackArtist.textContent = data.mostPlayed.artist;
-            if (trackMood) trackMood.textContent = 'vibes';
+            if (trackMood) trackMood.textContent = `from ${data.mostPlayed.album}`;
             if (indicator) {
                 indicator.innerHTML = `today's most played <span style="color: var(--text-secondary); font-weight: normal;">(${data.mostPlayed.playCount} plays)</span>`;
             }
@@ -116,7 +122,10 @@ async function loadSpotifyData() {
                 embedContainer = document.createElement('div');
                 embedContainer.id = 'spotify-embed-container';
                 embedContainer.style.marginTop = '20px';
-                musicPlayer.insertBefore(embedContainer, document.querySelector('.featured-playlists-header'));
+                const featuredHeader = document.querySelector('.featured-playlists-header');
+                if (featuredHeader && musicPlayer) {
+                    musicPlayer.insertBefore(embedContainer, featuredHeader);
+                }
             }
             
             embedContainer.innerHTML = `
@@ -137,81 +146,38 @@ async function loadSpotifyData() {
             const playlistGrid = document.getElementById('dynamic-playlists');
             if (playlistGrid) {
                 playlistGrid.innerHTML = data.playlists.map(playlist => `
-                    <div class="playlist-item">
+                    <div class="playlist-embed-container">
                         <iframe style="border-radius:12px" 
                                 src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0" 
                                 width="100%" 
-                                height="152" 
+                                height="380" 
                                 frameBorder="0" 
                                 allowfullscreen="" 
                                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
                                 loading="lazy">
                         </iframe>
-                        <div class="playlist-name">${playlist.name}</div>
                     </div>
                 `).join('');
             }
         }
         
-    } catch (error) {
-        console.error('Error loading Spotify data:', error);
-        // Fallback to static example embeds
-        console.log('Using fallback Spotify embeds');
+        // Hide the placeholder player controls since we're using embeds
+        const playerControls = document.querySelector('.player-controls');
+        if (playerControls) {
+            playerControls.style.display = 'none';
+        }
         
-        // Update display with fallback data
+    } catch (error) {
+        console.error('❌ Error loading Spotify data:', error);
+        
+        // Update display with error message
         const trackTitle = document.querySelector('.track-title');
         const trackArtist = document.querySelector('.track-artist');
         const trackMood = document.querySelector('.track-mood');
         
-        if (trackTitle) trackTitle.textContent = 'No data available';
-        if (trackArtist) trackArtist.textContent = 'Connect Spotify API';
-        if (trackMood) trackMood.textContent = 'offline mode';
-        
-        // Add example embed
-        const musicPlayer = document.querySelector('.music-player');
-        let embedContainer = document.getElementById('spotify-embed-container');
-        
-        if (!embedContainer) {
-            embedContainer = document.createElement('div');
-            embedContainer.id = 'spotify-embed-container';
-            embedContainer.style.marginTop = '20px';
-            musicPlayer.insertBefore(embedContainer, document.querySelector('.featured-playlists-header'));
-        }
-        
-        // Example track embed (replace with your favorite track ID)
-        embedContainer.innerHTML = `
-            <iframe style="border-radius:12px" 
-                    src="https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp?utm_source=generator&theme=0" 
-                    width="100%" 
-                    height="152" 
-                    frameBorder="0" 
-                    allowfullscreen="" 
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                    loading="lazy">
-            </iframe>
-        `;
-        
-        // Add example playlists
-        const playlistGrid = document.getElementById('dynamic-playlists');
-        if (playlistGrid) {
-            playlistGrid.innerHTML = `
-                <div class="playlist-item">
-                    <div class="playlist-icon">🎵</div>
-                    <div class="playlist-name">late night coding</div>
-                    <div class="playlist-description">focus mode activated</div>
-                </div>
-                <div class="playlist-item">
-                    <div class="playlist-icon">☕</div>
-                    <div class="playlist-name">morning vibes</div>
-                    <div class="playlist-description">start the day right</div>
-                </div>
-                <div class="playlist-item">
-                    <div class="playlist-icon">🌃</div>
-                    <div class="playlist-name">midnight thoughts</div>
-                    <div class="playlist-description">deep contemplation</div>
-                </div>
-            `;
-        }
+        if (trackTitle) trackTitle.textContent = 'Unable to load';
+        if (trackArtist) trackArtist.textContent = 'Check console for details';
+        if (trackMood) trackMood.textContent = error.message;
     }
 }
 
