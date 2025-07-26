@@ -91,7 +91,7 @@ async function loadSpotifyData() {
     
     try {
         // Use your working API endpoint
-        const response = await fetch('https://enrinjr.com/api/spotify');
+        const response = await fetch('https://www.enrinjr.com/api/spotify');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
