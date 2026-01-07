@@ -152,7 +152,7 @@ export default async function handler(req, res) {
         
         <!-- Header -->
         <text x="20" y="25" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          ♪ what i'm listening to today
+           what i'm listening to today
         </text>
         
         ${currentTrack ? `
@@ -173,7 +173,7 @@ export default async function handler(req, res) {
         ${playlistOfTheDay ? `
         <!-- Playlist of the Day -->
         <text x="20" y="95" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="11" font-weight="bold">
-          ♫ PLAYLIST OF THE DAY
+           playlist of the day
         </text>
         
         <text x="20" y="115" fill="white" font-family="Arial, sans-serif" font-size="13" font-weight="bold">
