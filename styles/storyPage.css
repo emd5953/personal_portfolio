@@ -486,39 +486,39 @@ body {
     .story-nav {
         padding: 0 20px;
     }
-    
+
     .nav-sections {
         display: none;
     }
-    
+
     .intro-content,
     .section-container {
         padding: 0 20px;
     }
-    
+
     .thoughts-grid {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    
+
     .thought-card,
     .timeline-content {
         padding: 24px;
     }
-    
+
     .playlist-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;
     }
-    
+
     .timeline-item {
         gap: 20px;
     }
-    
+
     .timeline-line {
         left: 16px;
     }
-    
+
     .progress-indicator {
         right: 20px;
     }
@@ -528,27 +528,27 @@ body {
     .content-section {
         padding: 100px 0 60px;
     }
-    
+
     .section-header {
         margin-bottom: 60px;
     }
-    
+
     .thought-meta {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
-    
+
     .player-controls {
         gap: 12px;
     }
-    
+
     .control-btn {
         width: 40px;
         height: 40px;
         font-size: 16px;
     }
-    
+
     .playlist-grid {
         grid-template-columns: 1fr;
     }
@@ -576,8 +576,6 @@ html {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-grey);
 }
-
-/* Add these styles to your storyPage.css or in a <style> tag in your HTML */
 
 /* Spotify embed styling */
 #spotify-embed-container {
