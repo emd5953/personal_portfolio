@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
 
     if (!clientId || !clientSecret || !refreshToken) {
-      return generateErrorCard('Missing Spotify credentials');
+      return res.status(200).send(generateErrorCard('Missing Spotify credentials'));
     }
 
     // Get access token
@@ -28,72 +28,82 @@ export default async function handler(req, res) {
     });
 
     if (!tokenResponse.ok) {
-      return generateErrorCard('Token refresh failed');
+      return res.status(200).send(generateErrorCard('Token refresh failed'));
     }
 
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
 
-    // Get recently played tracks
+    // Get user profile
+    const userResponse = await fetch('https://api.spotify.com/v1/me', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    if (!userResponse.ok) {
+      return res.status(200).send(generateErrorCard('Failed to fetch user data'));
+    }
+
+    const userData = await userResponse.json();
+    const userId = userData.id;
+
+    // Get what I'm listening to today (recent track)
     const recentResponse = await fetch(
-      'https://api.spotify.com/v1/me/player/recently-played?limit=50',
+      'https://api.spotify.com/v1/me/player/recently-played?limit=1',
       {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }
     );
 
-    if (!recentResponse.ok) {
-      return generateErrorCard('Failed to fetch Spotify data');
+    let currentTrack = null;
+    if (recentResponse.ok) {
+      const recentData = await recentResponse.json();
+      const recentTracks = recentData.items || [];
+      
+      if (recentTracks[0]) {
+        const track = recentTracks[0].track;
+        currentTrack = {
+          name: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          playedAt: recentTracks[0].played_at
+        };
+      }
     }
 
-    const recentData = await recentResponse.json();
-    const recentTracks = recentData.items || [];
+    // Get playlist of the day
+    const playlistsResponse = await fetch(
+      `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
+      {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }
+    );
 
-    if (recentTracks.length === 0) {
-      return generateErrorCard('No recent tracks found');
+    let playlistOfTheDay = null;
+    if (playlistsResponse.ok) {
+      const playlistsData = await playlistsResponse.json();
+      const userPlaylists = playlistsData.items.filter(playlist => 
+        playlist.owner.id === userId
+      );
+
+      if (userPlaylists.length > 0) {
+        // Use date as seed to get consistent playlist for the day
+        const today = new Date().toDateString();
+        const seed = today.split('').reduce((a, b) => {
+          a = ((a << 5) - a) + b.charCodeAt(0);
+          return a & a;
+        }, 0);
+        
+        const playlistIndex = Math.abs(seed) % userPlaylists.length;
+        const playlist = userPlaylists[playlistIndex];
+        
+        playlistOfTheDay = {
+          name: playlist.name,
+          tracks: playlist.tracks.total
+        };
+      }
     }
 
-    // Get last played
-    const lastTrack = recentTracks[0].track;
-    const lastPlayed = {
-      name: lastTrack.name,
-      artist: lastTrack.artists.map(a => a.name).join(', '),
-      album: lastTrack.album.name,
-      playedAt: recentTracks[0].played_at
-    };
-
-    // Count plays from today
-    const today = new Date().toDateString();
-    const trackCounts = {};
-    
-    recentTracks.forEach(item => {
-      const playedDate = new Date(item.played_at).toDateString();
-      if (playedDate === today) {
-        const trackId = item.track.id;
-        trackCounts[trackId] = (trackCounts[trackId] || 0) + 1;
-      }
-    });
-
-    // Find most played today
-    let mostPlayedToday = null;
-    let maxCount = 0;
-    
-    Object.entries(trackCounts).forEach(([trackId, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        const trackItem = recentTracks.find(item => item.track.id === trackId);
-        if (trackItem) {
-          mostPlayedToday = {
-            name: trackItem.track.name,
-            artist: trackItem.track.artists.map(a => a.name).join(', '),
-            playCount: count
-          };
-        }
-      }
-    });
-
-    // Generate SVG card
-    const svg = generateMusicCard(lastPlayed, mostPlayedToday);
+    // Generate simple SVG card
+    const svg = generateSimpleCard(currentTrack, playlistOfTheDay);
     res.status(200).send(svg);
 
   } catch (error) {
@@ -101,92 +111,90 @@ export default async function handler(req, res) {
     res.status(200).send(generateErrorCard('Error loading music data'));
   }
 
+  function escapeXml(text) {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function generateErrorCard(message) {
-    return `<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+    return `<svg width="400" height="150" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#1DB954;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#1ed760;stop-opacity:1" />
           </linearGradient>
         </defs>
-        <rect width="400" height="200" fill="url(#bg)" rx="10"/>
-        <text x="200" y="100" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          ♪ ${message}
+        <rect width="400" height="150" fill="url(#bg)" rx="10"/>
+        <text x="200" y="80" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+          ♪ ${escapeXml(message)}
         </text>
       </svg>`;
   }
 
-  function generateMusicCard(lastPlayed, mostPlayedToday) {
-    const timeAgo = getTimeAgo(lastPlayed.playedAt);
+  function generateSimpleCard(currentTrack, playlistOfTheDay) {
+    const timeAgo = currentTrack ? getTimeAgo(currentTrack.playedAt) : '';
     
-    return `<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+    return `<svg width="400" height="150" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#1DB954;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#1ed760;stop-opacity:1" />
           </linearGradient>
-          <filter id="shadow">
-            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
-          </filter>
         </defs>
         
         <!-- Background -->
-        <rect width="400" height="200" fill="url(#bg)" rx="15" filter="url(#shadow)"/>
+        <rect width="400" height="150" fill="url(#bg)" rx="15"/>
         
         <!-- Header -->
-        <text x="20" y="30" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
-          ♪ enrin's music
+        <text x="20" y="25" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+          ♪ what i'm listening to today
         </text>
         
-        <!-- Last Played Section -->
-        <text x="20" y="55" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="11" font-weight="bold">
-          LAST PLAYED ${timeAgo.toUpperCase()}
+        ${currentTrack ? `
+        <!-- Current Track -->
+        <text x="20" y="50" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
+          ${escapeXml(truncateText(currentTrack.name, 40))}
         </text>
         
-        <text x="20" y="75" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          ${truncateText(lastPlayed.name, 35)}
-        </text>
-        
-        <text x="20" y="92" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="12">
-          ${truncateText(lastPlayed.artist, 40)}
-        </text>
-        
-        <!-- Divider -->
-        <line x1="20" y1="110" x2="380" y2="110" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-        
-        <!-- Most Played Today Section -->
-        ${mostPlayedToday ? `
-        <text x="20" y="135" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="11" font-weight="bold">
-          ♫ MOST PLAYED TODAY (${mostPlayedToday.playCount} PLAYS)
-        </text>
-        
-        <text x="20" y="155" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          ${truncateText(mostPlayedToday.name, 35)}
-        </text>
-        
-        <text x="20" y="172" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="12">
-          ${truncateText(mostPlayedToday.artist, 40)}
+        <text x="20" y="68" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="12">
+          ${escapeXml(truncateText(currentTrack.artist, 45))} • ${timeAgo}
         </text>
         ` : `
-        <text x="20" y="145" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="12">
-          ♫ No repeated tracks today
+        <text x="20" y="55" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="14">
+          No recent tracks found
         </text>
         `}
         
-        <!-- Spotify Logo -->
-        <circle cx="360" cy="40" r="15" fill="rgba(255,255,255,0.2)"/>
-        <text x="360" y="45" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">♪</text>
+        ${playlistOfTheDay ? `
+        <!-- Playlist of the Day -->
+        <text x="20" y="95" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="11" font-weight="bold">
+          ♫ PLAYLIST OF THE DAY
+        </text>
+        
+        <text x="20" y="115" fill="white" font-family="Arial, sans-serif" font-size="13" font-weight="bold">
+          ${escapeXml(truncateText(playlistOfTheDay.name, 35))}
+        </text>
+        
+        <text x="20" y="130" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="11">
+          ${playlistOfTheDay.tracks} tracks
+        </text>
+        ` : ''}
         
         <!-- Live indicator -->
-        <circle cx="360" cy="170" r="4" fill="#ff4444">
+        <circle cx="370" cy="130" r="3" fill="#ff4444">
           <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
         </circle>
-        <text x="350" y="185" fill="rgba(255,255,255,0.7)" font-family="Arial, sans-serif" font-size="10">LIVE</text>
+        <text x="360" y="145" fill="rgba(255,255,255,0.7)" font-family="Arial, sans-serif" font-size="9">LIVE</text>
       </svg>`;
   }
 
   function truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
+    if (!text || text.length <= maxLength) return text || '';
     return text.substring(0, maxLength - 3) + '...';
   }
 
