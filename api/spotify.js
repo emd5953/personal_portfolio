@@ -38,9 +38,23 @@ export default async function handler(req, res) {
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
 
-    // Get recently played tracks
+    // Get user profile to get user ID
+    const userResponse = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!userResponse.ok) {
+      throw new Error(`User profile fetch failed: ${userResponse.status}`);
+    }
+
+    const userData = await userResponse.json();
+    const userId = userData.id;
+
+    // Get recently played tracks (last played song)
     const recentlyPlayedResponse = await fetch(
-      'https://api.spotify.com/v1/me/player/recently-played?limit=50',
+      'https://api.spotify.com/v1/me/player/recently-played?limit=1',
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -48,15 +62,28 @@ export default async function handler(req, res) {
       }
     );
 
-    if (!recentlyPlayedResponse.ok) {
-      throw new Error(`Spotify API failed: ${recentlyPlayedResponse.status}`);
+    let lastPlayed = null;
+    if (recentlyPlayedResponse.ok) {
+      const recentlyPlayedData = await recentlyPlayedResponse.json();
+      const lastTrack = recentlyPlayedData.items[0];
+      
+      if (lastTrack) {
+        const track = lastTrack.track;
+        lastPlayed = {
+          name: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          album: track.album.name,
+          trackId: track.id,
+          playedAt: lastTrack.played_at,
+          image: track.album.images[0]?.url,
+          external_url: track.external_urls.spotify
+        };
+      }
     }
 
-    const recentlyPlayedData = await recentlyPlayedResponse.json();
-
-    // Get top tracks for more data
+    // Get top tracks for today (most played of the day)
     const topTracksResponse = await fetch(
-      'https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=short_term',
+      'https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=short_term',
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -64,32 +91,27 @@ export default async function handler(req, res) {
       }
     );
 
-    let topTracksData = null;
+    let mostPlayedToday = null;
     if (topTracksResponse.ok) {
-      topTracksData = await topTracksResponse.json();
+      const topTracksData = await topTracksResponse.json();
+      const topTrack = topTracksData.items[0];
+      
+      if (topTrack) {
+        mostPlayedToday = {
+          name: topTrack.name,
+          artist: topTrack.artists.map(a => a.name).join(', '),
+          album: topTrack.album.name,
+          trackId: topTrack.id,
+          popularity: topTrack.popularity,
+          image: topTrack.album.images[0]?.url,
+          external_url: topTrack.external_urls.spotify
+        };
+      }
     }
 
-    // Process the data
-    const tracks = recentlyPlayedData.items || [];
-    const mostRecentTrack = tracks[0];
-
-    let mostPlayed = null;
-    if (mostRecentTrack) {
-      const track = mostRecentTrack.track;
-      mostPlayed = {
-        name: track.name,
-        artist: track.artists.map(a => a.name).join(', '),
-        album: track.album.name,
-        trackId: track.id,
-        playedAt: mostRecentTrack.played_at,
-        image: track.album.images[0]?.url,
-        external_url: track.external_urls.spotify
-      };
-    }
-
-    // Get playlists
+    // Get user's created playlists only
     const playlistsResponse = await fetch(
-      'https://api.spotify.com/v1/me/playlists?limit=6',
+      `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -97,37 +119,54 @@ export default async function handler(req, res) {
       }
     );
 
-    let playlists = [];
+    let randomPlaylists = [];
     if (playlistsResponse.ok) {
       const playlistsData = await playlistsResponse.json();
-      playlists = playlistsData.items.map(playlist => ({
+      
+      // Filter to only playlists created by the user
+      const userCreatedPlaylists = playlistsData.items.filter(playlist => 
+        playlist.owner.id === userId
+      );
+
+      // Get 3 random playlists using date as seed for consistency throughout the day
+      const today = new Date().toDateString();
+      const seed = today.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      
+      // Simple seeded random function
+      const seededRandom = (seed) => {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+      };
+
+      // Shuffle array with seeded random
+      const shuffled = [...userCreatedPlaylists];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRandom(seed + i) * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      // Take first 3 from shuffled array
+      randomPlaylists = shuffled.slice(0, 3).map(playlist => ({
         id: playlist.id,
         name: playlist.name,
-        description: playlist.description,
+        description: playlist.description || '',
         image: playlist.images[0]?.url,
         tracks: playlist.tracks.total,
-        external_url: playlist.external_urls.spotify
+        external_url: playlist.external_urls.spotify,
+        isOwner: true
       }));
     }
 
     const response = {
-      mostPlayed,
-      recentTracks: tracks.slice(0, 10).map(item => ({
-        name: item.track.name,
-        artist: item.track.artists.map(a => a.name).join(', '),
-        album: item.track.album.name,
-        playedAt: item.played_at,
-        trackId: item.track.id
-      })),
-      topTracks: topTracksData?.items?.slice(0, 5).map(track => ({
-        name: track.name,
-        artist: track.artists.map(a => a.name).join(', '),
-        album: track.album.name,
-        trackId: track.id,
-        popularity: track.popularity
-      })) || [],
-      playlists,
-      lastUpdated: new Date().toISOString()
+      lastPlayed,
+      mostPlayedToday,
+      randomPlaylists,
+      playlistsCount: randomPlaylists.length,
+      lastUpdated: new Date().toISOString(),
+      date: new Date().toDateString()
     };
 
     res.status(200).json(response);

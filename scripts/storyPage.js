@@ -99,21 +99,21 @@ async function loadSpotifyData() {
         const data = await response.json();
         console.log('✅ Spotify data loaded:', data);
 
-        if (data.mostPlayed) {
-            // Update the current track display
+        if (data.lastPlayed) {
+            // Update the current track display with last played
             const trackTitle = document.querySelector('.track-title');
             const trackArtist = document.querySelector('.track-artist');
             const trackMood = document.querySelector('.track-mood');
             const indicator = document.querySelector('.today-indicator');
 
-            if (trackTitle) trackTitle.textContent = data.mostPlayed.name;
-            if (trackArtist) trackArtist.textContent = data.mostPlayed.artist;
-            if (trackMood) trackMood.textContent = `from ${data.mostPlayed.album}`;
+            if (trackTitle) trackTitle.textContent = data.lastPlayed.name;
+            if (trackArtist) trackArtist.textContent = data.lastPlayed.artist;
+            if (trackMood) trackMood.textContent = `from ${data.lastPlayed.album}`;
             if (indicator) {
-                indicator.innerHTML = `today's most played <span style="color: var(--text-secondary); font-weight: normal;">(${data.mostPlayed.playCount} plays)</span>`;
+                indicator.innerHTML = `last played <span style="color: var(--text-secondary); font-weight: normal;">(${new Date(data.lastPlayed.playedAt).toLocaleTimeString()})</span>`;
             }
 
-            // Add Spotify embed for the most played track
+            // Add Spotify embed for the last played track
             const musicPlayer = document.querySelector('.music-player');
             let embedContainer = document.getElementById('spotify-embed-container');
 
@@ -128,8 +128,9 @@ async function loadSpotifyData() {
             }
 
             embedContainer.innerHTML = `
+                <h4 style="margin-bottom: 15px; color: #333;">🎵 Last Played</h4>
                 <iframe style="border-radius:12px"
-                        src="https://open.spotify.com/embed/track/${data.mostPlayed.trackId}?utm_source=generator&theme=0"
+                        src="https://open.spotify.com/embed/track/${data.lastPlayed.trackId}?utm_source=generator&theme=0"
                         width="100%"
                         height="152"
                         frameBorder="0"
@@ -140,12 +141,43 @@ async function loadSpotifyData() {
             `;
         }
 
-        if (data.playlists && data.playlists.length > 0) {
-            // Update playlist grid
+        // Show most played of the day if different from last played
+        if (data.mostPlayedToday && data.mostPlayedToday.trackId !== data.lastPlayed?.trackId) {
+            const musicPlayer = document.querySelector('.music-player');
+            let mostPlayedContainer = document.getElementById('most-played-container');
+
+            if (!mostPlayedContainer) {
+                mostPlayedContainer = document.createElement('div');
+                mostPlayedContainer.id = 'most-played-container';
+                mostPlayedContainer.style.marginTop = '20px';
+                const embedContainer = document.getElementById('spotify-embed-container');
+                if (embedContainer && musicPlayer) {
+                    musicPlayer.insertBefore(mostPlayedContainer, embedContainer.nextSibling);
+                }
+            }
+
+            mostPlayedContainer.innerHTML = `
+                <h4 style="margin-bottom: 15px; color: #333;">🔥 Most Played Today</h4>
+                <iframe style="border-radius:12px"
+                        src="https://open.spotify.com/embed/track/${data.mostPlayedToday.trackId}?utm_source=generator&theme=0"
+                        width="100%"
+                        height="152"
+                        frameBorder="0"
+                        allowfullscreen=""
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy">
+                </iframe>
+            `;
+        }
+
+        if (data.randomPlaylists && data.randomPlaylists.length > 0) {
+            // Update playlist grid with 3 random user-created playlists
             const playlistGrid = document.getElementById('dynamic-playlists');
             if (playlistGrid) {
-                playlistGrid.innerHTML = data.playlists.map(playlist => `
+                playlistGrid.innerHTML = data.randomPlaylists.map(playlist => `
                     <div class="playlist-embed-container">
+                        <h4 style="margin-bottom: 10px; color: #333;">${playlist.name}</h4>
+                        <p style="margin-bottom: 15px; color: #666; font-size: 14px;">${playlist.tracks} tracks • Created by me</p>
                         <iframe style="border-radius:12px"
                                 src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0"
                                 width="100%"
