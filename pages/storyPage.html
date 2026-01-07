@@ -14,8 +14,8 @@
     <nav class="story-nav">
         <a href="#intro" class="nav-logo">enrin</a>
         <div class="nav-sections">
-            <a href="#thoughts" class="nav-section">thoughts</a>
             <a href="#sounds" class="nav-section">sounds</a>
+            <a href="#thoughts" class="nav-section">thoughts</a>
             <a href="#timeline" class="nav-section">timeline</a>
         </div>
         <a href="../index.html" class="back-btn">career</a>
@@ -24,8 +24,8 @@
     <!-- Progress Indicator -->
     <div class="progress-indicator">
         <div class="progress-dot active" data-section="intro"></div>
-        <div class="progress-dot" data-section="thoughts"></div>
         <div class="progress-dot" data-section="sounds"></div>
+        <div class="progress-dot" data-section="thoughts"></div>
         <div class="progress-dot" data-section="timeline"></div>
     </div>
 
@@ -34,7 +34,38 @@
         <div class="intro-content">
             <h1 class="intro-title">the story</h1>
             <p class="intro-subtitle">thoughts, sounds, and moments that shaped the journey from curiosity to code</p>
-            <a href="#thoughts" class="start-btn">explore</a>
+            <a href="#sounds" class="start-btn">explore</a>
+        </div>
+    </section>
+
+    <!-- Sounds Section -->
+    <section id="sounds" class="content-section section-sounds">
+        <div class="section-container">
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">sounds</h2>
+                <p class="section-description">the soundtrack to coding, thinking, and living</p>
+            </div>
+
+            <div class="music-player scroll-reveal">
+                <div class="today-indicator">today's most played</div>
+                <div class="current-track">
+                    <div class="track-title">loading...</div>
+                    <div class="track-artist">loading...</div>
+                    <div class="track-mood">loading...</div>
+                </div>
+
+                <div class="player-controls">
+                    <button class="control-btn">⏮</button>
+                    <button class="control-btn">⏯</button>
+                    <button class="control-btn">⏭</button>
+                    <button class="control-btn">🔀</button>
+                </div>
+
+                <div class="featured-playlists-header">featured playlists today</div>
+                <div class="playlist-grid" id="dynamic-playlists">
+                    <!-- Playlists will be dynamically inserted here -->
+                </div>
+            </div>
         </div>
     </section>
 
@@ -109,37 +140,6 @@
                     <h3 class="thought-title">the first hello world</h3>
                     <p class="thought-preview">everyone remembers their first. mine was in java, although i rarely use it anymore, it changed everything about how i see the digital world. one simple word that opened infinite doors.</p>
                 </article>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sounds Section -->
-    <section id="sounds" class="content-section section-sounds">
-        <div class="section-container">
-            <div class="section-header scroll-reveal">
-                <h2 class="section-title">sounds</h2>
-                <p class="section-description">the soundtrack to coding, thinking, and living</p>
-            </div>
-
-            <div class="music-player scroll-reveal">
-                <div class="today-indicator">today's most played</div>
-                <div class="current-track">
-                    <div class="track-title">loading...</div>
-                    <div class="track-artist">loading...</div>
-                    <div class="track-mood">loading...</div>
-                </div>
-
-                <div class="player-controls">
-                    <button class="control-btn">⏮</button>
-                    <button class="control-btn">⏯</button>
-                    <button class="control-btn">⏭</button>
-                    <button class="control-btn">🔀</button>
-                </div>
-
-                <div class="featured-playlists-header">featured playlists today</div>
-                <div class="playlist-grid" id="dynamic-playlists">
-                    <!-- Playlists will be dynamically inserted here -->
-                </div>
             </div>
         </div>
     </section>
