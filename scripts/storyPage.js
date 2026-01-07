@@ -128,7 +128,7 @@ async function loadSpotifyData() {
             }
 
             embedContainer.innerHTML = `
-                <h4 style="margin-bottom: 15px; color: #333;">🎵 Last Played</h4>
+                <h4 style="margin-bottom: 15px; color: #333;"> Last Played</h4>
                 <iframe style="border-radius:12px"
                         src="https://open.spotify.com/embed/track/${data.lastPlayed.trackId}?utm_source=generator&theme=0"
                         width="100%"
@@ -141,8 +141,8 @@ async function loadSpotifyData() {
             `;
         }
 
-        // Show most played of the day if different from last played
-        if (data.mostPlayedToday && data.mostPlayedToday.trackId !== data.lastPlayed?.trackId) {
+        // Show most played of the day
+        if (data.mostPlayedToday) {
             const musicPlayer = document.querySelector('.music-player');
             let mostPlayedContainer = document.getElementById('most-played-container');
 
@@ -153,11 +153,13 @@ async function loadSpotifyData() {
                 const embedContainer = document.getElementById('spotify-embed-container');
                 if (embedContainer && musicPlayer) {
                     musicPlayer.insertBefore(mostPlayedContainer, embedContainer.nextSibling);
+                } else if (musicPlayer) {
+                    musicPlayer.appendChild(mostPlayedContainer);
                 }
             }
 
             mostPlayedContainer.innerHTML = `
-                <h4 style="margin-bottom: 15px; color: #333;">🔥 Most Played Today</h4>
+                <h4 style="margin-bottom: 15px; color: #333;"> Most Played Today</h4>
                 <iframe style="border-radius:12px"
                         src="https://open.spotify.com/embed/track/${data.mostPlayedToday.trackId}?utm_source=generator&theme=0"
                         width="100%"
