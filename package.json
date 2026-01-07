@@ -1,19 +1,15 @@
 {
   "name": "personal_portfolio",
   "version": "1.0.0",
-  "description": "A personal portfolio website that showcases a little about me, my experiences, projects and what I am interested in.",
-  "main": "script.js",
+  "description": "A personal portfolio website showcasing my experience, projects, and skills as a software engineer.",
+  "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["portfolio", "software engineer", "full-stack", "web development"],
+  "author": "Enrin Debbarma",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.826.0",
-    "@vercel/analytics": "^1.5.0",
-    "express": "^5.1.0",
-    "formidable": "^3.5.4",
-    "multer": "^2.0.1"
+    "@vercel/analytics": "^1.5.0"
   }
 }

@@ -1,12 +1,12 @@
 // Clean, minimal story page interactions with dynamic music
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📄 Story loaded');
-    
+
     initNavigation();
     initScrollAnimations();
     initDynamicMusicPlayer();
     initProgressIndicator();
-    
+
     console.log('✨ Ready');
 });
 
@@ -37,7 +37,7 @@ function initNavigation() {
 function updateActiveNavItem() {
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-section');
-    
+
     let current = '';
     sections.forEach(section => {
         const sectionTop = section.getBoundingClientRect().top;
@@ -45,7 +45,7 @@ function updateActiveNavItem() {
             current = section.getAttribute('id');
         }
     });
-    
+
     navLinks.forEach(link => {
         link.classList.remove('active');
         if (link.getAttribute('href') === `#${current}`) {
@@ -79,45 +79,43 @@ function initScrollAnimations() {
 function initDynamicMusicPlayer() {
     // Load Spotify data from your API
     loadSpotifyData();
-    
+
     // Refresh every 5 minutes
     setInterval(loadSpotifyData, 5 * 60 * 1000);
 }
 
-// Add this to your storyPage.js - Replace the loadSpotifyData function
-
 async function loadSpotifyData() {
     console.log('🎵 Loading Spotify data...');
-    
+
     try {
         // Use your working API endpoint
         const response = await fetch('https://www.enrinjr.com/api/spotify');
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('✅ Spotify data loaded:', data);
-        
+
         if (data.mostPlayed) {
             // Update the current track display
             const trackTitle = document.querySelector('.track-title');
             const trackArtist = document.querySelector('.track-artist');
             const trackMood = document.querySelector('.track-mood');
             const indicator = document.querySelector('.today-indicator');
-            
+
             if (trackTitle) trackTitle.textContent = data.mostPlayed.name;
             if (trackArtist) trackArtist.textContent = data.mostPlayed.artist;
             if (trackMood) trackMood.textContent = `from ${data.mostPlayed.album}`;
             if (indicator) {
                 indicator.innerHTML = `today's most played <span style="color: var(--text-secondary); font-weight: normal;">(${data.mostPlayed.playCount} plays)</span>`;
             }
-            
+
             // Add Spotify embed for the most played track
             const musicPlayer = document.querySelector('.music-player');
             let embedContainer = document.getElementById('spotify-embed-container');
-            
+
             if (!embedContainer) {
                 embedContainer = document.createElement('div');
                 embedContainer.id = 'spotify-embed-container';
@@ -127,54 +125,54 @@ async function loadSpotifyData() {
                     musicPlayer.insertBefore(embedContainer, featuredHeader);
                 }
             }
-            
+
             embedContainer.innerHTML = `
-                <iframe style="border-radius:12px" 
-                        src="https://open.spotify.com/embed/track/${data.mostPlayed.trackId}?utm_source=generator&theme=0" 
-                        width="100%" 
-                        height="152" 
-                        frameBorder="0" 
-                        allowfullscreen="" 
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                <iframe style="border-radius:12px"
+                        src="https://open.spotify.com/embed/track/${data.mostPlayed.trackId}?utm_source=generator&theme=0"
+                        width="100%"
+                        height="152"
+                        frameBorder="0"
+                        allowfullscreen=""
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy">
                 </iframe>
             `;
         }
-        
+
         if (data.playlists && data.playlists.length > 0) {
             // Update playlist grid
             const playlistGrid = document.getElementById('dynamic-playlists');
             if (playlistGrid) {
                 playlistGrid.innerHTML = data.playlists.map(playlist => `
                     <div class="playlist-embed-container">
-                        <iframe style="border-radius:12px" 
-                                src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0" 
-                                width="100%" 
-                                height="380" 
-                                frameBorder="0" 
-                                allowfullscreen="" 
-                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        <iframe style="border-radius:12px"
+                                src="https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0"
+                                width="100%"
+                                height="380"
+                                frameBorder="0"
+                                allowfullscreen=""
+                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                                 loading="lazy">
                         </iframe>
                     </div>
                 `).join('');
             }
         }
-        
+
         // Hide the placeholder player controls since we're using embeds
         const playerControls = document.querySelector('.player-controls');
         if (playerControls) {
             playerControls.style.display = 'none';
         }
-        
+
     } catch (error) {
         console.error('❌ Error loading Spotify data:', error);
-        
+
         // Update display with error message
         const trackTitle = document.querySelector('.track-title');
         const trackArtist = document.querySelector('.track-artist');
         const trackMood = document.querySelector('.track-mood');
-        
+
         if (trackTitle) trackTitle.textContent = 'Unable to load';
         if (trackArtist) trackArtist.textContent = 'Check console for details';
         if (trackMood) trackMood.textContent = error.message;
@@ -185,7 +183,7 @@ async function loadSpotifyData() {
 function initProgressIndicator() {
     const progressDots = document.querySelectorAll('.progress-dot');
     const sections = document.querySelectorAll('section[id]');
-    
+
     // Click to scroll to section
     progressDots.forEach(dot => {
         dot.addEventListener('click', function() {
@@ -199,7 +197,7 @@ function initProgressIndicator() {
             }
         });
     });
-    
+
     // Update active dot on scroll
     function updateProgressIndicator() {
         let current = 'intro';
@@ -209,7 +207,7 @@ function initProgressIndicator() {
                 current = section.id;
             }
         });
-        
+
         progressDots.forEach(dot => {
             dot.classList.remove('active');
             if (dot.dataset.section === current) {
@@ -217,7 +215,7 @@ function initProgressIndicator() {
             }
         });
     }
-    
+
     window.addEventListener('scroll', updateProgressIndicator);
 }
 
@@ -228,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('click', function() {
             const title = this.querySelector('.thought-title').textContent;
             showNotification(`📖 ${title}`);
-            
+
             // Visual feedback
             this.style.transform = 'translateY(-8px)';
             setTimeout(() => {
@@ -236,13 +234,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
     });
-    
+
     // Timeline interactions
     document.querySelectorAll('.timeline-content').forEach(content => {
         content.addEventListener('click', function() {
             const title = this.querySelector('.timeline-title').textContent;
             showNotification(`📅 ${title}`);
-            
+
             // Mark as read
             const marker = this.parentElement.querySelector('.timeline-marker');
             marker.style.background = '#666';
@@ -255,7 +253,7 @@ function showNotification(message) {
     // Remove existing notification
     const existing = document.querySelector('.notification');
     if (existing) existing.remove();
-    
+
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.textContent = message;
@@ -274,14 +272,14 @@ function showNotification(message) {
         opacity: 0;
         transition: opacity 0.3s ease;
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Animate in
     setTimeout(() => {
         notification.style.opacity = '1';
     }, 10);
-    
+
     // Remove after delay
     setTimeout(() => {
         notification.style.opacity = '0';
@@ -342,16 +340,16 @@ function scrollToPrev() {
 // Mobile touch enhancements
 if ('ontouchstart' in window) {
     document.addEventListener('touchstart', function(e) {
-        if (e.target.classList.contains('thought-card') || 
-            e.target.classList.contains('timeline-content') || 
+        if (e.target.classList.contains('thought-card') ||
+            e.target.classList.contains('timeline-content') ||
             e.target.classList.contains('playlist-item')) {
             e.target.style.transform += ' scale(0.98)';
         }
     });
-    
+
     document.addEventListener('touchend', function(e) {
-        if (e.target.classList.contains('thought-card') || 
-            e.target.classList.contains('timeline-content') || 
+        if (e.target.classList.contains('thought-card') ||
+            e.target.classList.contains('timeline-content') ||
             e.target.classList.contains('playlist-item')) {
             setTimeout(() => {
                 e.target.style.transform = e.target.style.transform.replace(' scale(0.98)', '');
