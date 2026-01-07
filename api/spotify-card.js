@@ -102,8 +102,7 @@ export default async function handler(req, res) {
   }
 
   function generateErrorCard(message) {
-    return `
-      <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+    return `<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#1DB954;stop-opacity:1" />
@@ -112,10 +111,9 @@ export default async function handler(req, res) {
         </defs>
         <rect width="400" height="200" fill="url(#bg)" rx="10"/>
         <text x="200" y="100" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          🎵 ${message}
+          ♪ ${message}
         </text>
-      </svg>
-    `;
+      </svg>`;
   }
 
   function generateMusicCard(lastPlayed, mostPlayedToday) {
@@ -137,7 +135,7 @@ export default async function handler(req, res) {
         
         <!-- Header -->
         <text x="20" y="30" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
-          🎵 enrin's music
+          ♪ enrin's music
         </text>
         
         <!-- Last Played Section -->
@@ -159,7 +157,7 @@ export default async function handler(req, res) {
         <!-- Most Played Today Section -->
         ${mostPlayedToday ? `
         <text x="20" y="135" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="11" font-weight="bold">
-          🔥 MOST PLAYED TODAY (${mostPlayedToday.playCount} PLAYS)
+          ♫ MOST PLAYED TODAY (${mostPlayedToday.playCount} PLAYS)
         </text>
         
         <text x="20" y="155" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
@@ -171,7 +169,7 @@ export default async function handler(req, res) {
         </text>
         ` : `
         <text x="20" y="145" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="12">
-          🔥 No repeated tracks today
+          ♫ No repeated tracks today
         </text>
         `}
         
