@@ -523,6 +523,11 @@ footer nav {
 
 footer .nav-links {
   gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  justify-content: center;
 }
 
 footer .nav-links a {
