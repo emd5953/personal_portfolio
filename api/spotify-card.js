@@ -121,8 +121,7 @@ export default async function handler(req, res) {
   function generateMusicCard(lastPlayed, mostPlayedToday) {
     const timeAgo = getTimeAgo(lastPlayed.playedAt);
     
-    return `
-      <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+    return `<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#1DB954;stop-opacity:1" />
@@ -185,8 +184,7 @@ export default async function handler(req, res) {
           <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
         </circle>
         <text x="350" y="185" fill="rgba(255,255,255,0.7)" font-family="Arial, sans-serif" font-size="10">LIVE</text>
-      </svg>
-    `;
+      </svg>`;
   }
 
   function truncateText(text, maxLength) {
