@@ -1149,6 +1149,8 @@ html {
 /* About side images responsive */
 @media (max-width: 968px) {
   .about-side-image {
+    top: 25%;
+    bottom: 25%;
     width: 220px;
   }
   
