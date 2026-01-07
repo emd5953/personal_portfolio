@@ -186,6 +186,36 @@ nav {
 
 .about-section {
   background: #e8e8e8;
+  position: relative;
+}
+
+.about-side-image {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: 300px;
+  opacity: 1;
+  z-index: 1;
+}
+
+.about-left {
+  left: 5%;
+}
+
+.about-right {
+  right: 5%;
+}
+
+.about-side-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.about-container {
+  position: relative;
+  z-index: 2;
 }
 
 .projects-section {
@@ -388,14 +418,14 @@ nav {
 
 /* Section with restock vibe */
 .restock-section {
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), #666;
   color: white;
   text-align: center;
-  padding: 60px 40px;
+  padding: 80px 40px;
 }
 
 .restock-content h2 {
@@ -1023,4 +1053,116 @@ html {
 
 .fade-in {
   animation: fadeInUp 0.8s ease-out;
+}
+
+/* Fix spacing for what's new section */
+#whats-new {
+  min-height: auto;
+  padding: 60px 20px;
+}
+
+/* Ensure consistent spacing between sections */
+.skills-section {
+  margin-top: 0;
+  padding-top: 80px;
+}
+/* Achievement Gallery */
+.achievement-gallery {
+  margin-top: 30px;
+}
+
+.achievement-gallery h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  text-transform: lowercase;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.gallery-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Placeholder styling for missing images */
+.gallery-item img[src*="placeholder"] {
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .gallery-item img {
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* About side images responsive */
+@media (max-width: 968px) {
+  .about-side-image {
+    width: 220px;
+  }
+  
+  .about-left {
+    left: 3%;
+  }
+  
+  .about-right {
+    right: 3%;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-side-image {
+    display: none;
+  }
 }
