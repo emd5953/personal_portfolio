@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initDynamicMusicPlayer();
     initProgressIndicator();
 
-    console.log('✨ Ready');
+    console.log(' Ready');
 });
 
 // Navigation functionality
@@ -92,12 +92,25 @@ async function loadSpotifyData() {
         const response = await fetch('/api/spotify');
 
         if (!response.ok) {
-            console.warn(`⚠️ Spotify API returned ${response.status}: ${response.statusText}`);
+            console.warn(` Spotify API returned ${response.status}: ${response.statusText}`);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
         console.log('✅ Spotify data loaded:', data);
+        console.log('🔍 Debug - lastPlayed exists:', !!data.lastPlayed);
+        console.log('🔍 Debug - mostPlayedToday exists:', !!data.mostPlayedToday);
+        console.log('🔍 Debug - mostPlayedToday data:', data.mostPlayedToday);
+        
+        if (data.lastPlayed) {
+            console.log(' Processing lastPlayed...');
+        }
+        
+        if (data.mostPlayedToday) {
+            console.log(' Processing mostPlayedToday...');
+        } else {
+            console.log(' No mostPlayedToday data found');
+        }
 
         if (data.lastPlayed) {
             // Update the current track display with last played
@@ -159,7 +172,7 @@ async function loadSpotifyData() {
             }
 
             mostPlayedContainer.innerHTML = `
-                <h4 style="margin-bottom: 15px; color: #333;"> Most Played Today</h4>
+                <h4 style="margin-bottom: 15px; color: #333;"> Most Played Today ${data.mostPlayedToday.playCount ? `(${data.mostPlayedToday.playCount} plays)` : ''}</h4>
                 <iframe style="border-radius:12px"
                         src="https://open.spotify.com/embed/track/${data.mostPlayedToday.trackId}?utm_source=generator&theme=0"
                         width="100%"
@@ -201,7 +214,7 @@ async function loadSpotifyData() {
         }
 
     } catch (error) {
-        console.error('❌ Error loading Spotify data:', error);
+        console.error(' Error loading Spotify data:', error);
 
         // Update display with error message
         const trackTitle = document.querySelector('.track-title');
@@ -260,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.thought-card').forEach(card => {
         card.addEventListener('click', function() {
             const title = this.querySelector('.thought-title').textContent;
-            showNotification(`📖 ${title}`);
+            showNotification(` ${title}`);
 
             // Visual feedback
             this.style.transform = 'translateY(-8px)';
@@ -274,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.timeline-content').forEach(content => {
         content.addEventListener('click', function() {
             const title = this.querySelector('.timeline-title').textContent;
-            showNotification(`📅 ${title}`);
+            showNotification(` ${title}`);
 
             // Mark as read
             const marker = this.parentElement.querySelector('.timeline-marker');
@@ -414,7 +427,7 @@ window.addEventListener('scroll', throttle(function() {
 
 // Console info
 console.log(`
-📄 story mode - dynamic edition
+ story mode - dynamic edition
 
 today's music updates automatically!
 - most played song of the day is featured
@@ -426,5 +439,5 @@ navigation:
 - numbers 1-4: jump to specific sections
 - esc: return home
 
-click anything to interact ✨
+click anything to interact 
 `);

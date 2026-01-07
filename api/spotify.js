@@ -52,9 +52,9 @@ export default async function handler(req, res) {
     const userData = await userResponse.json();
     const userId = userData.id;
 
-    // Get recently played tracks (last played song)
+    // Get recently played tracks (get more to calculate play counts)
     const recentlyPlayedResponse = await fetch(
-      'https://api.spotify.com/v1/me/player/recently-played?limit=1',
+      'https://api.spotify.com/v1/me/player/recently-played?limit=50',
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -63,25 +63,86 @@ export default async function handler(req, res) {
     );
 
     let lastPlayed = null;
+    let mostPlayedToday = null;
+    
     if (recentlyPlayedResponse.ok) {
       const recentlyPlayedData = await recentlyPlayedResponse.json();
-      const lastTrack = recentlyPlayedData.items[0];
+      const recentTracks = recentlyPlayedData.items || [];
       
-      if (lastTrack) {
-        const track = lastTrack.track;
+      // Last played is the most recent track
+      if (recentTracks[0]) {
+        const track = recentTracks[0].track;
         lastPlayed = {
           name: track.name,
           artist: track.artists.map(a => a.name).join(', '),
           album: track.album.name,
           trackId: track.id,
-          playedAt: lastTrack.played_at,
+          playedAt: recentTracks[0].played_at,
           image: track.album.images[0]?.url,
           external_url: track.external_urls.spotify
         };
       }
+      
+      // Count play frequency for each track in recent history
+      const trackCounts = {};
+      const today = new Date().toDateString();
+      
+      recentTracks.forEach(item => {
+        const playedDate = new Date(item.played_at).toDateString();
+        // Only count plays from today
+        if (playedDate === today) {
+          const trackId = item.track.id;
+          trackCounts[trackId] = (trackCounts[trackId] || 0) + 1;
+        }
+      });
+      
+      // Find the most played track from today
+      let maxCount = 0;
+      let mostPlayedTrackId = null;
+      
+      Object.entries(trackCounts).forEach(([trackId, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          mostPlayedTrackId = trackId;
+        }
+      });
+      
+      // Get the track details for most played
+      if (mostPlayedTrackId && maxCount > 0) {
+        const mostPlayedTrackItem = recentTracks.find(item => item.track.id === mostPlayedTrackId);
+        if (mostPlayedTrackItem) {
+          const track = mostPlayedTrackItem.track;
+          mostPlayedToday = {
+            name: track.name,
+            artist: track.artists.map(a => a.name).join(', '),
+            album: track.album.name,
+            trackId: track.id,
+            playCount: maxCount,
+            image: track.album.images[0]?.url,
+            external_url: track.external_urls.spotify,
+            isFallback: false
+          };
+        }
+      }
+      
+      // Fallback: if no track played multiple times today, use second most recent
+      if (!mostPlayedToday && recentTracks[1]) {
+        const track = recentTracks[1].track;
+        mostPlayedToday = {
+          name: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          album: track.album.name,
+          trackId: track.id,
+          playCount: 1,
+          playedAt: recentTracks[1].played_at,
+          image: track.album.images[0]?.url,
+          external_url: track.external_urls.spotify,
+          isFallback: true
+        };
+      }
     }
 
-    // Get top tracks for today (most played of the day)
+    // Try to get actual top tracks (this might not work for new accounts)
     const topTracksResponse = await fetch(
       'https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=short_term',
       {
@@ -91,7 +152,6 @@ export default async function handler(req, res) {
       }
     );
 
-    let mostPlayedToday = null;
     if (topTracksResponse.ok) {
       const topTracksData = await topTracksResponse.json();
       const topTrack = topTracksData.items[0];
@@ -104,7 +164,8 @@ export default async function handler(req, res) {
           trackId: topTrack.id,
           popularity: topTrack.popularity,
           image: topTrack.album.images[0]?.url,
-          external_url: topTrack.external_urls.spotify
+          external_url: topTrack.external_urls.spotify,
+          isFallback: false
         };
       }
     }
