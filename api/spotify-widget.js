@@ -123,7 +123,7 @@ export default async function handler(req, res) {
       if (userPlaylists.length > 0) {
         // Use date-based seeded random for consistent daily playlist
         const today = new Date();
-        const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+        const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         const seed = dateString.split('').reduce((a, b) => {
           a = ((a << 5) - a) + b.charCodeAt(0);
           return a & a;

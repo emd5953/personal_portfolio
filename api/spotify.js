@@ -104,7 +104,7 @@ export default async function handler(req, res) {
 
       // Get 3 random playlists using date as seed for consistency throughout the day (resets at midnight)
       const today = new Date();
-      const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       const seed = dateString.split('').reduce((a, b) => {
         a = ((a << 5) - a) + b.charCodeAt(0);
         return a & a;
