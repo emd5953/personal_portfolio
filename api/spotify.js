@@ -83,89 +83,65 @@ export default async function handler(req, res) {
         };
       }
       
-      // Count play frequency for each track in recent history
+      // Count play frequency for each track TODAY ONLY (resets at midnight)
       const trackCounts = {};
-      const today = new Date().toDateString();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0); // Start of today at exactly midnight
       
       recentTracks.forEach(item => {
-        const playedDate = new Date(item.played_at).toDateString();
-        // Only count plays from today
-        if (playedDate === today) {
+        const playedTime = new Date(item.played_at);
+        // Only count plays from today (after midnight)
+        if (playedTime >= todayStart) {
           const trackId = item.track.id;
-          trackCounts[trackId] = (trackCounts[trackId] || 0) + 1;
+          if (!trackCounts[trackId]) {
+            trackCounts[trackId] = {
+              count: 0,
+              track: item.track,
+              lastPlayed: item.played_at
+            };
+          }
+          trackCounts[trackId].count++;
+          // Keep track of the most recent play time for this track
+          if (new Date(item.played_at) > new Date(trackCounts[trackId].lastPlayed)) {
+            trackCounts[trackId].lastPlayed = item.played_at;
+          }
         }
       });
       
       // Find the most played track from today
       let maxCount = 0;
-      let mostPlayedTrackId = null;
+      let mostPlayedTrackData = null;
       
-      Object.entries(trackCounts).forEach(([trackId, count]) => {
+      Object.values(trackCounts).forEach(({ count, track, lastPlayed: trackLastPlayed }) => {
         if (count > maxCount) {
           maxCount = count;
-          mostPlayedTrackId = trackId;
+          mostPlayedTrackData = { track, count, lastPlayed: trackLastPlayed };
         }
       });
       
-      // Get the track details for most played
-      if (mostPlayedTrackId && maxCount > 0) {
-        const mostPlayedTrackItem = recentTracks.find(item => item.track.id === mostPlayedTrackId);
-        if (mostPlayedTrackItem) {
-          const track = mostPlayedTrackItem.track;
-          mostPlayedToday = {
-            name: track.name,
-            artist: track.artists.map(a => a.name).join(', '),
-            album: track.album.name,
-            trackId: track.id,
-            playCount: maxCount,
-            image: track.album.images[0]?.url,
-            external_url: track.external_urls.spotify,
-            isFallback: false
-          };
-        }
-      }
-      
-      // Fallback: if no track played multiple times today, use second most recent
-      if (!mostPlayedToday && recentTracks[1]) {
-        const track = recentTracks[1].track;
+      // Set most played today if we have a track with multiple plays
+      if (mostPlayedTrackData && maxCount > 1) {
+        const track = mostPlayedTrackData.track;
         mostPlayedToday = {
           name: track.name,
           artist: track.artists.map(a => a.name).join(', '),
           album: track.album.name,
           trackId: track.id,
-          playCount: 1,
-          playedAt: recentTracks[1].played_at,
+          playCount: maxCount,
+          lastPlayedAt: mostPlayedTrackData.lastPlayed,
           image: track.album.images[0]?.url,
           external_url: track.external_urls.spotify,
-          isFallback: true
+          isFallback: false
         };
       }
-    }
-
-    // Try to get actual top tracks (this might not work for new accounts)
-    const topTracksResponse = await fetch(
-      'https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=short_term',
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      }
-    );
-
-    if (topTracksResponse.ok) {
-      const topTracksData = await topTracksResponse.json();
-      const topTrack = topTracksData.items[0];
       
-      if (topTrack) {
+      // Fallback: if no track played multiple times today, use the most recent track as "most played" with count 1
+      if (!mostPlayedToday && lastPlayed) {
         mostPlayedToday = {
-          name: topTrack.name,
-          artist: topTrack.artists.map(a => a.name).join(', '),
-          album: topTrack.album.name,
-          trackId: topTrack.id,
-          popularity: topTrack.popularity,
-          image: topTrack.album.images[0]?.url,
-          external_url: topTrack.external_urls.spotify,
-          isFallback: false
+          ...lastPlayed,
+          playCount: 1,
+          lastPlayedAt: lastPlayed.playedAt,
+          isFallback: true
         };
       }
     }
@@ -189,9 +165,10 @@ export default async function handler(req, res) {
         playlist.owner.id === userId
       );
 
-      // Get 3 random playlists using date as seed for consistency throughout the day
-      const today = new Date().toDateString();
-      const seed = today.split('').reduce((a, b) => {
+      // Get 3 random playlists using date as seed for consistency throughout the day (resets at midnight)
+      const today = new Date();
+      const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+      const seed = dateString.split('').reduce((a, b) => {
         a = ((a << 5) - a) + b.charCodeAt(0);
         return a & a;
       }, 0);

@@ -1,0 +1,403 @@
+export default async function handler(req, res) {
+  // Set headers for SVG with click functionality
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  try {
+    const clientId = process.env.SPOTIFY_CLIENT_ID;
+    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+    const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
+
+    if (!clientId || !clientSecret || !refreshToken) {
+      return res.status(200).send(generateErrorWidget('Missing Spotify credentials'));
+    }
+
+    // Get access token
+    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+      })
+    });
+
+    if (!tokenResponse.ok) {
+      return res.status(200).send(generateErrorWidget('Token refresh failed'));
+    }
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    // Get user profile
+    const userResponse = await fetch('https://api.spotify.com/v1/me', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    if (!userResponse.ok) {
+      return res.status(200).send(generateErrorWidget('Failed to fetch user data'));
+    }
+
+    const userData = await userResponse.json();
+    const userId = userData.id;
+
+    // Get recently played tracks
+    const recentResponse = await fetch(
+      'https://api.spotify.com/v1/me/player/recently-played?limit=50',
+      {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }
+    );
+
+    let lastPlayed = null;
+    let mostPlayedToday = null;
+
+    if (recentResponse.ok) {
+      const recentData = await recentResponse.json();
+      const recentTracks = recentData.items || [];
+      
+      // Get last played track
+      if (recentTracks[0]) {
+        const track = recentTracks[0].track;
+        lastPlayed = {
+          name: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          playedAt: recentTracks[0].played_at,
+          duration: formatDuration(track.duration_ms)
+        };
+      }
+
+      // Calculate today's most played track
+      const trackCounts = {};
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      recentTracks.forEach(item => {
+        const playedTime = new Date(item.played_at);
+        if (playedTime >= todayStart) {
+          const trackId = item.track.id;
+          if (!trackCounts[trackId]) {
+            trackCounts[trackId] = {
+              count: 0,
+              track: item.track
+            };
+          }
+          trackCounts[trackId].count++;
+        }
+      });
+      
+      let maxCount = 0;
+      let mostPlayedTrack = null;
+      
+      Object.values(trackCounts).forEach(({ count, track }) => {
+        if (count > maxCount) {
+          maxCount = count;
+          mostPlayedTrack = track;
+        }
+      });
+      
+      if (mostPlayedTrack && maxCount > 0) {
+        mostPlayedToday = {
+          name: mostPlayedTrack.name,
+          artist: mostPlayedTrack.artists.map(a => a.name).join(', '),
+          playCount: maxCount,
+          duration: formatDuration(mostPlayedTrack.duration_ms)
+        };
+      }
+    }
+
+    // Get featured playlist
+    const playlistsResponse = await fetch(
+      `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
+      {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }
+    );
+
+    let featuredPlaylist = null;
+    if (playlistsResponse.ok) {
+      const playlistsData = await playlistsResponse.json();
+      const userPlaylists = playlistsData.items.filter(playlist => 
+        playlist.owner.id === userId
+      );
+
+      if (userPlaylists.length > 0) {
+        const today = new Date();
+        const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+        const seed = dateString.split('').reduce((a, b) => {
+          a = ((a << 5) - a) + b.charCodeAt(0);
+          return a & a;
+        }, 0);
+        
+        const playlistIndex = Math.abs(seed) % userPlaylists.length;
+        const playlist = userPlaylists[playlistIndex];
+        
+        featuredPlaylist = {
+          name: playlist.name,
+          tracks: playlist.tracks.total,
+          creator: 'Enrin'
+        };
+      }
+    }
+
+    // Generate the widget SVG
+    const svg = generateSpotifyWidget(lastPlayed, mostPlayedToday, featuredPlaylist);
+    res.status(200).send(svg);
+
+  } catch (error) {
+    console.error('Spotify Widget Error:', error);
+    res.status(200).send(generateErrorWidget('Error loading music data'));
+  }
+
+  function escapeXml(text) {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatDuration(ms) {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  function getTimeAgo(timestamp) {
+    const now = new Date();
+    const played = new Date(timestamp);
+    const diffMs = now - played;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return 'yesterday';
+  }
+
+  function truncateText(text, maxLength) {
+    if (!text || text.length <= maxLength) return text || '';
+    return text.substring(0, maxLength - 3) + '...';
+  }
+
+  function generateErrorWidget(message) {
+    return `<svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <style>
+          .error-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        </style>
+      </defs>
+      
+      <!-- Clickable background -->
+      <a href="https://enrindebbarma.vercel.app/pages/storyPage.html" target="_blank">
+        <rect width="400" height="600" fill="#f8f9fa" rx="12" stroke="#e9ecef" stroke-width="1"/>
+        
+        <!-- Header -->
+        <rect x="0" y="0" width="400" height="60" fill="#ffffff" rx="12"/>
+        <rect x="0" y="48" width="400" height="12" fill="#ffffff"/>
+        
+        <text x="200" y="35" text-anchor="middle" fill="#1db954" class="error-text" font-size="16" font-weight="600">
+          Spotify Widget
+        </text>
+        
+        <text x="200" y="300" text-anchor="middle" fill="#6c757d" class="error-text" font-size="14">
+          ${escapeXml(message)}
+        </text>
+        
+        <text x="200" y="330" text-anchor="middle" fill="#6c757d" class="error-text" font-size="12">
+          Click to view my story
+        </text>
+      </a>
+    </svg>`;
+  }
+
+  function generateSpotifyWidget(lastPlayed, mostPlayedToday, featuredPlaylist) {
+    const timeAgo = lastPlayed ? getTimeAgo(lastPlayed.playedAt) : '';
+    
+    return `<svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <style>
+          .widget-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          .card-shadow { filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1)); }
+          .hover-effect:hover { opacity: 0.95; }
+        </style>
+      </defs>
+      
+      <!-- Clickable background -->
+      <a href="https://enrindebbarma.vercel.app/pages/storyPage.html" target="_blank">
+        <rect width="400" height="600" fill="#f8f9fa" rx="12" stroke="#e9ecef" stroke-width="1" class="hover-effect"/>
+        
+        <!-- Header -->
+        <rect x="0" y="0" width="400" height="60" fill="#ffffff" rx="12"/>
+        <rect x="0" y="48" width="400" height="12" fill="#ffffff"/>
+        
+        <text x="200" y="35" text-anchor="middle" fill="#1db954" class="widget-text" font-size="16" font-weight="600">
+          LAST PLAYED (${timeAgo.toUpperCase()})
+        </text>
+        
+        ${lastPlayed ? `
+        <!-- Last Played Section -->
+        <text x="200" y="100" text-anchor="middle" fill="#212529" class="widget-text" font-size="24" font-weight="700">
+          ${escapeXml(truncateText(lastPlayed.name, 20))}
+        </text>
+        
+        <text x="200" y="125" text-anchor="middle" fill="#6c757d" class="widget-text" font-size="16">
+          ${escapeXml(truncateText(lastPlayed.artist, 25))}
+        </text>
+        
+        <text x="200" y="145" text-anchor="middle" fill="#adb5bd" class="widget-text" font-size="14">
+          FROM ${escapeXml('沈黙の恋人')}
+        </text>
+        ` : `
+        <text x="200" y="120" text-anchor="middle" fill="#6c757d" class="widget-text" font-size="16">
+          No recent tracks
+        </text>
+        `}
+        
+        <!-- Last Played Card -->
+        <rect x="30" y="170" width="340" height="80" fill="#191414" rx="8" class="card-shadow"/>
+        
+        <!-- Album art placeholder -->
+        <rect x="45" y="185" width="50" height="50" fill="#404040" rx="4"/>
+        <text x="70" y="215" text-anchor="middle" fill="#1db954" class="widget-text" font-size="16">♪</text>
+        
+        <!-- Spotify logo -->
+        <circle cx="345" cy="195" r="12" fill="#1db954"/>
+        <text x="345" y="200" text-anchor="middle" fill="white" class="widget-text" font-size="10" font-weight="bold">♪</text>
+        
+        ${lastPlayed ? `
+        <text x="110" y="205" fill="white" class="widget-text" font-size="14" font-weight="600">
+          ${escapeXml(truncateText(lastPlayed.name, 22))}
+        </text>
+        
+        <text x="110" y="220" fill="#b3b3b3" class="widget-text" font-size="12">
+          ${escapeXml(truncateText(lastPlayed.artist, 25))}
+        </text>
+        
+        <text x="110" y="235" fill="#b3b3b3" class="widget-text" font-size="10">
+          Save on Spotify
+        </text>
+        
+        <text x="290" y="220" fill="#b3b3b3" class="widget-text" font-size="12">
+          ${lastPlayed.duration}
+        </text>
+        
+        <!-- Play button -->
+        <circle cx="315" cy="215" r="15" fill="white"/>
+        <text x="315" y="220" text-anchor="middle" fill="#191414" class="widget-text" font-size="12">▶</text>
+        ` : `
+        <text x="110" y="215" fill="#b3b3b3" class="widget-text" font-size="14">
+          No track available
+        </text>
+        `}
+        
+        <!-- Most Played Today Section -->
+        <text x="200" y="290" text-anchor="middle" fill="#212529" class="widget-text" font-size="18" font-weight="600">
+          Most Played Today ${mostPlayedToday ? `(${mostPlayedToday.playCount} plays)` : ''}
+        </text>
+        
+        <!-- Most Played Card -->
+        <rect x="30" y="310" width="340" height="80" fill="#191414" rx="8" class="card-shadow"/>
+        
+        <!-- Album art placeholder -->
+        <rect x="45" y="325" width="50" height="50" fill="#8B4513" rx="4"/>
+        <text x="70" y="355" text-anchor="middle" fill="#ff6b35" class="widget-text" font-size="16">♪</text>
+        
+        <!-- Spotify logo -->
+        <circle cx="345" cy="335" r="12" fill="#1db954"/>
+        <text x="345" y="340" text-anchor="middle" fill="white" class="widget-text" font-size="10" font-weight="bold">♪</text>
+        
+        ${mostPlayedToday ? `
+        <text x="110" y="345" fill="white" class="widget-text" font-size="14" font-weight="600">
+          ${escapeXml(truncateText(mostPlayedToday.name, 22))}
+        </text>
+        
+        <text x="110" y="360" fill="#b3b3b3" class="widget-text" font-size="12">
+          ${escapeXml(truncateText(mostPlayedToday.artist, 25))}
+        </text>
+        
+        <text x="110" y="375" fill="#b3b3b3" class="widget-text" font-size="10">
+          Save on Spotify
+        </text>
+        
+        <text x="290" y="360" fill="#b3b3b3" class="widget-text" font-size="12">
+          ${mostPlayedToday.duration}
+        </text>
+        
+        <!-- Play button -->
+        <circle cx="315" cy="355" r="15" fill="white"/>
+        <text x="315" y="360" text-anchor="middle" fill="#191414" class="widget-text" font-size="12">▶</text>
+        ` : `
+        <text x="110" y="355" fill="#b3b3b3" class="widget-text" font-size="14">
+          No tracks played multiple times today
+        </text>
+        `}
+        
+        <!-- Featured Playlists Section -->
+        <text x="200" y="430" text-anchor="middle" fill="#6c757d" class="widget-text" font-size="14">
+          featured playlists today
+        </text>
+        
+        <text x="200" y="460" text-anchor="middle" fill="#212529" class="widget-text" font-size="20" font-weight="600">
+          ${featuredPlaylist ? escapeXml(truncateText(featuredPlaylist.name, 25)) : 'japanese folk'}
+        </text>
+        
+        <text x="200" y="480" text-anchor="middle" fill="#6c757d" class="widget-text" font-size="14">
+          ${featuredPlaylist ? `${featuredPlaylist.tracks} tracks • Created by ${featuredPlaylist.creator}` : '14 tracks • Created by me'}
+        </text>
+        
+        <!-- Featured Playlist Card -->
+        <rect x="30" y="500" width="340" height="80" fill="#191414" rx="8" class="card-shadow"/>
+        
+        <!-- Playlist art (grid of 4 squares) -->
+        <rect x="45" y="515" width="24" height="24" fill="#8FBC8F" rx="2"/>
+        <rect x="71" y="515" width="24" height="24" fill="#87CEEB" rx="2"/>
+        <rect x="45" y="541" width="24" height="24" fill="#98FB98" rx="2"/>
+        <rect x="71" y="541" width="24" height="24" fill="#696969" rx="2"/>
+        
+        <!-- Spotify logo -->
+        <circle cx="345" cy="525" r="12" fill="#1db954"/>
+        <text x="345" y="530" text-anchor="middle" fill="white" class="widget-text" font-size="10" font-weight="bold">♪</text>
+        
+        <text x="110" y="535" fill="white" class="widget-text" font-size="14" font-weight="600">
+          ${featuredPlaylist ? escapeXml(truncateText(featuredPlaylist.name, 22)) : 'japanese folk'}
+        </text>
+        
+        <text x="110" y="550" fill="#b3b3b3" class="widget-text" font-size="12">
+          ${featuredPlaylist ? featuredPlaylist.creator : 'Enrin'}
+        </text>
+        
+        <text x="110" y="565" fill="#b3b3b3" class="widget-text" font-size="10">
+          ✓ Saved on Spotify
+        </text>
+        
+        <!-- Progress bar -->
+        <rect x="170" y="555" width="100" height="2" fill="#404040" rx="1"/>
+        <rect x="170" y="555" width="30" height="2" fill="#1db954" rx="1"/>
+        
+        <text x="175" y="575" fill="#b3b3b3" class="widget-text" font-size="10">00:00</text>
+        
+        <!-- Control buttons -->
+        <text x="290" y="545" fill="#b3b3b3" class="widget-text" font-size="12">⏮</text>
+        <text x="310" y="545" fill="#b3b3b3" class="widget-text" font-size="12">⏭</text>
+        
+        <!-- Play button -->
+        <circle cx="330" cy="540" r="15" fill="white"/>
+        <text x="330" y="545" text-anchor="middle" fill="#191414" class="widget-text" font-size="12">▶</text>
+        
+        <!-- Click hint -->
+        <text x="200" y="595" text-anchor="middle" fill="#adb5bd" class="widget-text" font-size="11">
+          Click to explore my story →
+        </text>
+      </a>
+    </svg>`;
+  }
+}
