@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     const userData = await userResponse.json();
     const userId = userData.id;
 
-    // Get recently played tracks
+    // Get recently played tracks to calculate today's most played
     const recentResponse = await fetch(
       'https://api.spotify.com/v1/me/player/recently-played?limit=50',
       {
@@ -86,38 +86,45 @@ export default async function handler(req, res) {
       const trackCounts = {};
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
       
       recentTracks.forEach(item => {
         const playedTime = new Date(item.played_at);
-        if (playedTime >= todayStart) {
+        if (playedTime >= todayStart && playedTime < todayEnd) {
           const trackId = item.track.id;
           if (!trackCounts[trackId]) {
             trackCounts[trackId] = {
               count: 0,
-              track: item.track
+              track: item.track,
+              lastPlayed: item.played_at
             };
           }
           trackCounts[trackId].count++;
+          // Keep track of the most recent play time for this track
+          if (new Date(item.played_at) > new Date(trackCounts[trackId].lastPlayed)) {
+            trackCounts[trackId].lastPlayed = item.played_at;
+          }
         }
       });
       
-      // Find track with highest count
+      // Find track with highest count today
       let maxCount = 0;
-      let mostPlayedTrack = null;
+      let mostPlayedTrackData = null;
       
       for (const trackData of Object.values(trackCounts)) {
         if (trackData.count > maxCount) {
           maxCount = trackData.count;
-          mostPlayedTrack = trackData.track;
+          mostPlayedTrackData = trackData;
         }
       }
       
-      if (mostPlayedTrack) {
+      if (mostPlayedTrackData && mostPlayedTrackData.count > 0) {
+        const track = mostPlayedTrackData.track;
         mostPlayedToday = {
-          name: mostPlayedTrack.name,
-          artist: mostPlayedTrack.artists.map(a => a.name).join(', '),
-          playCount: maxCount,
-          duration: formatDuration(mostPlayedTrack.duration_ms)
+          name: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          playCount: mostPlayedTrackData.count,
+          duration: formatDuration(track.duration_ms)
         };
       }
     }
@@ -354,9 +361,10 @@ export default async function handler(req, res) {
           ${featuredPlaylist ? `${featuredPlaylist.tracks} tracks • Created by ${featuredPlaylist.creator}` : '14 tracks • Created by me'}
         </text>
         
-        <!-- Click hint -->
-        <text x="125" y="245" text-anchor="middle" fill="#999999" class="widget-text" font-size="7" font-weight="400">
-          Click to explore my story →
+        <!-- Click hint with better styling -->
+        <rect x="15" y="235" width="220" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
+        <text x="125" y="247" text-anchor="middle" fill="#1db954" class="widget-text" font-size="8" font-weight="600">
+          👆 Click to explore my story
         </text>
       </a>
     </svg>`;
