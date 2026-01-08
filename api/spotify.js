@@ -52,9 +52,9 @@ export default async function handler(req, res) {
     const userData = await userResponse.json();
     const userId = userData.id;
 
-    // Get recently played tracks (get more to calculate today's play counts)
+    // Get recently played tracks for last played
     const recentlyPlayedResponse = await fetch(
-      'https://api.spotify.com/v1/me/player/recently-played?limit=50',
+      'https://api.spotify.com/v1/me/player/recently-played?limit=1',
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -63,7 +63,6 @@ export default async function handler(req, res) {
     );
 
     let lastPlayed = null;
-    let mostPlayedToday = null;
     
     if (recentlyPlayedResponse.ok) {
       const recentlyPlayedData = await recentlyPlayedResponse.json();
@@ -82,65 +81,35 @@ export default async function handler(req, res) {
           external_url: track.external_urls.spotify
         };
       }
-      
-      // Count play frequency for each track TODAY ONLY
-      const trackCounts = {};
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-      
-      console.log('Today range:', todayStart.toISOString(), 'to', todayEnd.toISOString());
-      
-      recentTracks.forEach(item => {
-        const playedTime = new Date(item.played_at);
-        if (playedTime >= todayStart && playedTime < todayEnd) {
-          const trackId = item.track.id;
-          if (!trackCounts[trackId]) {
-            trackCounts[trackId] = {
-              count: 0,
-              track: item.track,
-              lastPlayed: item.played_at,
-              plays: []
-            };
-          }
-          trackCounts[trackId].count++;
-          trackCounts[trackId].plays.push(item.played_at);
-          if (new Date(item.played_at) > new Date(trackCounts[trackId].lastPlayed)) {
-            trackCounts[trackId].lastPlayed = item.played_at;
-          }
-        }
-      });
-      
-      console.log('Track counts for today:', Object.keys(trackCounts).length, 'unique tracks');
-      
-      // Find the track with highest count today
-      let maxCount = 0;
-      let mostPlayedTrackData = null;
-      
-      for (const [trackId, trackData] of Object.entries(trackCounts)) {
-        console.log(`Track: ${trackData.track.name} - ${trackData.count} plays`);
-        if (trackData.count > maxCount) {
-          maxCount = trackData.count;
-          mostPlayedTrackData = trackData;
+    }
+
+    // Get top track from recent listening (short-term = ~4 weeks)
+    const topTracksResponse = await fetch(
+      'https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1',
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
         }
       }
+    );
+
+    let topTrackRecent = null;
+    
+    if (topTracksResponse.ok) {
+      const topTracksData = await topTracksResponse.json();
+      const topTracks = topTracksData.items || [];
       
-      // Set most played if we found any tracks from today
-      if (mostPlayedTrackData && mostPlayedTrackData.count > 0) {
-        const track = mostPlayedTrackData.track;
-        mostPlayedToday = {
+      if (topTracks[0]) {
+        const track = topTracks[0];
+        topTrackRecent = {
           name: track.name,
           artist: track.artists.map(a => a.name).join(', '),
           album: track.album.name,
           trackId: track.id,
-          playCount: mostPlayedTrackData.count,
-          lastPlayedAt: mostPlayedTrackData.lastPlayed,
           image: track.album.images[0]?.url,
-          external_url: track.external_urls.spotify
+          external_url: track.external_urls.spotify,
+          popularity: track.popularity
         };
-        console.log('Most played today:', mostPlayedToday.name, 'with', mostPlayedToday.playCount, 'plays');
-      } else {
-        console.log('No tracks played today');
       }
     }
 
@@ -198,7 +167,7 @@ export default async function handler(req, res) {
 
     const response = {
       lastPlayed,
-      mostPlayedToday,
+      topTrackRecent,
       randomPlaylists,
       playlistsCount: randomPlaylists.length,
       lastUpdated: new Date().toISOString(),
