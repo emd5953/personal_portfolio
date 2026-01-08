@@ -168,6 +168,7 @@ export default async function handler(req, res) {
     const response = {
       lastPlayed,
       topTrackRecent,
+      mostPlayedToday: topTrackRecent, // Keep backward compatibility for story page
       randomPlaylists,
       playlistsCount: randomPlaylists.length,
       lastUpdated: new Date().toISOString(),
