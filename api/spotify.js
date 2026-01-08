@@ -85,12 +85,17 @@ export default async function handler(req, res) {
       
       // Count play frequency for each track TODAY ONLY (resets at midnight)
       const trackCounts = {};
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0); // Start of today at exactly midnight
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today in local time
+      
+      console.log('Today start:', todayStart.toISOString());
+      console.log('Recent tracks count:', recentTracks.length);
       
       recentTracks.forEach(item => {
         const playedTime = new Date(item.played_at);
-        // Only count plays from today (after midnight)
+        console.log('Track played at:', playedTime.toISOString(), 'vs today start:', todayStart.toISOString());
+        
+        // Only count plays from today (after midnight local time)
         if (playedTime >= todayStart) {
           const trackId = item.track.id;
           if (!trackCounts[trackId]) {
@@ -108,6 +113,8 @@ export default async function handler(req, res) {
         }
       });
       
+      console.log('Track counts:', Object.keys(trackCounts).length);
+      
       // Find the most played track from today
       let maxCount = 0;
       let mostPlayedTrackData = null;
@@ -119,8 +126,10 @@ export default async function handler(req, res) {
         }
       });
       
-      // Set most played today if we have a track with multiple plays
-      if (mostPlayedTrackData && maxCount > 1) {
+      console.log('Max count found:', maxCount);
+      
+      // Set most played today if we have any track played today
+      if (mostPlayedTrackData && maxCount > 0) {
         const track = mostPlayedTrackData.track;
         mostPlayedToday = {
           name: track.name,
@@ -131,17 +140,7 @@ export default async function handler(req, res) {
           lastPlayedAt: mostPlayedTrackData.lastPlayed,
           image: track.album.images[0]?.url,
           external_url: track.external_urls.spotify,
-          isFallback: false
-        };
-      }
-      
-      // Fallback: if no track played multiple times today, use the most recent track as "most played" with count 1
-      if (!mostPlayedToday && lastPlayed) {
-        mostPlayedToday = {
-          ...lastPlayed,
-          playCount: 1,
-          lastPlayedAt: lastPlayed.playedAt,
-          isFallback: true
+          isFallback: maxCount === 1
         };
       }
     }

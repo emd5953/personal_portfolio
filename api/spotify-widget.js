@@ -84,11 +84,12 @@ export default async function handler(req, res) {
 
       // Calculate today's most played track
       const trackCounts = {};
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today in local time
       
       recentTracks.forEach(item => {
         const playedTime = new Date(item.played_at);
+        // Only count plays from today (after midnight local time)
         if (playedTime >= todayStart) {
           const trackId = item.track.id;
           if (!trackCounts[trackId]) {
@@ -232,7 +233,7 @@ export default async function handler(req, res) {
   function generateSpotifyWidget(lastPlayed, mostPlayedToday, featuredPlaylist) {
     const timeAgo = lastPlayed ? getTimeAgo(lastPlayed.playedAt) : '';
     
-    return `<svg width="400" height="500" xmlns="http://www.w3.org/2000/svg">
+    return `<svg width="350" height="400" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <style>
           .widget-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -243,156 +244,156 @@ export default async function handler(req, res) {
       <!-- Clickable background -->
       <a href="https://enrindebbarma.vercel.app/pages/storyPage.html" target="_blank">
         <!-- Main container with rounded corners and border -->
-        <rect width="400" height="500" fill="#ffffff" rx="16" stroke="#e0e0e0" stroke-width="1"/>
+        <rect width="350" height="400" fill="#ffffff" rx="12" stroke="#e0e0e0" stroke-width="1"/>
         
         <!-- Header text -->
-        <text x="200" y="35" text-anchor="middle" fill="#999999" class="widget-text" font-size="12" font-weight="500" letter-spacing="1px">
+        <text x="175" y="25" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="500" letter-spacing="1px">
           LAST PLAYED (${timeAgo.toUpperCase()})
         </text>
         
         ${lastPlayed ? `
         <!-- Main track title -->
-        <text x="200" y="75" text-anchor="middle" fill="#1a1a1a" class="title-text" font-size="28" font-weight="700">
-          ${escapeXml(truncateText(lastPlayed.name, 20))}
+        <text x="175" y="55" text-anchor="middle" fill="#1a1a1a" class="title-text" font-size="22" font-weight="700">
+          ${escapeXml(truncateText(lastPlayed.name, 18))}
         </text>
         
         <!-- Artist name -->
-        <text x="200" y="100" text-anchor="middle" fill="#666666" class="widget-text" font-size="16" font-weight="400">
-          ${escapeXml(truncateText(lastPlayed.artist, 25))}
+        <text x="175" y="75" text-anchor="middle" fill="#666666" class="widget-text" font-size="14" font-weight="400">
+          ${escapeXml(truncateText(lastPlayed.artist, 22))}
         </text>
         
         <!-- Album info -->
-        <text x="200" y="120" text-anchor="middle" fill="#999999" class="widget-text" font-size="12" font-weight="400">
+        <text x="175" y="90" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
           FROM 沈黙の恋人
         </text>
         ` : `
-        <text x="200" y="85" text-anchor="middle" fill="#666666" class="widget-text" font-size="16">
+        <text x="175" y="65" text-anchor="middle" fill="#666666" class="widget-text" font-size="14">
           No recent tracks
         </text>
         `}
         
         <!-- "Last Played" section label -->
-        <text x="200" y="165" text-anchor="middle" fill="#666666" class="widget-text" font-size="16" font-weight="600">
+        <text x="175" y="125" text-anchor="middle" fill="#666666" class="widget-text" font-size="14" font-weight="600">
           Last Played
         </text>
         
         <!-- Last Played Card -->
-        <rect x="30" y="180" width="340" height="70" fill="#1a1a1a" rx="12"/>
+        <rect x="25" y="135" width="300" height="60" fill="#1a1a1a" rx="8"/>
         
         <!-- Album art -->
-        <rect x="45" y="195" width="40" height="40" fill="#404040" rx="4"/>
-        <text x="65" y="220" text-anchor="middle" fill="#1db954" class="widget-text" font-size="14">♪</text>
+        <rect x="35" y="145" width="35" height="35" fill="#404040" rx="3"/>
+        <text x="52.5" y="167" text-anchor="middle" fill="#1db954" class="widget-text" font-size="12">♪</text>
         
         <!-- Spotify logo -->
-        <circle cx="350" cy="205" r="10" fill="#ffffff"/>
-        <text x="350" y="210" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="8" font-weight="bold">♪</text>
+        <circle cx="305" cy="155" r="8" fill="#ffffff"/>
+        <text x="305" y="159" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="6" font-weight="bold">♪</text>
         
         ${lastPlayed ? `
         <!-- Track info in card -->
-        <text x="95" y="210" fill="#ffffff" class="widget-text" font-size="14" font-weight="600">
-          ${escapeXml(truncateText(lastPlayed.name, 22))}
+        <text x="80" y="160" fill="#ffffff" class="widget-text" font-size="12" font-weight="600">
+          ${escapeXml(truncateText(lastPlayed.name, 20))}
         </text>
         
-        <text x="95" y="225" fill="#b3b3b3" class="widget-text" font-size="12" font-weight="400">
-          ${escapeXml(truncateText(lastPlayed.artist, 25))}
+        <text x="80" y="172" fill="#b3b3b3" class="widget-text" font-size="10" font-weight="400">
+          ${escapeXml(truncateText(lastPlayed.artist, 22))}
         </text>
         
         <!-- Save on Spotify with plus icon -->
-        <circle cx="105" cy="235" r="6" fill="transparent" stroke="#b3b3b3" stroke-width="1"/>
-        <text x="105" y="239" text-anchor="middle" fill="#b3b3b3" class="widget-text" font-size="8">+</text>
-        <text x="120" y="239" fill="#b3b3b3" class="widget-text" font-size="10" font-weight="400">
+        <circle cx="85" cy="182" r="5" fill="transparent" stroke="#b3b3b3" stroke-width="1"/>
+        <text x="85" y="185" text-anchor="middle" fill="#b3b3b3" class="widget-text" font-size="6">+</text>
+        <text x="95" y="185" fill="#b3b3b3" class="widget-text" font-size="8" font-weight="400">
           Save on Spotify
         </text>
         
         <!-- Progress bar -->
-        <rect x="200" y="232" width="80" height="2" fill="#404040" rx="1"/>
-        <rect x="200" y="232" width="24" height="2" fill="#b3b3b3" rx="1"/>
+        <rect x="180" y="180" width="60" height="1.5" fill="#404040" rx="0.75"/>
+        <rect x="180" y="180" width="18" height="1.5" fill="#b3b3b3" rx="0.75"/>
         
         <!-- Duration -->
-        <text x="290" y="238" fill="#b3b3b3" class="widget-text" font-size="10">
+        <text x="250" y="184" fill="#b3b3b3" class="widget-text" font-size="8">
           ${lastPlayed.duration}
         </text>
         
         <!-- More options -->
-        <text x="310" y="215" fill="#b3b3b3" class="widget-text" font-size="12">⋯</text>
+        <text x="270" y="162" fill="#b3b3b3" class="widget-text" font-size="10">⋯</text>
         
         <!-- Play button -->
-        <circle cx="325" cy="215" r="12" fill="#ffffff"/>
-        <text x="325" y="220" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="10">▶</text>
+        <circle cx="285" cy="162" r="10" fill="#ffffff"/>
+        <text x="285" y="166" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="8">▶</text>
         ` : `
-        <text x="95" y="220" fill="#b3b3b3" class="widget-text" font-size="14">
+        <text x="80" y="167" fill="#b3b3b3" class="widget-text" font-size="12">
           No track available
         </text>
         `}
         
         <!-- Most Played Today Section -->
-        <text x="200" y="285" text-anchor="middle" fill="#666666" class="widget-text" font-size="16" font-weight="600">
+        <text x="175" y="225" text-anchor="middle" fill="#666666" class="widget-text" font-size="14" font-weight="600">
           Most Played Today ${mostPlayedToday ? `(${mostPlayedToday.playCount} plays)` : ''}
         </text>
         
         <!-- Most Played Card -->
-        <rect x="30" y="300" width="340" height="70" fill="#1a1a1a" rx="12"/>
+        <rect x="25" y="235" width="300" height="60" fill="#1a1a1a" rx="8"/>
         
         <!-- Album art with different color -->
-        <rect x="45" y="315" width="40" height="40" fill="#8B4513" rx="4"/>
-        <text x="65" y="340" text-anchor="middle" fill="#ff6b35" class="widget-text" font-size="14">♪</text>
+        <rect x="35" y="245" width="35" height="35" fill="#8B4513" rx="3"/>
+        <text x="52.5" y="267" text-anchor="middle" fill="#ff6b35" class="widget-text" font-size="12">♪</text>
         
         <!-- Spotify logo -->
-        <circle cx="350" cy="325" r="10" fill="#ffffff"/>
-        <text x="350" y="330" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="8" font-weight="bold">♪</text>
+        <circle cx="305" cy="255" r="8" fill="#ffffff"/>
+        <text x="305" y="259" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="6" font-weight="bold">♪</text>
         
         ${mostPlayedToday ? `
-        <text x="95" y="330" fill="#ffffff" class="widget-text" font-size="14" font-weight="600">
-          ${escapeXml(truncateText(mostPlayedToday.name, 22))}
+        <text x="80" y="260" fill="#ffffff" class="widget-text" font-size="12" font-weight="600">
+          ${escapeXml(truncateText(mostPlayedToday.name, 20))}
         </text>
         
-        <text x="95" y="345" fill="#b3b3b3" class="widget-text" font-size="12" font-weight="400">
-          ${escapeXml(truncateText(mostPlayedToday.artist, 25))}
+        <text x="80" y="272" fill="#b3b3b3" class="widget-text" font-size="10" font-weight="400">
+          ${escapeXml(truncateText(mostPlayedToday.artist, 22))}
         </text>
         
         <!-- Save on Spotify -->
-        <circle cx="105" cy="355" r="6" fill="transparent" stroke="#b3b3b3" stroke-width="1"/>
-        <text x="105" y="359" text-anchor="middle" fill="#b3b3b3" class="widget-text" font-size="8">+</text>
-        <text x="120" y="359" fill="#b3b3b3" class="widget-text" font-size="10" font-weight="400">
+        <circle cx="85" cy="282" r="5" fill="transparent" stroke="#b3b3b3" stroke-width="1"/>
+        <text x="85" y="285" text-anchor="middle" fill="#b3b3b3" class="widget-text" font-size="6">+</text>
+        <text x="95" y="285" fill="#b3b3b3" class="widget-text" font-size="8" font-weight="400">
           Save on Spotify
         </text>
         
         <!-- Progress bar -->
-        <rect x="200" y="352" width="80" height="2" fill="#404040" rx="1"/>
-        <rect x="200" y="352" width="32" height="2" fill="#b3b3b3" rx="1"/>
+        <rect x="180" y="280" width="60" height="1.5" fill="#404040" rx="0.75"/>
+        <rect x="180" y="280" width="24" height="1.5" fill="#b3b3b3" rx="0.75"/>
         
         <!-- Duration -->
-        <text x="290" y="358" fill="#b3b3b3" class="widget-text" font-size="10">
+        <text x="250" y="284" fill="#b3b3b3" class="widget-text" font-size="8">
           ${mostPlayedToday.duration}
         </text>
         
         <!-- More options -->
-        <text x="310" y="335" fill="#b3b3b3" class="widget-text" font-size="12">⋯</text>
+        <text x="270" y="262" fill="#b3b3b3" class="widget-text" font-size="10">⋯</text>
         
         <!-- Play button -->
-        <circle cx="325" cy="335" r="12" fill="#ffffff"/>
-        <text x="325" y="340" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="10">▶</text>
+        <circle cx="285" cy="262" r="10" fill="#ffffff"/>
+        <text x="285" y="266" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="8">▶</text>
         ` : `
-        <text x="95" y="340" fill="#b3b3b3" class="widget-text" font-size="14">
+        <text x="80" y="267" fill="#b3b3b3" class="widget-text" font-size="12">
           No tracks played multiple times today
         </text>
         `}
         
         <!-- Featured Playlists Section -->
-        <text x="200" y="405" text-anchor="middle" fill="#999999" class="widget-text" font-size="12" font-weight="400">
+        <text x="175" y="325" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
           featured playlists today
         </text>
         
-        <text x="200" y="430" text-anchor="middle" fill="#666666" class="title-text" font-size="20" font-weight="600">
-          ${featuredPlaylist ? escapeXml(truncateText(featuredPlaylist.name, 25)) : 'japanese folk'}
+        <text x="175" y="345" text-anchor="middle" fill="#666666" class="title-text" font-size="16" font-weight="600">
+          ${featuredPlaylist ? escapeXml(truncateText(featuredPlaylist.name, 22)) : 'japanese folk'}
         </text>
         
-        <text x="200" y="450" text-anchor="middle" fill="#999999" class="widget-text" font-size="12" font-weight="400">
+        <text x="175" y="360" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
           ${featuredPlaylist ? `${featuredPlaylist.tracks} tracks • Created by ${featuredPlaylist.creator}` : '14 tracks • Created by me'}
         </text>
         
         <!-- Click hint -->
-        <text x="200" y="485" text-anchor="middle" fill="#999999" class="widget-text" font-size="11" font-weight="400">
+        <text x="175" y="385" text-anchor="middle" fill="#999999" class="widget-text" font-size="9" font-weight="400">
           Click to explore my story →
         </text>
       </a>
