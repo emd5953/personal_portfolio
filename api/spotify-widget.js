@@ -33,12 +33,6 @@ function truncateText(text, maxLength) {
   return text.substring(0, maxLength - 3) + '...';
 }
 
-function getTodayBounds() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-  return { todayStart, todayEnd };
-}
 
 export default async function handler(req, res) {
   // Set headers
@@ -115,28 +109,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Get top track from recent listening (short-term = ~4 weeks)
-    const topTracksResponse = await fetch(
-      'https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1',
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
-    );
-
-    let topTrackRecent = null;
-
-    if (topTracksResponse.ok) {
-      const { items: topTracks = [] } = await topTracksResponse.json();
-      
-      if (topTracks[0]) {
-        const track = topTracks[0];
-        topTrackRecent = {
-          name: track.name,
-          artist: track.artists.map(a => a.name).join(', '),
-          duration: formatDuration(track.duration_ms),
-          popularity: track.popularity
-        };
-      }
-    }
-
     // Get featured playlist
     const playlistsResponse = await fetch(
       `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
@@ -169,7 +141,7 @@ export default async function handler(req, res) {
     }
 
     // Generate and send the widget
-    const svg = generateSpotifyWidget(lastPlayed, topTrackRecent, featuredPlaylist);
+    const svg = generateSpotifyWidget(lastPlayed, featuredPlaylist);
     res.status(200).send(svg);
 
   } catch (error) {
@@ -204,10 +176,10 @@ function generateErrorWidget(message) {
   </svg>`;
 }
 
-function generateSpotifyWidget(lastPlayed, topTrackRecent, featuredPlaylist) {
+function generateSpotifyWidget(lastPlayed, featuredPlaylist) {
   const timeAgo = lastPlayed ? getTimeAgo(lastPlayed.playedAt) : '';
   
-  return `<svg width="320" height="260" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="320" height="200" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <style>
         .widget-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -218,7 +190,7 @@ function generateSpotifyWidget(lastPlayed, topTrackRecent, featuredPlaylist) {
     <!-- Clickable background -->
     <a href="https://enrindebbarma.vercel.app/pages/storyPage.html" target="_blank">
       <!-- Main container -->
-      <rect width="320" height="260" fill="#ffffff" rx="8" stroke="#e0e0e0" stroke-width="1"/>
+      <rect width="320" height="200" fill="#ffffff" rx="8" stroke="#e0e0e0" stroke-width="1"/>
       
       <!-- Header text -->
       <text x="160" y="15" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="500" letter-spacing="0.5px">
@@ -276,66 +248,27 @@ function generateSpotifyWidget(lastPlayed, topTrackRecent, featuredPlaylist) {
       </text>
       `}
       
-      <!-- Top Track Recent Section -->
-      <text x="160" y="125" text-anchor="middle" fill="#666666" class="widget-text" font-size="10" font-weight="600">
-        Top Track Recently
-      </text>
-      
-      <!-- Top Track Card -->
-      <rect x="20" y="135" width="280" height="40" fill="#1a1a1a" rx="5"/>
-      
-      <!-- Album art -->
-      <rect x="28" y="142" width="26" height="26" fill="#8B4513" rx="2"/>
-      <text x="41" y="158" text-anchor="middle" fill="#ff6b35" class="widget-text" font-size="8">♪</text>
-      
-      <!-- Spotify logo -->
-      <circle cx="285" cy="150" r="5" fill="#ffffff"/>
-      <text x="285" y="153" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="4" font-weight="bold">♪</text>
-      
-      ${topTrackRecent ? `
-      <text x="62" y="152" fill="#ffffff" class="widget-text" font-size="9" font-weight="600">
-        ${escapeXml(truncateText(topTrackRecent.name, 22))}
-      </text>
-      
-      <text x="62" y="161" fill="#b3b3b3" class="widget-text" font-size="7" font-weight="400">
-        ${escapeXml(truncateText(topTrackRecent.artist, 25))}
-      </text>
-      
-      <!-- Duration -->
-      <text x="220" y="157" fill="#b3b3b3" class="widget-text" font-size="6">
-        ${topTrackRecent.duration}
-      </text>
-      
-      <!-- Play button -->
-      <circle cx="250" cy="155" r="6" fill="#ffffff"/>
-      <text x="250" y="158" text-anchor="middle" fill="#1a1a1a" class="widget-text" font-size="5">▶</text>
-      ` : `
-      <text x="62" y="157" fill="#b3b3b3" class="widget-text" font-size="9">
-        No top tracks available
-      </text>
-      `}
-      
       <!-- Featured Playlists Section -->
       ${featuredPlaylist ? `
-      <text x="160" y="195" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
+      <text x="160" y="125" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
         featured playlists today
       </text>
       
-      <text x="160" y="210" text-anchor="middle" fill="#666666" class="title-text" font-size="12" font-weight="600">
+      <text x="160" y="140" text-anchor="middle" fill="#666666" class="title-text" font-size="12" font-weight="600">
         ${escapeXml(truncateText(featuredPlaylist.name, 25))}
       </text>
       
-      <text x="160" y="225" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
+      <text x="160" y="155" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
         ${featuredPlaylist.tracks} tracks • Created by ${featuredPlaylist.creator}
       </text>
       ` : `
-      <text x="160" y="210" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
+      <text x="160" y="140" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
         No playlists available
       </text>
       `}
       
       <!-- Click hint with better styling -->
-      <rect x="20" y="235" width="280" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
+      <rect x="20" y="175" width="280" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
     </a>
   </svg>`;
 }

@@ -28,10 +28,6 @@ A clean, modern portfolio website showcasing my experience as a software enginee
 - **Skills**: Technical expertise organized by category
 - **Contact**: Professional contact information and social links
 
-## Live Site
-
-Visit the live portfolio at: [Your Domain Here]
-
 ## Contact
 
 - **Email**: nrndbrma@gmail.com
@@ -40,4 +36,4 @@ Visit the live portfolio at: [Your Domain Here]
 
 ---
 
-Built with passion and lots of coffee ☕
+

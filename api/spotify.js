@@ -83,36 +83,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Get top track from recent listening (short-term = ~4 weeks)
-    const topTracksResponse = await fetch(
-      'https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1',
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      }
-    );
-
-    let topTrackRecent = null;
-    
-    if (topTracksResponse.ok) {
-      const topTracksData = await topTracksResponse.json();
-      const topTracks = topTracksData.items || [];
-      
-      if (topTracks[0]) {
-        const track = topTracks[0];
-        topTrackRecent = {
-          name: track.name,
-          artist: track.artists.map(a => a.name).join(', '),
-          album: track.album.name,
-          trackId: track.id,
-          image: track.album.images[0]?.url,
-          external_url: track.external_urls.spotify,
-          popularity: track.popularity
-        };
-      }
-    }
-
     // Get user's created playlists only
     const playlistsResponse = await fetch(
       `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
@@ -167,8 +137,6 @@ export default async function handler(req, res) {
 
     const response = {
       lastPlayed,
-      topTrackRecent,
-      mostPlayedToday: topTrackRecent, // Keep backward compatibility for story page
       randomPlaylists,
       playlistsCount: randomPlaylists.length,
       lastUpdated: new Date().toISOString(),
