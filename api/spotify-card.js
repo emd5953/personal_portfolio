@@ -102,8 +102,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Generate simple SVG card
-    const svg = generateSimpleCard(currentTrack, playlistOfTheDay);
+    // Generate Spotify-style card
+    const svg = generateSpotifyCard(currentTrack, playlistOfTheDay);
     res.status(200).send(svg);
 
   } catch (error) {
@@ -122,99 +122,102 @@ export default async function handler(req, res) {
   }
 
   function generateErrorCard(message) {
-    return `<svg width="400" height="150" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#1DB954;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#1ed760;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="150" fill="url(#bg)" rx="10"/>
-        <text x="200" y="80" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          ♪ ${escapeXml(message)}
+    return `<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="200" fill="#191414" rx="12"/>
+        <rect x="0" y="0" width="400" height="40" fill="#282828" rx="12"/>
+        <rect x="0" y="28" width="400" height="12" fill="#282828"/>
+        
+        <circle cx="20" cy="20" r="8" fill="#1DB954"/>
+        <text x="20" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">♪</text>
+        <text x="40" y="25" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="500">Spotify</text>
+        
+        <text x="200" y="110" text-anchor="middle" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="14">
+          ${escapeXml(message)}
         </text>
       </svg>`;
   }
 
-  function generateSimpleCard(currentTrack, playlistOfTheDay) {
+  function generateSpotifyCard(currentTrack, playlistOfTheDay) {
     const timeAgo = currentTrack ? getTimeAgo(currentTrack.playedAt) : '';
     
-    return `<svg width="450" height="200" xmlns="http://www.w3.org/2000/svg">
+    return `<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          <linearGradient id="spotifyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#1DB954;stop-opacity:0.1" />
+            <stop offset="100%" style="stop-color:#191414;stop-opacity:1" />
           </linearGradient>
-          <filter id="shadow">
-            <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
-          </filter>
         </defs>
         
-        <!-- Background with shadow -->
-        <rect width="450" height="200" fill="url(#bg)" rx="12" filter="url(#shadow)"/>
-        
-        <!-- Border accent -->
-        <rect x="2" y="2" width="446" height="196" fill="none" stroke="rgba(29, 185, 84, 0.3)" stroke-width="1" rx="11"/>
+        <!-- Main Spotify embed container -->
+        <rect width="400" height="200" fill="#191414" rx="12"/>
         
         <!-- Header section -->
-        <rect x="0" y="0" width="450" height="45" fill="rgba(29, 185, 84, 0.1)" rx="12"/>
+        <rect x="0" y="0" width="400" height="40" fill="#282828" rx="12"/>
+        <rect x="0" y="28" width="400" height="12" fill="#282828"/>
         
-        <!-- Spotify icon -->
-        <circle cx="25" cy="22" r="8" fill="#1DB954"/>
-        <text x="25" y="27" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">♪</text>
+        <!-- Spotify logo and text -->
+        <circle cx="20" cy="20" r="8" fill="#1DB954"/>
+        <text x="20" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">♪</text>
+        <text x="40" y="25" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="500">Spotify</text>
         
-        <!-- Header text -->
-        <text x="45" y="28" fill="#1DB954" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
-          what i'm listening to today
+        <!-- Status text -->
+        <text x="350" y="25" text-anchor="end" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="11">
+          ${timeAgo}
         </text>
         
         ${currentTrack ? `
-        <!-- Current Track Section -->
-        <text x="25" y="70" fill="rgba(255,255,255,0.6)" font-family="Arial, sans-serif" font-size="11" font-weight="500" letter-spacing="1px">
-          NOW PLAYING
+        <!-- Album art placeholder -->
+        <rect x="20" y="55" width="60" height="60" fill="#404040" rx="4"/>
+        <text x="50" y="90" text-anchor="middle" fill="#808080" font-family="Arial, sans-serif" font-size="20">♪</text>
+        
+        <!-- Track info -->
+        <text x="95" y="75" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="600">
+          ${escapeXml(truncateText(currentTrack.name, 28))}
         </text>
         
-        <text x="25" y="95" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="600">
-          ${escapeXml(truncateText(currentTrack.name, 35))}
+        <text x="95" y="95" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="12">
+          ${escapeXml(truncateText(currentTrack.artist, 32))}
         </text>
         
-        <text x="25" y="115" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="13">
-          by ${escapeXml(truncateText(currentTrack.artist, 40))}
-        </text>
+        <!-- Progress bar background -->
+        <rect x="95" y="105" width="280" height="3" fill="#404040" rx="1.5"/>
+        <!-- Progress bar fill -->
+        <rect x="95" y="105" width="84" height="3" fill="#1DB954" rx="1.5"/>
         
-        <text x="25" y="132" fill="rgba(29, 185, 84, 0.8)" font-family="Arial, sans-serif" font-size="11">
-          ${timeAgo}
-        </text>
+        <!-- Time stamps -->
+        <text x="95" y="125" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="10">1:23</text>
+        <text x="375" y="125" text-anchor="end" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="10">3:45</text>
+        
+        <!-- Control buttons -->
+        <circle cx="320" cy="85" r="12" fill="#1DB954"/>
+        <text x="320" y="90" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">▶</text>
+        
+        <!-- Heart icon -->
+        <text x="350" y="90" text-anchor="middle" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="14">♡</text>
         ` : `
-        <text x="25" y="85" fill="rgba(255,255,255,0.6)" font-family="Arial, sans-serif" font-size="14">
-          No recent activity
+        <!-- No track playing state -->
+        <rect x="20" y="55" width="60" height="60" fill="#404040" rx="4"/>
+        <text x="50" y="90" text-anchor="middle" fill="#808080" font-family="Arial, sans-serif" font-size="20">♪</text>
+        
+        <text x="95" y="80" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="14">
+          No track playing
         </text>
         `}
         
         ${playlistOfTheDay ? `
-        <!-- Divider line -->
-        <line x1="25" y1="150" x2="425" y2="150" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-        
         <!-- Playlist section -->
-        <text x="25" y="170" fill="rgba(29, 185, 84, 0.8)" font-family="Arial, sans-serif" font-size="11" font-weight="500">
+        <rect x="20" y="140" width="360" height="40" fill="#282828" rx="6"/>
+        <text x="30" y="155" fill="#b3b3b3" font-family="Arial, sans-serif" font-size="10" text-transform="uppercase">
           PLAYLIST OF THE DAY
         </text>
-        
-        <text x="25" y="188" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="12" font-weight="500">
-          ${escapeXml(truncateText(playlistOfTheDay.name, 30))} • ${playlistOfTheDay.tracks} tracks
+        <text x="30" y="170" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="500">
+          ${escapeXml(truncateText(playlistOfTheDay.name, 40))}
+        </text>
+        <text x="350" y="165" text-anchor="end" fill="#1DB954" font-family="Arial, sans-serif" font-size="11">
+          ${playlistOfTheDay.tracks} tracks
         </text>
         ` : ''}
         
-        <!-- Live indicator -->
-        <circle cx="410" cy="25" r="4" fill="#1DB954">
-          <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
-        </circle>
-        <text x="400" y="40" fill="rgba(29, 185, 84, 0.8)" font-family="Arial, sans-serif" font-size="9" font-weight="500">LIVE</text>
-        
-        <!-- Decorative elements -->
-        <circle cx="380" cy="180" r="2" fill="rgba(29, 185, 84, 0.3)"/>
-        <circle cx="395" cy="175" r="1.5" fill="rgba(29, 185, 84, 0.2)"/>
-        <circle cx="405" cy="185" r="1" fill="rgba(29, 185, 84, 0.4)"/>
       </svg>`;
   }
 
