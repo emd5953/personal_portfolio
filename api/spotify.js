@@ -86,16 +86,10 @@ export default async function handler(req, res) {
       // Count play frequency for each track TODAY ONLY (resets at midnight)
       const trackCounts = {};
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today in local time
-      
-      console.log('Today start:', todayStart.toISOString());
-      console.log('Recent tracks count:', recentTracks.length);
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
       recentTracks.forEach(item => {
         const playedTime = new Date(item.played_at);
-        console.log('Track played at:', playedTime.toISOString(), 'vs today start:', todayStart.toISOString());
-        
-        // Only count plays from today (after midnight local time)
         if (playedTime >= todayStart) {
           const trackId = item.track.id;
           if (!trackCounts[trackId]) {
@@ -106,41 +100,35 @@ export default async function handler(req, res) {
             };
           }
           trackCounts[trackId].count++;
-          // Keep track of the most recent play time for this track
           if (new Date(item.played_at) > new Date(trackCounts[trackId].lastPlayed)) {
             trackCounts[trackId].lastPlayed = item.played_at;
           }
         }
       });
       
-      console.log('Track counts:', Object.keys(trackCounts).length);
-      
-      // Find the most played track from today
+      // Find the track with highest count today
       let maxCount = 0;
       let mostPlayedTrackData = null;
       
-      Object.values(trackCounts).forEach(({ count, track, lastPlayed: trackLastPlayed }) => {
-        if (count > maxCount) {
-          maxCount = count;
-          mostPlayedTrackData = { track, count, lastPlayed: trackLastPlayed };
+      for (const trackData of Object.values(trackCounts)) {
+        if (trackData.count > maxCount) {
+          maxCount = trackData.count;
+          mostPlayedTrackData = trackData;
         }
-      });
+      }
       
-      console.log('Max count found:', maxCount);
-      
-      // Set most played today if we have any track played today
-      if (mostPlayedTrackData && maxCount > 0) {
+      // Always set most played if we have any tracks from today
+      if (mostPlayedTrackData) {
         const track = mostPlayedTrackData.track;
         mostPlayedToday = {
           name: track.name,
           artist: track.artists.map(a => a.name).join(', '),
           album: track.album.name,
           trackId: track.id,
-          playCount: maxCount,
+          playCount: mostPlayedTrackData.count,
           lastPlayedAt: mostPlayedTrackData.lastPlayed,
           image: track.album.images[0]?.url,
-          external_url: track.external_urls.spotify,
-          isFallback: maxCount === 1
+          external_url: track.external_urls.spotify
         };
       }
     }
