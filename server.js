@@ -70,8 +70,8 @@ async function saveData(filePath, data) {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
-// Verify password with rate limiting
-function verifyPassword(password, clientIP = 'unknown') {
+// Verify password with rate limiting (only for failed attempts)
+function verifyPasswordWithRateLimit(password, clientIP = 'unknown') {
     const now = Date.now();
     const attempts = authAttempts.get(clientIP) || { count: 0, lastAttempt: 0 };
     
@@ -98,6 +98,11 @@ function verifyPassword(password, clientIP = 'unknown') {
     }
     
     return isValid;
+}
+
+// Simple password verification for ongoing requests (no rate limiting)
+function verifyPassword(password) {
+    return password === EDIT_PASSWORD;
 }
 
 // Spotify API handler
@@ -289,11 +294,15 @@ async function handleContentAPI(req, res, query) {
     }
 
     const { type, action } = query;
+    
+    // Debug logging
+    console.log(`Content API: ${req.method} ${req.url} - type: ${type}, action: ${action}`);
 
     try {
         if (req.method === 'GET') {
-            // Public read access
+            // Public read access - NO AUTH REQUIRED
             if (type === 'thoughts') {
+                console.log('Serving thoughts data (public)');
                 const thoughts = await loadData(THOUGHTS_FILE, []);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, data: thoughts }));
@@ -301,6 +310,7 @@ async function handleContentAPI(req, res, query) {
             }
             
             if (type === 'timeline') {
+                console.log('Serving timeline data (public)');
                 const timeline = await loadData(TIMELINE_FILE, []);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, data: timeline }));
@@ -310,17 +320,10 @@ async function handleContentAPI(req, res, query) {
             // Export functionality (requires auth)
             if (action === 'export') {
                 const password = req.headers.authorization?.replace('Bearer ', '');
-                const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
                 
-                try {
-                    if (!verifyPassword(password, clientIP)) {
-                        res.writeHead(401, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
-                        return;
-                    }
-                } catch (error) {
-                    res.writeHead(429, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: error.message }));
+                if (!verifyPassword(password)) {
+                    res.writeHead(401, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
                     return;
                 }
 
@@ -354,17 +357,16 @@ async function handleContentAPI(req, res, query) {
 
                 // Check authentication for write operations
                 const password = req.headers.authorization?.replace('Bearer ', '');
-                const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
                 
-                try {
-                    if (!verifyPassword(password, clientIP)) {
-                        res.writeHead(401, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
-                        return;
-                    }
-                } catch (error) {
-                    res.writeHead(429, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: error.message }));
+                console.log('Server auth check:');
+                console.log('- Received password:', password ? `"${password}"` : 'null/undefined');
+                console.log('- Expected password:', `"${EDIT_PASSWORD}"`);
+                console.log('- Passwords match:', password === EDIT_PASSWORD);
+                
+                if (!verifyPassword(password)) {
+                    console.log('Authentication failed - sending 401');
+                    res.writeHead(401, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
                     return;
                 }
 
