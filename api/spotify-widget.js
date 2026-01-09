@@ -123,12 +123,16 @@ export default async function handler(req, res) {
       if (userPlaylists.length > 0) {
         // Use date-based seeded random for consistent daily playlist
         const today = new Date();
-        const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        const seed = dateString.split('').reduce((a, b) => {
-          a = ((a << 5) - a) + b.charCodeAt(0);
-          return a & a;
-        }, 0);
+        // Use UTC to avoid timezone issues
+        const dateString = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
         
+        // Create a more robust seed from the date string
+        let seed = 0;
+        for (let i = 0; i < dateString.length; i++) {
+          seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
+        }
+        
+        // Use a simple hash-based selection instead of modulo
         const playlistIndex = Math.abs(seed) % userPlaylists.length;
         const playlist = userPlaylists[playlistIndex];
         
@@ -137,6 +141,9 @@ export default async function handler(req, res) {
           tracks: playlist.tracks.total,
           creator: 'Enrin'
         };
+        
+        // Debug: log the date and selected playlist (remove this later)
+        console.log(`Date: ${dateString}, Seed: ${seed}, Index: ${playlistIndex}, Playlist: ${playlist.name}`);
       }
     }
 
