@@ -52,33 +52,103 @@ export default async function handler(req, res) {
     const userData = await userResponse.json();
     const userId = userData.id;
 
-    // Get recently played tracks for last played
-    const recentlyPlayedResponse = await fetch(
-      'https://api.spotify.com/v1/me/player/recently-played?limit=1',
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
+    // Get recently played tracks for last played and most played analysis
+    // Make 2 parallel requests to get ~100 tracks (good balance of data vs speed)
+    const recentRequests = [
+      fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      })
+    ];
+
+    // Get the first batch to determine if we need a second request
+    const firstResponse = await recentRequests[0];
+    let allRecentTracks = [];
+    
+    if (firstResponse.ok) {
+      const firstData = await firstResponse.json();
+      allRecentTracks = firstData.items || [];
+      
+      // Only make a second request if we got a full 50 tracks and there's more data
+      if (allRecentTracks.length === 50 && firstData.next) {
+        const secondResponse = await fetch(firstData.next, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        
+        if (secondResponse.ok) {
+          const secondData = await secondResponse.json();
+          allRecentTracks = allRecentTracks.concat(secondData.items || []);
         }
       }
-    );
+    }
 
     let lastPlayed = null;
+    let mostPlayedToday = null;
     
-    if (recentlyPlayedResponse.ok) {
-      const recentlyPlayedData = await recentlyPlayedResponse.json();
-      const recentTracks = recentlyPlayedData.items || [];
-      
+    if (allRecentTracks.length > 0) {
       // Last played is the most recent track
-      if (recentTracks[0]) {
-        const track = recentTracks[0].track;
+      if (allRecentTracks[0]) {
+        const track = allRecentTracks[0].track;
         lastPlayed = {
           name: track.name,
           artist: track.artists.map(a => a.name).join(', '),
           album: track.album.name,
           trackId: track.id,
-          playedAt: recentTracks[0].played_at,
+          playedAt: allRecentTracks[0].played_at,
           image: track.album.images[0]?.url,
           external_url: track.external_urls.spotify
+        };
+      }
+
+      // Calculate most played song of today
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      // Filter tracks played today
+      const todayTracks = allRecentTracks.filter(item => {
+        const playedAt = new Date(item.played_at);
+        return playedAt >= todayStart;
+      });
+
+      // Count plays per track
+      const trackCounts = {};
+      todayTracks.forEach(item => {
+        const trackId = item.track.id;
+        if (!trackCounts[trackId]) {
+          trackCounts[trackId] = {
+            count: 0,
+            track: item.track,
+            lastPlayedAt: item.played_at
+          };
+        }
+        trackCounts[trackId].count++;
+        // Keep the most recent play time
+        if (new Date(item.played_at) > new Date(trackCounts[trackId].lastPlayedAt)) {
+          trackCounts[trackId].lastPlayedAt = item.played_at;
+        }
+      });
+
+      // Find the most played track (with at least 2 plays to be meaningful)
+      let maxCount = 1; // Only show if played more than once
+      let mostPlayedTrackId = null;
+
+      Object.keys(trackCounts).forEach(trackId => {
+        if (trackCounts[trackId].count > maxCount) {
+          maxCount = trackCounts[trackId].count;
+          mostPlayedTrackId = trackId;
+        }
+      });
+
+      if (mostPlayedTrackId && trackCounts[mostPlayedTrackId]) {
+        const trackData = trackCounts[mostPlayedTrackId];
+        mostPlayedToday = {
+          name: trackData.track.name,
+          artist: trackData.track.artists.map(a => a.name).join(', '),
+          album: trackData.track.album.name,
+          trackId: trackData.track.id,
+          playCount: trackData.count,
+          lastPlayedAt: trackData.lastPlayedAt,
+          image: trackData.track.album.images[0]?.url,
+          external_url: trackData.track.external_urls.spotify
         };
       }
     }
@@ -149,6 +219,7 @@ export default async function handler(req, res) {
 
     const response = {
       lastPlayed,
+      mostPlayedToday,
       randomPlaylists,
       playlistsCount: randomPlaylists.length,
       lastUpdated: new Date().toISOString(),
