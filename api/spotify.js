@@ -104,15 +104,18 @@ export default async function handler(req, res) {
 
       // Get 3 random playlists using date as seed for consistency throughout the day (resets at midnight)
       const today = new Date();
-      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      const seed = dateString.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
+      // Use UTC to avoid timezone issues
+      const dateString = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
+      
+      // Create a more robust seed from the date string
+      let seed = 0;
+      for (let i = 0; i < dateString.length; i++) {
+        seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
+      }
       
       // Simple seeded random function
-      const seededRandom = (seed) => {
-        const x = Math.sin(seed) * 10000;
+      const seededRandom = (inputSeed) => {
+        const x = Math.sin(inputSeed) * 10000;
         return x - Math.floor(x);
       };
 
