@@ -209,9 +209,9 @@ async function handleSpotifyAPI(req, res) {
         if (playlistsResponse.ok) {
             const playlistsData = await playlistsResponse.json();
             
-            // Filter to only playlists created by the user
+            // Filter to only playlists created by the user AND public playlists
             const userCreatedPlaylists = playlistsData.items.filter(playlist => 
-                playlist.owner.id === userId
+                playlist.owner.id === userId && playlist.public === true
             );
 
             // Get 3 random playlists using date as seed for consistency throughout the day
