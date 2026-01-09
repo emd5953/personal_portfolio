@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Simple notification system
+// Enhanced notification system with better feedback
 function showNotification(message) {
     // Remove existing notification
     const existing = document.querySelector('.notification');
@@ -283,21 +283,40 @@ function showNotification(message) {
 
     const notification = document.createElement('div');
     notification.className = 'notification';
-    notification.textContent = message;
+    notification.innerHTML = message; // Use innerHTML to support emojis and formatting
+    
+    // Determine notification type based on message content
+    let backgroundColor = 'var(--accent-dark)';
+    let duration = 3000;
+    
+    if (message.includes('Wrong password') || message.includes('failed') || message.includes('error')) {
+        backgroundColor = '#dc3545'; // Red for errors
+        duration = 4000; // Show errors longer
+    } else if (message.includes('successful') || message.includes('Authentication successful')) {
+        backgroundColor = '#28a745'; // Green for success
+        duration = 3000;
+    } else if (message.includes('Too many attempts')) {
+        backgroundColor = '#ffc107'; // Yellow for warnings
+        duration = 5000; // Show warnings longer
+    }
+    
     notification.style.cssText = `
         position: fixed;
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--accent-dark);
+        background: ${backgroundColor};
         color: white;
-        padding: 12px 24px;
-        border-radius: 6px;
-        font-size: 14px;
+        padding: 16px 28px;
+        border-radius: 8px;
+        font-size: 15px;
         font-weight: 500;
         z-index: 10000;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        text-align: center;
     `;
 
     document.body.appendChild(notification);
@@ -305,17 +324,19 @@ function showNotification(message) {
     // Animate in
     setTimeout(() => {
         notification.style.opacity = '1';
+        notification.style.transform = 'translateX(-50%) translateY(-5px)';
     }, 10);
 
     // Remove after delay
     setTimeout(() => {
         notification.style.opacity = '0';
+        notification.style.transform = 'translateX(-50%) translateY(10px)';
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.remove();
             }
         }, 300);
-    }, 2000);
+    }, duration);
 }
 
 // Keyboard shortcuts
@@ -440,7 +461,7 @@ function initInlineEditing() {
         if (sessionStart && (now - parseInt(sessionStart)) > SESSION_DURATION) {
             // Session expired
             logout();
-            showNotification('⏰ Session expired. Please log in again.');
+            showNotification('Session expired. Please log in again.');
             return;
         }
         
@@ -546,7 +567,7 @@ function startSessionTimer() {
     // Set new timer
     sessionTimeout = setTimeout(() => {
         logout();
-        showNotification('⏰ Session expired due to inactivity');
+        showNotification('Session expired due to inactivity');
     }, SESSION_DURATION);
 }
 
@@ -636,7 +657,7 @@ async function authenticateForSection(sectionType) {
     const password = document.getElementById('edit-password').value;
     
     if (!password) {
-        showNotification(' Please enter a password');
+        showNotification('Please enter a password');
         return;
     }
     
@@ -647,8 +668,8 @@ async function authenticateForSection(sectionType) {
     unlockBtn.disabled = true;
     
     try {
-        // Test authentication by trying to fetch existing data instead of creating test entries
-        const response = await fetch('/api/content?type=thoughts', {
+        // Test authentication with export endpoint (requires auth)
+        const response = await fetch('/api/content?action=export', {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + password
@@ -659,8 +680,8 @@ async function authenticateForSection(sectionType) {
             authToken = password;
             localStorage.setItem('storyEditToken', password);
             localStorage.setItem('sessionStart', Date.now().toString());
+            
             closePasswordModal();
-            showNotification(' Authentication successful');
             startSessionTimer();
             
             // Set global edit mode to true
@@ -686,13 +707,26 @@ async function authenticateForSection(sectionType) {
             
         } else {
             const errorData = await response.json();
+            
+            // Clear any stored token since it's invalid
+            localStorage.removeItem('storyEditToken');
+            localStorage.removeItem('sessionStart');
+            
             if (response.status === 429) {
-                showNotification(`🔒 ${errorData.error}`);
+                showNotification(` ${errorData.error}`);
+            } else if (response.status === 401) {
+                showNotification('Wrong password! Please try again.');
             } else {
-                showNotification(' Invalid password');
+                showNotification('Authentication failed. Please try again.');
             }
+            
             unlockBtn.textContent = originalText;
             unlockBtn.disabled = false;
+            
+            // Clear the password field and focus it
+            const passwordInput = document.getElementById('edit-password');
+            passwordInput.value = '';
+            passwordInput.focus();
             
             // Shake animation for wrong password
             const modal = document.querySelector('.password-modal-content');
@@ -702,7 +736,7 @@ async function authenticateForSection(sectionType) {
             }, 500);
         }
     } catch (error) {
-        showNotification(' Authentication failed');
+        showNotification('Connection failed. Is the server running?');
         unlockBtn.textContent = originalText;
         unlockBtn.disabled = false;
     }
@@ -798,7 +832,7 @@ function makeThoughtsEditable() {
         // Add edit/delete buttons
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
-        editBtn.innerHTML = '✏️';
+        editBtn.innerHTML = 'edit';
         editBtn.onclick = (e) => {
             e.stopPropagation();
             editThought(card);
@@ -806,7 +840,7 @@ function makeThoughtsEditable() {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.innerHTML = 'delete';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteThought(card);
@@ -827,7 +861,7 @@ function makeTimelineEditable() {
         // Add edit/delete buttons
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
-        editBtn.innerHTML = '✏️';
+        editBtn.innerHTML = 'edit';
         editBtn.onclick = (e) => {
             e.stopPropagation();
             editTimelineEntry(content);
@@ -835,7 +869,7 @@ function makeTimelineEditable() {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.innerHTML = 'delete';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteTimelineEntry(content);
@@ -1059,12 +1093,14 @@ async function deleteTimelineEntry(content) {
     if (!confirm('Are you sure you want to delete this timeline entry?')) return;
     
     try {
+        const headers = {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        };
+        
         const response = await fetch('/api/content?type=timeline', {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
             body: JSON.stringify({ id: content.parentElement.dataset.id })
         });
         
@@ -1075,6 +1111,7 @@ async function deleteTimelineEntry(content) {
             loadDynamicContent(); // Reload content
             showNotification(' Timeline entry deleted');
         } else {
+            const errorData = await response.text();
             showNotification(' Failed to delete timeline entry');
         }
     } catch (error) {
@@ -1087,6 +1124,7 @@ async function loadDynamicContent() {
     try {
         // Load thoughts
         const thoughtsResponse = await fetch('/api/content?type=thoughts');
+        
         if (thoughtsResponse.ok) {
             const thoughtsData = await thoughtsResponse.json();
             renderThoughts(thoughtsData.data);
@@ -1094,6 +1132,7 @@ async function loadDynamicContent() {
         
         // Load timeline
         const timelineResponse = await fetch('/api/content?type=timeline');
+        
         if (timelineResponse.ok) {
             const timelineData = await timelineResponse.json();
             renderTimeline(timelineData.data);
