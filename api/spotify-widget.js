@@ -111,7 +111,6 @@ export default async function handler(req, res) {
     }
 
     let lastPlayed = null;
-    let mostPlayedToday = null;
 
     if (allRecentTracks.length > 0) {
       // Get last played track
@@ -125,49 +124,6 @@ export default async function handler(req, res) {
         };
       }
 
-      // Calculate most played song of today
-      const today = new Date();
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      
-      // Filter tracks played today
-      const todayTracks = allRecentTracks.filter(item => {
-        const playedAt = new Date(item.played_at);
-        return playedAt >= todayStart;
-      });
-
-      // Count plays per track
-      const trackCounts = {};
-      todayTracks.forEach(item => {
-        const trackId = item.track.id;
-        if (!trackCounts[trackId]) {
-          trackCounts[trackId] = {
-            count: 0,
-            track: item.track
-          };
-        }
-        trackCounts[trackId].count++;
-      });
-
-      // Find the most played track (with at least 2 plays)
-      let maxCount = 1;
-      let mostPlayedTrackId = null;
-
-      Object.keys(trackCounts).forEach(trackId => {
-        if (trackCounts[trackId].count > maxCount) {
-          maxCount = trackCounts[trackId].count;
-          mostPlayedTrackId = trackId;
-        }
-      });
-
-      if (mostPlayedTrackId && trackCounts[mostPlayedTrackId]) {
-        const trackData = trackCounts[mostPlayedTrackId];
-        mostPlayedToday = {
-          name: trackData.track.name,
-          artist: trackData.track.artists.map(a => a.name).join(', '),
-          playCount: trackData.count,
-          duration: formatDuration(trackData.track.duration_ms)
-        };
-      }
     }
 
     // Get featured playlist (1 random daily)
@@ -208,7 +164,7 @@ export default async function handler(req, res) {
     }
 
     // Generate and send the widget
-    const svg = generateSpotifyWidget(lastPlayed, featuredPlaylist, mostPlayedToday);
+    const svg = generateSpotifyWidget(lastPlayed, featuredPlaylist);
     res.status(200).send(svg);
 
   } catch (error) {
@@ -242,7 +198,7 @@ function generateErrorWidget(message) {
   </svg>`;
 }
 
-function generateSpotifyWidget(lastPlayed, featuredPlaylist, mostPlayedToday) {
+function generateSpotifyWidget(lastPlayed, featuredPlaylist) {
   const timeAgo = lastPlayed ? getTimeAgo(lastPlayed.playedAt) : '';
   
   return `<svg width="320" height="280" xmlns="http://www.w3.org/2000/svg">
@@ -314,63 +270,28 @@ function generateSpotifyWidget(lastPlayed, featuredPlaylist, mostPlayedToday) {
       </text>
       `}
 
-      <!-- Most Played Today Section -->
-      ${mostPlayedToday ? `
-      <text x="160" y="125" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="500" letter-spacing="0.5px">
-        MOST PLAYED TODAY (${mostPlayedToday.playCount} PLAYS)
-      </text>
-      
-      <!-- Most Played Card -->
-      <rect x="20" y="135" width="280" height="40" fill="#1db954" rx="5"/>
-      
-      <!-- Album art -->
-      <rect x="28" y="142" width="26" height="26" fill="#ffffff" rx="2"/>
-      <text x="41" y="158" text-anchor="middle" fill="#1db954" class="widget-text" font-size="8">♪</text>
-      
-      <!-- Play count badge -->
-      <circle cx="285" cy="150" r="8" fill="#ffffff"/>
-      <text x="285" y="154" text-anchor="middle" fill="#1db954" class="widget-text" font-size="6" font-weight="bold">${mostPlayedToday.playCount}</text>
-      
-      <!-- Track info -->
-      <text x="62" y="152" fill="#ffffff" class="widget-text" font-size="9" font-weight="600">
-        ${escapeXml(truncateText(mostPlayedToday.name, 22))}
-      </text>
-      
-      <text x="62" y="161" fill="#e8f5e8" class="widget-text" font-size="7" font-weight="400">
-        ${escapeXml(truncateText(mostPlayedToday.artist, 25))}
-      </text>
-      
-      <!-- Duration -->
-      <text x="220" y="157" fill="#e8f5e8" class="widget-text" font-size="6">
-        ${mostPlayedToday.duration}
-      </text>
-      
-      <!-- Play button -->
-      <circle cx="250" cy="155" r="6" fill="#ffffff"/>
-      <text x="250" y="158" text-anchor="middle" fill="#1db954" class="widget-text" font-size="5">▶</text>
-      ` : ''}
       
       <!-- Featured Playlists Section -->
       ${featuredPlaylist ? `
-      <text x="160" y="${mostPlayedToday ? '200' : '125'}" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
+      <text x="160" y="125" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
         featured playlist today
       </text>
       
-      <text x="160" y="${mostPlayedToday ? '215' : '140'}" text-anchor="middle" fill="#666666" class="title-text" font-size="12" font-weight="600">
+      <text x="160" y="140" text-anchor="middle" fill="#666666" class="title-text" font-size="12" font-weight="600">
         ${escapeXml(truncateText(featuredPlaylist.name, 25))}
       </text>
       
-      <text x="160" y="${mostPlayedToday ? '230' : '155'}" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
+      <text x="160" y="155" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
         ${featuredPlaylist.tracks} tracks • Created by ${featuredPlaylist.creator}
       </text>
       ` : `
-      <text x="160" y="${mostPlayedToday ? '215' : '140'}" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
+      <text x="160" y="140" text-anchor="middle" fill="#999999" class="widget-text" font-size="10" font-weight="400">
         No playlists available
       </text>
       `}
       
       <!-- Click hint with better styling -->
-      <rect x="20" y="${mostPlayedToday ? '255' : '175'}" width="280" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
+      <rect x="20" y="175" width="280" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
     </a>
   </svg>`;
 }
