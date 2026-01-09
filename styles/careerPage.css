@@ -962,56 +962,6 @@ footer p {
     font-size: 1.5rem;
   }
   
-  .grid-item {
-    padding: 25px 15px;
-  }
-  
-  .grid-item-2 {
-    padding: 20px 10px;
-  }
-  
-  .projects-title {
-    font-size: 1.5rem;
-  }
-  
-  .project-card {
-    margin-bottom: 15px;
-  }
-  
-  .project-img {
-    height: 120px;
-  }
-  
-  .project-card h3 {
-    font-size: 0.9rem;
-  }
-  
-  .project-card p {
-    font-size: 0.75rem;
-  }
-  
-  .tech-tags {
-    gap: 4px;
-  }
-  
-  .tech-tag {
-    font-size: 8px;
-    padding: 2px 5px;
-  }
-  
-  .project-btn {
-    font-size: 9px;
-    padding: 5px 8px;
-  }
-  
-  .project-links {
-    gap: 5px;
-  }
-  
-  .grid-item-1 h2 {
-    font-size: 1.5rem;
-  }
-  
   .experience-card, .education-card {
     padding: 20px;
     margin-bottom: 15px;

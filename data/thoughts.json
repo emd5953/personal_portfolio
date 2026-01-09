@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "date": "jul 27, 2025",
+    "tag": "nostalgia",
+    "title": "flashbacks & reminiscing",
+    "preview": "3 am. i spent the night confused, stalking my...., bruh cut the crap. do not trusasdasdast your thoughts after 11pm."
+  },
+  {
+    "id": "2",
+    "date": "mar 15, 2025",
+    "tag": "reflection",
+    "title": "the art of debugging life",
+    "preview": "sometimes fixing code is easier than fixing yourself. every error message teaches us something about persistence, patience, and the beauty of finally making things work."
+  },
+  {
+    "id": "3",
+    "date": "mar 10, 2025",
+    "tag": "tech",
+    "title": "why i fell in love with react",
+    "preview": "it wasn't the syntax or the ecosystem. it was the moment i realized how components mirror life - how small, reusable pieces can create something beautiful and complex."
+  },
+  {
+    "id": "4",
+    "date": "mar 8, 2025",
+    "tag": "life",
+    "title": "coffee shop chronicles",
+    "preview": "the best ideas come in the most unexpected places. today's revelation came with a latte and a stranger's conversation about chasing dreams versus finding them."
+  },
+  {
+    "id": "5",
+    "date": "mar 5, 2025",
+    "tag": "journey",
+    "title": "from music to code",
+    "preview": "how i transitioned creativity from music, art & style to software development and why it was the best plot twist my story ever had. sometimes the craziest combinations can lead to the amazing ideas/projects."
+  },
+  {
+    "id": "6",
+    "date": "feb 28, 2025",
+    "tag": "code",
+    "title": "late night code sessions",
+    "preview": "when the world sleeps, the best code awakens. there's something magical about 2 am debugging sessions - just you, your thoughts, and the gentle hum of possibility."
+  }
+]
