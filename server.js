@@ -20,6 +20,11 @@ try {
 // Simple password check
 const EDIT_PASSWORD = process.env.EDIT_PASSWORD || 'test123';
 
+// Rate limiting for auth attempts
+const authAttempts = new Map();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
+
 // Data file paths
 const THOUGHTS_FILE = path.join(process.cwd(), 'data', 'thoughts.json');
 const TIMELINE_FILE = path.join(process.cwd(), 'data', 'timeline.json');
@@ -65,9 +70,34 @@ async function saveData(filePath, data) {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
-// Verify password
-function verifyPassword(password) {
-    return password === EDIT_PASSWORD;
+// Verify password with rate limiting
+function verifyPassword(password, clientIP = 'unknown') {
+    const now = Date.now();
+    const attempts = authAttempts.get(clientIP) || { count: 0, lastAttempt: 0 };
+    
+    // Reset attempts if lockout period has passed
+    if (now - attempts.lastAttempt > LOCKOUT_TIME) {
+        attempts.count = 0;
+    }
+    
+    // Check if locked out
+    if (attempts.count >= MAX_ATTEMPTS) {
+        const timeLeft = Math.ceil((LOCKOUT_TIME - (now - attempts.lastAttempt)) / 1000 / 60);
+        throw new Error(`Too many failed attempts. Try again in ${timeLeft} minutes.`);
+    }
+    
+    const isValid = password === EDIT_PASSWORD;
+    
+    if (!isValid) {
+        attempts.count++;
+        attempts.lastAttempt = now;
+        authAttempts.set(clientIP, attempts);
+    } else {
+        // Reset on successful auth
+        authAttempts.delete(clientIP);
+    }
+    
+    return isValid;
 }
 
 // Spotify API handler
@@ -270,9 +300,17 @@ async function handleContentAPI(req, res, query) {
             // Export functionality (requires auth)
             if (action === 'export') {
                 const password = req.headers.authorization?.replace('Bearer ', '');
-                if (!verifyPassword(password)) {
-                    res.writeHead(401, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Unauthorized' }));
+                const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+                
+                try {
+                    if (!verifyPassword(password, clientIP)) {
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
+                        return;
+                    }
+                } catch (error) {
+                    res.writeHead(429, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: error.message }));
                     return;
                 }
 
@@ -306,9 +344,17 @@ async function handleContentAPI(req, res, query) {
 
                 // Check authentication for write operations
                 const password = req.headers.authorization?.replace('Bearer ', '');
-                if (!verifyPassword(password)) {
-                    res.writeHead(401, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Unauthorized' }));
+                const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+                
+                try {
+                    if (!verifyPassword(password, clientIP)) {
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
+                        return;
+                    }
+                } catch (error) {
+                    res.writeHead(429, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: error.message }));
                     return;
                 }
 
@@ -319,11 +365,7 @@ async function handleContentAPI(req, res, query) {
                         // Add new thought
                         const newThought = {
                             id: Date.now().toString(),
-                            date: new Date().toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                            }).toLowerCase(),
+                            date: new Date().toISOString().split('T')[0],
                             tag: parsedBody.tag || 'reflection',
                             title: parsedBody.title,
                             preview: parsedBody.preview,

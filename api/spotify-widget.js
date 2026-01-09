@@ -33,7 +33,6 @@ function truncateText(text, maxLength) {
   return text.substring(0, maxLength - 3) + '...';
 }
 
-
 export default async function handler(req, res) {
   // Set headers
   res.setHeader('Content-Type', 'image/svg+xml');
@@ -123,16 +122,13 @@ export default async function handler(req, res) {
       if (userPlaylists.length > 0) {
         // Use date-based seeded random for consistent daily playlist
         const today = new Date();
-        // Use UTC to avoid timezone issues
         const dateString = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
         
-        // Create a more robust seed from the date string
         let seed = 0;
         for (let i = 0; i < dateString.length; i++) {
           seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
         }
         
-        // Use a simple hash-based selection instead of modulo
         const playlistIndex = Math.abs(seed) % userPlaylists.length;
         const playlist = userPlaylists[playlistIndex];
         
@@ -141,9 +137,6 @@ export default async function handler(req, res) {
           tracks: playlist.tracks.total,
           creator: 'Enrin'
         };
-        
-        // Debug: log the date and selected playlist (remove this later)
-        console.log(`Date: ${dateString}, Seed: ${seed}, Index: ${playlistIndex}, Playlist: ${playlist.name}`);
       }
     }
 
@@ -152,7 +145,6 @@ export default async function handler(req, res) {
     res.status(200).send(svg);
 
   } catch (error) {
-    console.error('Spotify Widget Error:', error);
     res.status(200).send(generateErrorWidget('Error loading music data'));
   }
 }
