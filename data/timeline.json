@@ -1,0 +1,35 @@
+[
+  {
+    "id": "1",
+    "period": "2021 - present",
+    "title": "the developer era",
+    "description": "diving deep into code, building projects, and discovering my passion for creating digital experiences. currently pursuing computer science at penn state, where every assignment feels like a new adventure in problem-solving.",
+    "tags": [
+      "learning",
+      "building",
+      "growing"
+    ]
+  },
+  {
+    "id": "2",
+    "period": "2019 - 2021",
+    "title": "the discovery phase",
+    "description": "exploring different paths, trying new things, and slowly gravitating towards technology. the moment i wrote my first \"hello world\" changed everything - suddenly, the digital world wasn't just something i used, but something i could create.",
+    "tags": [
+      "exploration",
+      "first code",
+      "curiosity"
+    ]
+  },
+  {
+    "id": "3",
+    "period": "2017 - 2019",
+    "title": "the foundation years",
+    "description": "high school adventures, forming friendships that still matter today, and developing the analytical thinking that would later serve me well in programming. these were the years of figuring out who i wanted to become.",
+    "tags": [
+      "friendship",
+      "growth",
+      "foundation"
+    ]
+  }
+]

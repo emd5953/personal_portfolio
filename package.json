@@ -4,12 +4,22 @@
   "description": "A personal portfolio website showcasing my experience, projects, and skills as a software engineer.",
   "main": "index.html",
   "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["portfolio", "software engineer", "full-stack", "web development"],
+  "keywords": [
+    "portfolio",
+    "software engineer",
+    "full-stack",
+    "web development"
+  ],
   "author": "Enrin Debbarma",
   "license": "ISC",
   "dependencies": {
-    "@vercel/analytics": "^1.5.0"
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "vercel": "^37.0.0"
   }
 }
