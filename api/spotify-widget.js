@@ -201,7 +201,7 @@ function generateErrorWidget(message) {
 function generateSpotifyWidget(lastPlayed, featuredPlaylist) {
   const timeAgo = lastPlayed ? getTimeAgo(lastPlayed.playedAt) : '';
   
-  return `<svg width="320" height="280" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="320" height="200" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <style>
         .widget-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -212,7 +212,7 @@ function generateSpotifyWidget(lastPlayed, featuredPlaylist) {
     <!-- Clickable background -->
     <a href="https://enrindebbarma.vercel.app/pages/storyPage.html" target="_blank">
       <!-- Main container -->
-      <rect width="320" height="280" fill="#ffffff" rx="8" stroke="#e0e0e0" stroke-width="1"/>
+      <rect width="320" height="200" fill="#ffffff" rx="8" stroke="#e0e0e0" stroke-width="1"/>
       
       <!-- Header text -->
       <text x="160" y="15" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="500" letter-spacing="0.5px">
@@ -291,7 +291,7 @@ function generateSpotifyWidget(lastPlayed, featuredPlaylist) {
       `}
       
       <!-- Click hint with better styling -->
-      <rect x="20" y="175" width="280" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
+      <rect x="20" y="165" width="280" height="20" fill="#f8f9fa" rx="10" stroke="#e9ecef" stroke-width="1"/>
     </a>
   </svg>`;
 }
