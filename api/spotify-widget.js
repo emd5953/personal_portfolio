@@ -117,9 +117,9 @@ export default async function handler(req, res) {
     let featuredPlaylist = null;
     if (playlistsResponse.ok) {
       const { items: playlists = [] } = await playlistsResponse.json();
-      // Only show playlists you created
+      // Only show public playlists you created
       const userPlaylists = playlists.filter(playlist => 
-        playlist.owner.id === userId && playlist.tracks.total > 0
+        playlist.owner.id === userId && playlist.public === true && playlist.tracks.total > 0
       );
 
       if (userPlaylists.length > 0) {
