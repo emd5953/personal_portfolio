@@ -223,14 +223,24 @@ async function handleSpotifyAPI(req, res) {
                 seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
             }
             
-            const seededRandom = (inputSeed) => {
-                const x = Math.sin(inputSeed) * 10000;
-                return x - Math.floor(x);
-            };
+            // Better seeded random function using Linear Congruential Generator
+            class SeededRandom {
+                constructor(seed) {
+                    this.seed = seed % 2147483647;
+                    if (this.seed <= 0) this.seed += 2147483646;
+                }
+                
+                next() {
+                    this.seed = (this.seed * 16807) % 2147483647;
+                    return (this.seed - 1) / 2147483646;
+                }
+            }
+            
+            const rng = new SeededRandom(seed);
 
             const shuffled = [...userCreatedPlaylists];
             for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(seededRandom(seed + i) * (i + 1));
+                const j = Math.floor(rng.next() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
