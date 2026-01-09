@@ -108,7 +108,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Get featured playlist
+    // Get featured playlist (1 random daily)
     const playlistsResponse = await fetch(
       `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
@@ -117,7 +117,10 @@ export default async function handler(req, res) {
     let featuredPlaylist = null;
     if (playlistsResponse.ok) {
       const { items: playlists = [] } = await playlistsResponse.json();
-      const userPlaylists = playlists.filter(playlist => playlist.owner.id === userId);
+      // Only show playlists you created
+      const userPlaylists = playlists.filter(playlist => 
+        playlist.owner.id === userId && playlist.tracks.total > 0
+      );
 
       if (userPlaylists.length > 0) {
         // Use date-based seeded random for consistent daily playlist
@@ -138,6 +141,8 @@ export default async function handler(req, res) {
           creator: 'Enrin'
         };
       }
+    } else {
+      console.error('Playlists API failed:', playlistsResponse.status);
     }
 
     // Generate and send the widget
@@ -250,7 +255,7 @@ function generateSpotifyWidget(lastPlayed, featuredPlaylist) {
       <!-- Featured Playlists Section -->
       ${featuredPlaylist ? `
       <text x="160" y="125" text-anchor="middle" fill="#999999" class="widget-text" font-size="8" font-weight="400">
-        featured playlists today
+        featured playlist today
       </text>
       
       <text x="160" y="140" text-anchor="middle" fill="#666666" class="title-text" font-size="12" font-weight="600">
