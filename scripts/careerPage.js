@@ -393,7 +393,6 @@ document.addEventListener('keydown', function(e) {
     setTimeout(() => {
       document.body.style.filter = 'none';
     }, 3000);
-    console.log('🎉 Easter egg activated! You found the Konami code!');
   }
 });
 

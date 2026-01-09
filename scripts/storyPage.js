@@ -1,15 +1,11 @@
 // Clean, minimal story page interactions with dynamic music
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 Story loaded');
-
     initNavigation();
     initScrollAnimations();
     initDynamicMusicPlayer();
     initProgressIndicator();
     initInlineEditing();
     loadDynamicContent();
-
-    console.log(' Ready');
 });
 
 // Navigation functionality
@@ -87,33 +83,16 @@ function initDynamicMusicPlayer() {
 }
 
 async function loadSpotifyData() {
-    console.log('🎵 Loading Spotify data...');
-
     try {
         // Use your working API endpoint
         const response = await fetch('/api/spotify');
 
         if (!response.ok) {
-            console.warn(` Spotify API returned ${response.status}: ${response.statusText}`);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('✅ Spotify data loaded:', data);
-        console.log('🔍 Debug - lastPlayed exists:', !!data.lastPlayed);
-        console.log('🔍 Debug - mostPlayedToday exists:', !!data.mostPlayedToday);
-        console.log('🔍 Debug - mostPlayedToday data:', data.mostPlayedToday);
         
-        if (data.lastPlayed) {
-            console.log(' Processing lastPlayed...');
-        }
-        
-        if (data.mostPlayedToday) {
-            console.log(' Processing mostPlayedToday...');
-        } else {
-            console.log(' No mostPlayedToday data found');
-        }
-
         if (data.lastPlayed) {
             // Update the current track display with last played
             const trackTitle = document.querySelector('.track-title');
@@ -216,8 +195,6 @@ async function loadSpotifyData() {
         }
 
     } catch (error) {
-        console.error(' Error loading Spotify data:', error);
-
         // Update display with error message
         const trackTitle = document.querySelector('.track-title');
         const trackArtist = document.querySelector('.track-artist');
@@ -428,7 +405,7 @@ window.addEventListener('scroll', throttle(function() {
 }, 100));
 
 // Console info
-console.log(`
+const info = `
  story mode - dynamic edition
 
 today's music updates automatically!
@@ -442,7 +419,7 @@ navigation:
 - esc: return home
 
 click anything to interact 
-`);
+`;
 
 // Inline Editing System
 let isEditMode = false;
@@ -516,9 +493,6 @@ function addLogoutButton() {
     if (logoutBtn) {
         logoutBtn.style.display = 'block';
         logoutBtn.onclick = logout;
-        console.log('✅ Logout button shown');
-    } else {
-        console.log('❌ Logout button element not found');
     }
 }
 
@@ -731,13 +705,10 @@ async function authenticateForSection(sectionType) {
         showNotification(' Authentication failed');
         unlockBtn.textContent = originalText;
         unlockBtn.disabled = false;
-        console.error('Auth error:', error);
     }
 }
 
 function addEditButtons(sectionType) {
-    console.log(`Adding edit buttons for ${sectionType}`);
-    
     if (sectionType === 'thoughts') {
         addNewThoughtButton();
         makeThoughtsEditable();
@@ -768,7 +739,6 @@ function addNewThoughtButton() {
     
     // Check if add button already exists
     if (thoughtsGrid && thoughtsGrid.querySelector('.add-new-btn')) {
-        console.log('Thoughts add button already exists, skipping');
         return;
     }
     
@@ -786,16 +756,13 @@ function addNewThoughtButton() {
 
 function addNewTimelineButton() {
     const timelineContainer = document.querySelector('.timeline-container');
-    console.log('Timeline container found:', timelineContainer);
     
     // Check if add button already exists
     if (timelineContainer && timelineContainer.querySelector('.add-new-btn')) {
-        console.log('Timeline add button already exists, skipping');
         return;
     }
     
     if (!timelineContainer) {
-        console.log('Timeline container NOT found');
         return;
     }
     
@@ -819,7 +786,6 @@ function addNewTimelineButton() {
     } else {
         timelineContainer.insertBefore(addBtn, timelineContainer.firstChild);
     }
-    console.log('Timeline add button created and inserted');
 }
 
 function makeThoughtsEditable() {
@@ -1022,7 +988,6 @@ async function saveThought(id, isNew) {
         }
     } catch (error) {
         showNotification(' Error saving thought');
-        console.error('Save error:', error);
     }
 }
 
@@ -1059,7 +1024,6 @@ async function saveTimelineEntry(id, isNew) {
         }
     } catch (error) {
         showNotification(' Error saving timeline entry');
-        console.error('Save error:', error);
     }
 }
 
@@ -1088,7 +1052,6 @@ async function deleteThought(card) {
         }
     } catch (error) {
         showNotification(' Error deleting thought');
-        console.error('Delete error:', error);
     }
 }
 
@@ -1116,7 +1079,6 @@ async function deleteTimelineEntry(content) {
         }
     } catch (error) {
         showNotification(' Error deleting timeline entry');
-        console.error('Delete error:', error);
     }
 }
 
@@ -1137,7 +1099,7 @@ async function loadDynamicContent() {
             renderTimeline(timelineData.data);
         }
     } catch (error) {
-        console.error('Error loading dynamic content:', error);
+        // Silent fail - content will show default/cached data
     }
 }
 
@@ -1167,7 +1129,6 @@ function renderThoughts(thoughts) {
     // Re-enable edit mode if active - check both isEditMode and section class
     const thoughtsSection = document.querySelector('.section-thoughts');
     if (isEditMode || (thoughtsSection && thoughtsSection.classList.contains('editing'))) {
-        console.log('RE-ENABLING THOUGHTS EDIT MODE');
         isEditMode = true; // Ensure this is set
         document.body.classList.add('edit-mode');
         addNewThoughtButton();
@@ -1209,7 +1170,6 @@ function renderTimeline(timeline) {
     // Re-enable edit mode if active - check both isEditMode and section class
     const timelineSection = document.querySelector('.section-timeline');
     if (isEditMode || (timelineSection && timelineSection.classList.contains('editing'))) {
-        console.log('RE-ENABLING TIMELINE EDIT MODE');
         isEditMode = true; // Ensure this is set
         document.body.classList.add('edit-mode');
         addNewTimelineButton();
@@ -1259,7 +1219,6 @@ async function exportContent() {
         
     } catch (error) {
         showNotification(' Export failed');
-        console.error('Export error:', error);
     }
 }
 
