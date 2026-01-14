@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 
 // Simple password check
 const EDIT_PASSWORD = process.env.EDIT_PASSWORD || 'your-secret-password';
@@ -12,19 +12,22 @@ const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
 const THOUGHTS_KEY = 'thoughts';
 const TIMELINE_KEY = 'timeline';
 
-// Load data from KV
+// Create Redis client from URL
+const redis = Redis.fromEnv();
+
+// Load data from Redis
 async function loadData(key, defaultData = []) {
     try {
-        const data = await kv.get(key);
+        const data = await redis.get(key);
         return data || defaultData;
     } catch {
         return defaultData;
     }
 }
 
-// Save data to KV
+// Save data to Redis
 async function saveData(key, data) {
-    await kv.set(key, data);
+    await redis.set(key, data);
 }
 
 // Verify password with rate limiting
