@@ -308,6 +308,11 @@ function showNotification(message) {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
+    // Don't trigger shortcuts when typing in input fields
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
     switch(e.key) {
         case 'Escape':
             window.location.href = '../index.html';
