@@ -832,7 +832,7 @@ function makeThoughtsEditable() {
         // Add edit/delete buttons
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
-        editBtn.innerHTML = 'edit';
+        editBtn.innerHTML = '✏️';
         editBtn.onclick = (e) => {
             e.stopPropagation();
             editThought(card);
@@ -840,7 +840,7 @@ function makeThoughtsEditable() {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = 'delete';
+        deleteBtn.innerHTML = '🗑️';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteThought(card);
@@ -861,7 +861,7 @@ function makeTimelineEditable() {
         // Add edit/delete buttons
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
-        editBtn.innerHTML = 'edit';
+        editBtn.innerHTML = '✏️';
         editBtn.onclick = (e) => {
             e.stopPropagation();
             editTimelineEntry(content);
@@ -869,7 +869,7 @@ function makeTimelineEditable() {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = 'delete';
+        deleteBtn.innerHTML = '🗑️';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteTimelineEntry(content);
