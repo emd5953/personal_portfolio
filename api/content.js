@@ -132,7 +132,7 @@ export default async function handler(req, res) {
                     // Add new thought
                     const newThought = {
                         id: Date.now().toString(),
-                        date: new Date().toISOString().split('T')[0],
+                        date: req.body.date || new Date().toISOString().split('T')[0],
                         tag: req.body.tag || 'reflection',
                         title: req.body.title,
                         preview: req.body.preview,
