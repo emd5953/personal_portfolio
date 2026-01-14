@@ -277,66 +277,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Enhanced notification system with better feedback
 function showNotification(message) {
-    // Remove existing notification
     const existing = document.querySelector('.notification');
     if (existing) existing.remove();
 
     const notification = document.createElement('div');
     notification.className = 'notification';
-    notification.innerHTML = message; // Use innerHTML to support emojis and formatting
-    
-    // Determine notification type based on message content
-    let backgroundColor = 'var(--accent-dark)';
-    let duration = 3000;
-    
-    if (message.includes('Wrong password') || message.includes('failed') || message.includes('error')) {
-        backgroundColor = '#dc3545'; // Red for errors
-        duration = 4000; // Show errors longer
-    } else if (message.includes('successful') || message.includes('Authentication successful')) {
-        backgroundColor = '#28a745'; // Green for success
-        duration = 3000;
-    } else if (message.includes('Too many attempts')) {
-        backgroundColor = '#ffc107'; // Yellow for warnings
-        duration = 5000; // Show warnings longer
-    }
+    notification.textContent = message.toLowerCase();
     
     notification.style.cssText = `
         position: fixed;
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        background: ${backgroundColor};
-        color: white;
-        padding: 16px 28px;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 500;
+        color: var(--accent-dark);
+        font-size: 14px;
         z-index: 10000;
         opacity: 0;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        max-width: 400px;
-        text-align: center;
+        transition: opacity 0.3s ease;
     `;
 
     document.body.appendChild(notification);
 
-    // Animate in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateX(-50%) translateY(-5px)';
-    }, 10);
+    setTimeout(() => notification.style.opacity = '1', 10);
 
-    // Remove after delay
     setTimeout(() => {
         notification.style.opacity = '0';
-        notification.style.transform = 'translateX(-50%) translateY(10px)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, duration);
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // Keyboard shortcuts
@@ -555,7 +522,7 @@ function logout() {
     const logoutBtn = document.querySelector('#logout-btn');
     if (logoutBtn) logoutBtn.style.display = 'none';
     
-    showNotification('Logged out successfully');
+    showNotification('logged out successfully');
 }
 
 function startSessionTimer() {
