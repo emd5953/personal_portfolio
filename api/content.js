@@ -12,8 +12,11 @@ const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
 const THOUGHTS_KEY = 'thoughts';
 const TIMELINE_KEY = 'timeline';
 
-// Create Redis client from URL
-const redis = Redis.fromEnv();
+// Create Redis client
+const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 // Load data from Redis
 async function loadData(key, defaultData = []) {
