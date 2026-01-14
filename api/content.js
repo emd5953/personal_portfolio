@@ -1,7 +1,6 @@
-const fs = require('fs').promises;
-const path = require('path');
+import { kv } from '@vercel/kv';
 
-// Simple password check (you can change this)
+// Simple password check
 const EDIT_PASSWORD = process.env.EDIT_PASSWORD || 'your-secret-password';
 
 // Rate limiting for auth attempts
@@ -9,34 +8,23 @@ const authAttempts = new Map();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
 
-// Data file paths
-const THOUGHTS_FILE = path.join(process.cwd(), 'data', 'thoughts.json');
-const TIMELINE_FILE = path.join(process.cwd(), 'data', 'timeline.json');
+// KV keys
+const THOUGHTS_KEY = 'thoughts';
+const TIMELINE_KEY = 'timeline';
 
-// Ensure data directory exists
-async function ensureDataDir() {
-    const dataDir = path.join(process.cwd(), 'data');
+// Load data from KV
+async function loadData(key, defaultData = []) {
     try {
-        await fs.access(dataDir);
-    } catch {
-        await fs.mkdir(dataDir, { recursive: true });
-    }
-}
-
-// Load data from file
-async function loadData(filePath, defaultData = []) {
-    try {
-        const data = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(data);
+        const data = await kv.get(key);
+        return data || defaultData;
     } catch {
         return defaultData;
     }
 }
 
-// Save data to file
-async function saveData(filePath, data) {
-    await ensureDataDir();
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+// Save data to KV
+async function saveData(key, data) {
+    await kv.set(key, data);
 }
 
 // Verify password with rate limiting
@@ -85,12 +73,12 @@ export default async function handler(req, res) {
         if (req.method === 'GET') {
             // Public read access
             if (type === 'thoughts') {
-                const thoughts = await loadData(THOUGHTS_FILE, []);
+                const thoughts = await loadData(THOUGHTS_KEY, []);
                 return res.json({ success: true, data: thoughts });
             }
             
             if (type === 'timeline') {
-                const timeline = await loadData(TIMELINE_FILE, []);
+                const timeline = await loadData(TIMELINE_KEY, []);
                 return res.json({ success: true, data: timeline });
             }
 
@@ -107,8 +95,8 @@ export default async function handler(req, res) {
                     return res.status(429).json({ success: false, error: error.message });
                 }
 
-                const thoughts = await loadData(THOUGHTS_FILE, []);
-                const timeline = await loadData(TIMELINE_FILE, []);
+                const thoughts = await loadData(THOUGHTS_KEY, []);
+                const timeline = await loadData(TIMELINE_KEY, []);
                 
                 return res.json({ 
                     success: true, 
@@ -132,7 +120,7 @@ export default async function handler(req, res) {
             }
 
             if (type === 'thoughts') {
-                const thoughts = await loadData(THOUGHTS_FILE, []);
+                const thoughts = await loadData(THOUGHTS_KEY, []);
                 
                 if (req.method === 'POST') {
                     // Add new thought
@@ -145,7 +133,7 @@ export default async function handler(req, res) {
                         createdAt: new Date().toISOString()
                     };
                     thoughts.unshift(newThought);
-                    await saveData(THOUGHTS_FILE, thoughts);
+                    await saveData(THOUGHTS_KEY, thoughts);
                     return res.json({ success: true, data: newThought });
                 }
                 
@@ -158,7 +146,7 @@ export default async function handler(req, res) {
                     }
                     
                     thoughts[thoughtIndex] = { ...thoughts[thoughtIndex], ...req.body };
-                    await saveData(THOUGHTS_FILE, thoughts);
+                    await saveData(THOUGHTS_KEY, thoughts);
                     return res.json({ success: true, data: thoughts[thoughtIndex] });
                 }
                 
@@ -166,13 +154,13 @@ export default async function handler(req, res) {
                     // Delete thought
                     const { id } = req.body;
                     const filteredThoughts = thoughts.filter(t => t.id !== id);
-                    await saveData(THOUGHTS_FILE, filteredThoughts);
+                    await saveData(THOUGHTS_KEY, filteredThoughts);
                     return res.json({ success: true });
                 }
             }
 
             if (type === 'timeline') {
-                const timeline = await loadData(TIMELINE_FILE, []);
+                const timeline = await loadData(TIMELINE_KEY, []);
                 
                 if (req.method === 'POST') {
                     // Add new timeline entry
@@ -185,7 +173,7 @@ export default async function handler(req, res) {
                         createdAt: new Date().toISOString()
                     };
                     timeline.unshift(newEntry);
-                    await saveData(TIMELINE_FILE, timeline);
+                    await saveData(TIMELINE_KEY, timeline);
                     return res.json({ success: true, data: newEntry });
                 }
                 
@@ -198,7 +186,7 @@ export default async function handler(req, res) {
                     }
                     
                     timeline[entryIndex] = { ...timeline[entryIndex], ...req.body };
-                    await saveData(TIMELINE_FILE, timeline);
+                    await saveData(TIMELINE_KEY, timeline);
                     return res.json({ success: true, data: timeline[entryIndex] });
                 }
                 
@@ -206,7 +194,7 @@ export default async function handler(req, res) {
                     // Delete timeline entry
                     const { id } = req.body;
                     const filteredTimeline = timeline.filter(t => t.id !== id);
-                    await saveData(TIMELINE_FILE, filteredTimeline);
+                    await saveData(TIMELINE_KEY, filteredTimeline);
                     return res.json({ success: true });
                 }
             }
