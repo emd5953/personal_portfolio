@@ -16,7 +16,7 @@ async function migrate() {
         console.log(`Found ${thoughts.length} thoughts and ${timeline.length} timeline entries`);
 
         // Upload each thought individually
-        for (const thought of thoughts) {
+        for (const thought of thoughts.reverse()) {
             const response = await fetch(`${API_URL}?type=thoughts`, {
                 method: 'POST',
                 headers: {
@@ -39,7 +39,7 @@ async function migrate() {
         }
 
         // Upload each timeline entry individually
-        for (const entry of timeline) {
+        for (const entry of timeline.reverse()) {
             const response = await fetch(`${API_URL}?type=timeline`, {
                 method: 'POST',
                 headers: {
