@@ -24,6 +24,7 @@ async function migrate() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    date: thought.date,
                     tag: thought.tag,
                     title: thought.title,
                     preview: thought.preview
