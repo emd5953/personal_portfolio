@@ -535,6 +535,14 @@ body {
     .progress-indicator {
         right: 20px;
     }
+
+    .section-art {
+        padding: 20px 0 60px;
+    }
+
+    .section-art .section-header {
+        margin-bottom: 40px;
+    }
 }
 
 @media (max-width: 480px) {
