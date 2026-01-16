@@ -1201,18 +1201,42 @@ html {
 }
 
 @media (max-width: 768px) {
+    .main-cover-container {
+        min-height: auto;
+    }
+
     .side-covers {
+        position: static;
         flex-direction: column;
         gap: 20px;
-        padding: 20px;
+        padding: 0;
+        margin-top: 20px;
     }
 
     .side-cover-item {
-        max-width: 200px;
+        max-width: 100%;
+        margin: 0 !important;
     }
 
-    .main-cover-container {
-        min-height: 600px;
+    .side-cover-item.left,
+    .side-cover-item.right {
+        align-self: center;
+    }
+
+    .song-covers-section {
+        margin-top: 10px;
+    }
+
+    .additional-images-section {
+        max-width: 300px;
+    }
+
+    .additional-image {
+        max-width: 100%;
+    }
+
+    .video-container-large {
+        padding-bottom: 56.25%;
     }
 }
 
