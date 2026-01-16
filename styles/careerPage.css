@@ -820,6 +820,7 @@ footer p {
     padding: 15px 20px;
     flex-wrap: wrap;
     gap: 15px;
+    position: fixed;
   }
   
   .logo {
