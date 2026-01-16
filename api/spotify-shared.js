@@ -124,8 +124,8 @@ async function getSpotifyData() {
       }
     });
 
-    // Find the most played track (with at least 2 plays to be meaningful)
-    let maxCount = 1; // Only show if played more than once
+    // Find the most played track (only if played 2+ times)
+    let maxCount = 1; // Must be played more than once
     let mostPlayedTrackId = null;
 
     Object.keys(trackCounts).forEach(trackId => {
@@ -134,13 +134,6 @@ async function getSpotifyData() {
         mostPlayedTrackId = trackId;
       }
     });
-
-    // If no song was played more than once, show the most recent song from today
-    if (!mostPlayedTrackId && todayTracks.length > 0) {
-      const mostRecentToday = todayTracks[0]; // First item is most recent
-      mostPlayedTrackId = mostRecentToday.track.id;
-      maxCount = 1;
-    }
 
     if (mostPlayedTrackId && trackCounts[mostPlayedTrackId]) {
       const trackData = trackCounts[mostPlayedTrackId];
