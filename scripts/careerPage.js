@@ -326,13 +326,26 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Add mobile menu toggle (for future implementation)
-function toggleMobileMenu() {
+// Hamburger menu toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const hamburger = document.querySelector('.hamburger');
   const navLinks = document.querySelector('.nav-links');
-  if (navLinks) {
-    navLinks.classList.toggle('active');
+  
+  if (hamburger) {
+    hamburger.addEventListener('click', function() {
+      this.classList.toggle('active');
+      navLinks.classList.toggle('active');
+    });
+    
+    // Close menu when clicking a link
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', function() {
+        hamburger.classList.remove('active');
+        navLinks.classList.remove('active');
+      });
+    });
   }
-}
+});
 
 // Add performance optimization for scroll events
 let ticking = false;
