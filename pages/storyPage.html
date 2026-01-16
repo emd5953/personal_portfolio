@@ -15,6 +15,7 @@
         <a href="#intro" class="nav-logo">enrin</a>
         <div class="nav-sections">
             <a href="#sounds" class="nav-section">sounds</a>
+            <a href="#art" class="nav-section">art</a>
             <a href="#thoughts" class="nav-section">thoughts</a>
             <a href="#timeline" class="nav-section">timeline</a>
         </div>
@@ -25,6 +26,7 @@
     <div class="progress-indicator">
         <div class="progress-dot active" data-section="intro"></div>
         <div class="progress-dot" data-section="sounds"></div>
+        <div class="progress-dot" data-section="art"></div>
         <div class="progress-dot" data-section="thoughts"></div>
         <div class="progress-dot" data-section="timeline"></div>
     </div>
@@ -33,7 +35,7 @@
     <section id="intro" class="intro-section">
         <div class="intro-content">
             <h1 class="intro-title">the story</h1>
-            <p class="intro-subtitle">thoughts, sounds, and moments that shaped the journey from curiosity to nostalgia</p>
+            <p class="intro-subtitle">thoughts, sounds, art, and moments that shaped the journey from curiosity to nostalgia</p>
             <a href="#sounds" class="start-btn">explore</a>
         </div>
     </section>
@@ -64,6 +66,59 @@
                 <div class="featured-playlists-header">featured playlists today</div>
                 <div class="playlist-grid" id="dynamic-playlists">
                     <!-- Playlists will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Art Section -->
+    <section id="art" class="content-section section-art">
+        <div class="section-container">
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">art</h2>
+                <p class="section-description">visual stories and creative expressions</p>
+            </div>
+
+            <!-- Song Covers Section -->
+            <div class="song-covers-section scroll-reveal">
+                <div class="main-cover-container">
+                    <img src="../assets/songCover.jpg" alt="Main song cover" class="main-cover-bg">
+                    <div class="side-covers">
+                        <div class="side-cover-item left">
+                            <img src="../assets/song1.jpg" alt="Song cover 1" class="side-cover-image">
+                            <p class="cover-caption">poetic</p>
+                        </div>
+                        <div class="side-cover-item right">
+                            <img src="../assets/song2.jpg" alt="Song cover 2" class="side-cover-image">
+                            <p class="cover-caption">vulgarity</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="main-cover-caption">talent show april 25'</p>
+            </div>
+
+            <!-- Additional Images Section -->
+            <div class="additional-images-section scroll-reveal">
+                <div class="additional-image-item">
+                    <img src="../assets/topalbums.png" alt="Top albums" class="additional-image">
+                    <p class="cover-caption">top albums</p>
+                </div>
+                <div class="additional-image-item">
+                    <img src="../assets/topsongs.png" alt="Top songs" class="additional-image">
+                    <p class="cover-caption">top songs</p>
+                </div>
+            </div>
+
+            <!-- YouTube Video Section -->
+            <div class="video-section scroll-reveal">
+                <div class="video-container-large">
+                    <iframe 
+                        src="https://www.youtube.com/embed/iuqZl8EFd4s" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
                 </div>
             </div>
         </div>
