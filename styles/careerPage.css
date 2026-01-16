@@ -225,31 +225,33 @@ nav {
   position: relative;
 }
 
-.about-container {
-  position: relative;
-  z-index: 2;
+.about-side-image {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: 300px;
+  opacity: 1;
+  z-index: 1;
 }
 
-.about-pics-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
-  margin-bottom: 20px;
+.about-left {
+  left: 5%;
 }
 
-.about-side-pic {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  opacity: 0.9;
+.about-right {
+  right: 5%;
 }
 
-.about-side-pic img {
+.about-side-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 15px;
+}
+
+.about-container {
+  position: relative;
+  z-index: 2;
 }
 
 .projects-section {
