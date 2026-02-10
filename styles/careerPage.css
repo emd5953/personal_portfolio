@@ -1125,8 +1125,8 @@ html {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
+  background: transparent;
+  border: none;
   transition: all 0.3s ease;
   cursor: pointer;
 }
