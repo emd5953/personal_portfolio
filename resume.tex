@@ -1,0 +1,175 @@
+\documentclass[letterpaper,11pt]{article}
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+\raggedbottom
+\RaggedRight
+\setlength{\tabcolsep}{0in}
+
+\tolerance=1
+\emergencystretch=\maxdimen
+\hyphenpenalty=10000
+\hbadness=10000
+
+\titleformat{\section}{
+  \vspace{-6pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6pt}]
+
+\pdfgentounicode=1
+
+\newcommand{\resumeItem}[1]{
+  \item\small{\RaggedRight{#1 \vspace{-2pt}}}
+}
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeSubheadingWithLink}[6]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} $|$ \href{#5}{\underline{#6}} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+\begin{document}
+
+\begin{center}
+    \textbf{\Huge \scshape Enrin Debbarma} \\ \vspace{1pt}
+    \small Harrisburg, PA $|$
+    \href{mailto:nrndbrma@gmail.com}{\underline{nrndbrma@gmail.com}} $|$
+    \href{https://linkedin.com/in/enrinjr}{\underline{linkedin.com/in/enrinjr}} $|$
+    \href{https://github.com/emd5953}{\underline{github.com/emd5953}} $|$
+    \href{https://enrinjr.com}{\underline{enrinjr.com}}
+\end{center}
+
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {The Pennsylvania State University}{Harrisburg, PA}
+      {Bachelor of Science in Computer Science}{Jan. 2022 -- Dec 2025}
+      \resumeItemListStart
+        \resumeItem{\textbf{Outstanding Senior Award} -- Penn State, 2025}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheadingWithLink
+      {Forward Deployed Engineer}{Feb. 2026 -- Present}
+      {Benmore Technologies}{Chicago, IL}
+      {https://benmore.tech}{benmore.tech}
+      \resumeItemListStart
+        \resumeItem{Work directly with startups and SMEs to translate business needs into technical products, owning the full lifecycle from scoping to production deployment}
+        \resumeItem{Manage a \$270K+ project portfolio end-to-end, driving timelines, stakeholder communication, and delivery across multiple concurrent engagements}
+        \resumeItem{Build and ship full-stack products using Django and Next.js, deployed on AWS and Vercel}
+        \resumeItem{Accelerate development velocity using Claude Code and multi-agentic orchestration workflows for rapid 0 to 1 product delivery}
+      \resumeItemListEnd
+
+    \resumeSubheadingWithLink
+      {Software Engineer Intern}{June 2025 -- Aug. 2025}
+      {Alervio Inc.}{Bridgewater, NJ}
+      {https://alervio.com}{alervio.com}
+      \resumeItemListStart
+        \resumeItem{Led development of full-stack application, and integrated LLM-powered features using FastAPI and vector search}
+        \resumeItem{Built production B2B platform using React, Firebase, and TypeScript; developed ML-based matching algorithm to process datasets from external APIs}
+        \resumeItem{Established CI/CD pipeline with Vercel and designed UI/UX in Figma, translating mockups into frontend components}
+        \resumeItem{Proposed migration to Next.js and Tailwind CSS, improving development efficiency by 40\%}
+      \resumeItemListEnd
+
+    \resumeSubheadingWithLink
+      {Software Engineer}{Aug. 2025}
+      {Life After Ostomy}{Harrisburg, PA}
+      {https://lifeafterostomy.com}{lifeafterostomy.com}
+      \resumeItemListStart
+        \resumeItem{Built an e-commerce platform for 3,000+ community members using Next.js, TypeScript, and Supabase; drove 178\% traffic increase in 30 days}
+        \resumeItem{Integrated secure Stripe payments and delivered a mobile-first, accessible UI achieving a 98\% accessibility score}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+\section{Projects}
+  \resumeSubHeadingListStart
+
+    \resumeProjectHeading
+      {\textbf{LeaseIQ} $|$ \href{https://lease-iq.vercel.app/}{\underline{lease-iq.vercel.app}} $|$ \emph{Next.js, TypeScript, MongoDB, Firecrawl, OpenRouter, Reducto, Resend}}{}
+      \resumeItemListStart
+        \resumeItem{Built an apartment hunting platform that scrapes 13+ rental sites every 15 minutes, deduplicates listings, and sends preference-based alerts to users via email}
+        \resumeItem{Integrated AI-powered lease analysis (PDF upload via Reducto, GPT-4 via OpenRouter) with red flag detection, floor plan assessment, and neighborhood research delivered as formatted email reports}
+      \resumeItemListEnd
+
+    \resumeProjectHeading
+      {\textbf{NextStep} $|$ \href{https://nextstep4.com}{\underline{nextstep4.com}} $|$ \emph{Express/Node, MongoDB, AWS EC2, Docker}}{}
+      \resumeItemListStart
+        \resumeItem{Deployed a full-stack AI job-matching platform on AWS EC2 with Docker, CI/CD via GitHub Actions, JWT/OAuth 2.0 auth, and semantic search using OpenAI embeddings and MongoDB Vector Search}
+        \resumeItem{Implemented a self-improving RAG system with LangChain and Gemini, optimizing latency 10x (2s $\rightarrow$ 200ms) while reducing API costs by 90\%}
+      \resumeItemListEnd
+
+    \resumeProjectHeading
+      {\textbf{aSpot} $|$ \href{https://aspot-monolith.vercel.app/}{\underline{aspot-monolith.vercel.app}} $|$ \emph{Spring Boot, Next.js, PostgreSQL, Elasticsearch, Redis, Kubernetes}}{}
+      \resumeItemListStart
+        \resumeItem{Built a travel itinerary platform with Firecrawl, Spring Boot microservices, RAG-powered scheduling, real-time collaboration via WebSockets, and Elasticsearch geospatial search}
+        \resumeItem{Containerized services with Docker and deployed to Kubernetes with Redis caching and PostgreSQL instances}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: JavaScript, TypeScript, Python, Java, SQL, HTML, CSS} \\
+     \textbf{Frontend}{: React, Next.js, React Native, Tailwind CSS, Redux} \\
+     \textbf{Backend}{: Node.js, Express.js, Django, FastAPI, Flask, Spring Boot, Langchain, REST APIs} \\
+     \textbf{Databases}{: PostgreSQL, MongoDB, Supabase, Firebase} \\
+     \textbf{Cloud/DevOps}{: AWS, EC2, S3, GCP, Docker, Kubernetes, Vercel, GitHub Actions} \\
+     \textbf{Tools}{: Git, Cursor, Claude Code, Redis, Nginx, Jira, Figma, Postman, Jest, Twilio}
+    }}
+ \end{itemize}
+
+\end{document}
