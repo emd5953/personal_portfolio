@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>enrin's art</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/artPage.css">
+
+    <!-- Vercel Analytics -->
+    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="art-nav">
+        <a href="../index.html" class="nav-logo">enrin</a>
+        <div class="nav-sections">
+            <a href="#films" class="nav-section">films</a>
+            <a href="#photos" class="nav-section">photos</a>
+        </div>
+        <div class="nav-right-links">
+            <a href="storyPage.html" class="nav-link">story</a>
+            <a href="careerPage.html" class="back-btn">career</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="art-hero">
+        <div class="hero-content">
+            <h1 class="hero-title">the art</h1>
+            <p class="hero-subtitle">film, frames, and aesthetic moments — a visual diary</p>
+        </div>
+    </section>
+
+    <!-- Films Section -->
+    <section id="films" class="content-section section-films">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">films</h2>
+                <p class="section-description">short films and cinematic moments</p>
+            </div>
+
+            <div class="video-grid" id="video-grid">
+                <!-- Videos will be added here. Add your YouTube/video embeds like this: -->
+                <div class="video-card">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/iuqZl8EFd4s" 
+                            title="Film" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                    <div class="video-info">
+                        <span class="video-tag">film</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="empty-note" id="films-empty" style="display:none;">more films coming soon...</p>
+        </div>
+    </section>
+
+    <!-- Photos Section -->
+    <section id="photos" class="content-section section-photos">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">photos</h2>
+                <p class="section-description">aesthetic captures and visual stories</p>
+            </div>
+
+            <div class="photo-grid" id="photo-grid">
+                <div class="photo-item">
+                    <img src="../assets/songCover.jpg" alt="Aesthetic photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">talent show</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/song1.jpg" alt="Aesthetic photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">poetic</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/song2.jpg" alt="Aesthetic photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">vulgarity</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/aboutme1.jpg" alt="Aesthetic photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">portrait</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/aboutme2.jpg" alt="Aesthetic photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">portrait</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/graduation1.jpg" alt="Graduation photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">graduation</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/graduation2.jpg" alt="Graduation photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">graduation</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/graduation3.jpg" alt="Graduation photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">graduation</span>
+                    </div>
+                </div>
+                <div class="photo-item">
+                    <img src="../assets/graduation4.jpg" alt="Graduation photo" loading="lazy" />
+                    <div class="photo-overlay">
+                        <span class="photo-caption">graduation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <button class="lightbox-prev" aria-label="Previous">&#8249;</button>
+        <button class="lightbox-next" aria-label="Next">&#8250;</button>
+        <img src="" alt="Full size photo" class="lightbox-img" id="lightbox-img" />
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+
+    <footer class="art-footer">
+        <p>&copy; 2025 enrin debbarma &middot; <a href="careerPage.html">career</a> &middot; <a href="storyPage.html">story</a> &middot; <a href="../index.html">home</a></p>
+    </footer>
+
+    <script src="../scripts/artPage.js"></script>
+</body>
+</html>
