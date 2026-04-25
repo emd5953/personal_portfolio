@@ -1,12 +1,13 @@
 {
   "name": "personal_portfolio",
   "version": "1.0.0",
+  "private": true,
   "description": "A personal portfolio website showcasing my experience, projects, and skills as a software engineer.",
-  "main": "index.html",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
   "keywords": [
     "portfolio",
@@ -19,9 +20,20 @@
   "dependencies": {
     "@upstash/redis": "^1.36.1",
     "@vercel/kv": "^3.0.0",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
     "vercel": "^37.0.0"
   }
 }

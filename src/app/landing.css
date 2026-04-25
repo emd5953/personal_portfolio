@@ -371,39 +371,115 @@ body {
   letter-spacing: 1px;
 }
 
-/* ---- PHOTO REEL ---- */
+/* ---- PHOTO REEL — wong kar-wai memory wall ---- */
 .reel {
-  padding: 40px 0;
-  overflow: hidden;
+  padding: 80px 0;
+  overflow-x: scroll;
+  overflow-y: hidden;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  position: relative;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  scrollbar-width: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(15, 32, 39, 0.3) 0%, var(--bg) 70%);
+}
+
+.reel::-webkit-scrollbar { display: none; }
+.reel:active { cursor: grabbing; }
+
+/* neon glow bleed */
+.reel-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  opacity: 0.3;
+  animation: reelGlow 12s ease-in-out infinite alternate;
+}
+
+.reel-glow-teal {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(22, 80, 90, 0.7), transparent 70%);
+  top: -20%;
+  left: 20%;
+}
+
+.reel-glow-amber {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(212, 148, 74, 0.5), transparent 70%);
+  bottom: -20%;
+  right: 25%;
+  animation-delay: -5s;
+}
+
+@keyframes reelGlow {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+  50% { transform: translate(30px, -10px) scale(1.1); opacity: 0.35; }
+  100% { transform: translate(-20px, 5px) scale(0.95); opacity: 0.28; }
+}
+
+/* fade edges */
+.reel::before,
+.reel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 2;
+  pointer-events: none;
+}
+.reel::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg), transparent);
+}
+.reel::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg), transparent);
 }
 
 .reel-track {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   width: max-content;
-  animation: reelDrift 140s linear infinite;
+  align-items: center;
+  padding: 0 80px;
+  will-change: transform;
 }
 
+/* images sized by their natural aspect ratio — no forced crops */
 .reel-track img {
-  height: 180px;
+  height: 340px;
   width: auto;
-  border-radius: 3px;
-  object-fit: cover;
-  filter: brightness(0.6) saturate(0.6) contrast(1.1);
-  transition: filter 0.6s, transform 0.4s;
   flex-shrink: 0;
+  border-radius: 3px;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0.55) saturate(0.3) contrast(1.2) sepia(0.25) hue-rotate(-5deg);
+  transition: filter 1.2s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 0.6s ease;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
 
+/* stagger vertical offsets and rotations */
+.reel-track img:nth-child(3n+1) { transform: rotate(-1.2deg) translateY(14px); }
+.reel-track img:nth-child(3n+2) { transform: rotate(0.8deg) translateY(-20px); }
+.reel-track img:nth-child(3n)   { transform: rotate(-0.5deg) translateY(10px); }
+.reel-track img:nth-child(5n)   { transform: rotate(1.5deg) translateY(-12px); }
+.reel-track img:nth-child(7n)   { transform: rotate(-1.8deg) translateY(22px); }
+
+/* hover — memory comes into focus */
 .reel-track img:hover {
-  filter: brightness(0.85) saturate(0.85) contrast(1.05);
-  transform: scale(1.05);
-}
-
-@keyframes reelDrift {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  filter: brightness(0.78) saturate(0.65) contrast(1.08) sepia(0.08) hue-rotate(0deg);
+  transform: rotate(0deg) translateY(0) scale(1.05);
+  box-shadow: 0 8px 50px rgba(212, 148, 74, 0.12),
+              0 4px 40px rgba(0, 0, 0, 0.5);
+  z-index: 3;
 }
 
 /* ---- END SECTION ---- */
@@ -495,7 +571,9 @@ body {
 
   .work-strip { padding: 0 24px; }
 
-  .reel-track img { height: 140px; }
+  .reel { padding: 50px 0; }
+  .reel-track img { height: 240px; }
+  .reel-glow { filter: blur(80px); }
 
   .end { padding: 60px 24px 30px; }
   .end-inner { flex-direction: column; align-items: center; text-align: center; gap: 28px; }
