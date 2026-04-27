@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 
 const bgVideos = [
-  "/assets/videos/hero-bg.mp4",
+  "/assets/videos/background1.mp4",
+  "/assets/videos/background2.mp4",
+  "/assets/videos/background3.mp4",
+  "/assets/videos/background4.mp4",
+  "/assets/videos/background5.mp4",
+  "/assets/videos/background6.mp4",
+];
+
+const films = [
   "/assets/videos/066c54a2118a41449477037ab040d539.mp4",
   "/assets/videos/4f3e5000c1c04199856b2b7cae303194.mp4",
   "/assets/videos/58d06fabc773491297f61d8d0cfe9204.mp4",
@@ -12,6 +20,7 @@ const bgVideos = [
   "/assets/videos/6d17cf98e38047d092c98b07fe9cc8c8.mp4",
   "/assets/videos/7107492014e14bcab8c6313d1307c97c.mp4",
   "/assets/videos/7c061707a4344326ab7762342310a400.mp4",
+  "/assets/videos/850812c039434f97b74b340a741aecae.mp4",
   "/assets/videos/8d8f18a6ad4a46cba95f9863015150f5.mp4",
   "/assets/videos/8f4b7b6364e34dd098ca2437a85761b8.mp4",
   "/assets/videos/9364fa9aab21478baa8e25460bd484ad.mp4",
@@ -20,63 +29,230 @@ const bgVideos = [
   "/assets/videos/ae1dc2a101db4a79940a1dbe6e4fb68e.mp4",
   "/assets/videos/c032cb96261947b9b9e4d5a58c50ebb6.mp4",
   "/assets/videos/cd64ac014c84439ca6dceb61651b2557.mp4",
+  "/assets/videos/d636659e9c75487b9070cd85f32387ca.mp4",
+  "/assets/videos/d636659e9c75487b9070cd85f32387ca_2.mp4",
   "/assets/videos/f7e7f0990fbb4c3c8e470cc757c6681d.mp4",
+  "/assets/videos/IMG_1723.mp4",
+  "/assets/videos/IMG_1759.mp4",
 ];
 
-const films = [
-  { id: "iuqZl8EFd4s", title: "untitled", tag: "short film" },
+const offsets = [
+  { rotate: -1.2, y: 14 },
+  { rotate: 0.8, y: -20 },
+  { rotate: -0.5, y: 10 },
+  { rotate: 1.5, y: -12 },
+  { rotate: -1.8, y: 22 },
 ];
 
-function FilmCard({ id, title, tag }: { id: string; title: string; tag: string }) {
-  const [hovered, setHovered] = useState(false);
+function FilmCard({ src, index, onSelect }: { src: string; index: number; onSelect: (src: string) => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const o = offsets[index % offsets.length];
+  const [dragging, setDragging] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const cardRect = useRef<DOMRect | null>(null);
+  const didDrag = useRef(false);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) el.play().catch(() => {});
+        else el.pause();
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent) => {
+      didDrag.current = true;
+      setDragPos({ x: e.clientX, y: e.clientY });
+    };
+    const onUp = (e: MouseEvent) => {
+      setDragging(false);
+      if (didDrag.current && e.clientY < window.innerHeight * 0.6) {
+        onSelect(src);
+      }
+      didDrag.current = false;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+  }, [dragging, src, onSelect]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const rect = (e.currentTarget as HTMLElement).closest("div")!.getBoundingClientRect();
+    cardRect.current = rect;
+    setDragPos({ x: e.clientX, y: e.clientY });
+    setDragging(true);
+    setShowHint(false);
+    didDrag.current = false;
+  };
+
+  return (
+    <>
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <video
+          ref={videoRef}
+          src={src}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onMouseDown={handleMouseDown}
+          onClick={() => { if (!didDrag.current) setShowHint(true); }}
+          style={{
+            height: 150,
+            minWidth: 280,
+            width: "auto",
+            flexShrink: 0,
+            borderRadius: 6,
+            objectFit: "cover",
+            display: "block",
+            filter: "brightness(0.45)",
+            transform: `rotate(${o.rotate}deg) translateY(${o.y}px)`,
+            transition: dragging ? "none" : "transform 0.6s ease, filter 0.4s ease",
+            cursor: "grab",
+          }}
+          onMouseEnter={(e) => { if (!dragging) { e.currentTarget.style.transform = "rotate(0deg) translateY(0) scale(1.05)"; e.currentTarget.style.filter = "brightness(1)"; } }}
+          onMouseLeave={(e) => { if (!dragging) { e.currentTarget.style.transform = `rotate(${o.rotate}deg) translateY(${o.y}px)`; e.currentTarget.style.filter = "brightness(0.45)"; setShowHint(false); } }}
+        />
+        {showHint && !dragging && (
+          <div style={{
+            position: "absolute", top: -40, left: "50%", transform: "translateX(-50%)",
+            background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)",
+            fontSize: 11, fontStyle: "italic", padding: "4px 12px", borderRadius: 14,
+            whiteSpace: "nowrap", pointerEvents: "none",
+            animation: "float 1.5s ease-in-out infinite",
+          }}>
+            drag me up ↑
+          </div>
+        )}
+      </div>
+      {dragging && cardRect.current && (
+        <div style={{
+          position: "fixed",
+          left: dragPos.x - cardRect.current.width / 2,
+          top: dragPos.y - cardRect.current.height / 2,
+          zIndex: 9999,
+          pointerEvents: "none",
+          opacity: 0.85,
+        }}>
+          <video
+            src={src}
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{
+              height: 150,
+              minWidth: 280,
+              width: "auto",
+              borderRadius: 6,
+              objectFit: "cover",
+              filter: "brightness(1)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+            }}
+          />
+          {dragPos.y < window.innerHeight * 0.6 && (
+            <div style={{
+              position: "absolute", top: -30, left: "50%", transform: "translateX(-50%)",
+              color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
+            }}>
+              release to play ▶
+            </div>
+          )}
+          {dragPos.y >= window.innerHeight * 0.6 && (
+            <div style={{
+              position: "absolute", top: -30, left: "50%", transform: "translateX(-50%)",
+              color: "rgba(255,255,255,0.5)", fontSize: 11, fontStyle: "italic", whiteSpace: "nowrap",
+            }}>
+              drag up ↑
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function FullPlayer({ src, onClose }: { src: string; onClose: () => void }) {
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ borderRadius: 12, overflow: "hidden", position: "relative", cursor: "pointer" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000, background: "rgba(0,0,0,0.95)",
+        display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column",
+        animation: "fadeIn 0.4s ease",
+      }}
     >
-      {hovered ? (
-        <iframe
-          src={`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&modestbranding=1`}
-          style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
-          allow="autoplay; encrypted-media"
-          loading="lazy"
-        />
-      ) : (
-        <img
-          src={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
-          alt={title}
-          style={{
-            width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block",
-          }}
-        />
-      )}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0, padding: 20,
-        background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
-        pointerEvents: "none",
-      }}>
-        <p style={{ fontSize: 15, color: "var(--color-text)", fontWeight: 600, margin: 0, textTransform: "lowercase" }}>{title}</p>
-        <span style={{ fontSize: 11, color: "var(--color-text-dim)" }}>{tag}</span>
-      </div>
+      <button
+        onClick={onClose}
+        style={{ position: "absolute", top: 20, right: 28, background: "none", border: "none", color: "#fff", fontSize: 32, cursor: "pointer", zIndex: 10001 }}
+        aria-label="Close"
+      >
+        &times;
+      </button>
+      <video
+        src={src}
+        autoPlay
+        controls
+        playsInline
+        style={{ maxWidth: "90vw", maxHeight: "80vh", borderRadius: 10 }}
+      />
     </div>
   );
 }
 
 export default function ArtPage() {
   const [bgVideo, setBgVideo] = useState("");
+  const playedRef = useRef<Set<number>>(new Set());
+  const [shuffledFilms, setShuffledFilms] = useState<string[]>([]);
+  const [playerSrc, setPlayerSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    setBgVideo(bgVideos[Math.floor(Math.random() * bgVideos.length)]);
+    const shuffled = [...films];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setShuffledFilms(shuffled);
   }, []);
+
+  const pickNext = useCallback(() => {
+    if (playedRef.current.size >= bgVideos.length) playedRef.current.clear();
+    let idx: number;
+    do { idx = Math.floor(Math.random() * bgVideos.length); } while (playedRef.current.has(idx));
+    playedRef.current.add(idx);
+    setBgVideo(bgVideos[idx]);
+  }, []);
+
+  useEffect(() => { pickNext(); }, [pickNext]);
 
   return (
     <>
+      <style>{`
+        @keyframes float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-6px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      `}</style>
       <div className="grain" />
-      {/* Video background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: -1, overflow: "hidden" }}>
+      <div style={{ position: "fixed", inset: 0, zIndex: -1, overflow: "hidden", background: "#000" }}>
         {bgVideo && (
-          <video key={bgVideo} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }}>
+          <video
+            key={bgVideo}
+            autoPlay
+            muted
+            playsInline
+            onTimeUpdate={(e) => { if ((e.target as HTMLVideoElement).currentTime >= 10) pickNext(); }}
+            onEnded={pickNext}
+            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.3 }}
+          >
             <source src={bgVideo} type="video/mp4" />
           </video>
         )}
@@ -91,24 +267,34 @@ export default function ArtPage() {
         </div>
       </nav>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-
-        {/* HERO */}
-        <section style={{ paddingTop: 20, paddingBottom: 60, position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 1100, padding: "0 40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}>
+        <section style={{ paddingTop: 240, paddingBottom: 20 }}>
           <h1 className="font-display" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", fontWeight: 700, letterSpacing: -4, lineHeight: 0.9, color: "var(--color-text)" }}>the art</h1>
           <p style={{ fontSize: 13, color: "var(--color-text-dim)", marginTop: 16 }}>films · frames · moments</p>
         </section>
-
-        {/* FILMS */}
-        <section style={{ padding: "60px 0 80px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", marginBottom: 32 }}>Films</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
-            {films.map((f) => <FilmCard key={f.id} {...f} />)}
-          </div>
+        <section style={{ padding: "30px 0 0", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", marginBottom: 0 }}>Films</p>
         </section>
       </div>
 
+      <div style={{ width: "100%", overflow: "hidden", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", gap: 18, overflowX: "scroll", padding: "40px 40px", scrollbarWidth: "none", msOverflowStyle: "none", alignItems: "center" }} className="[&::-webkit-scrollbar]:hidden">
+          {shuffledFilms.map((src, i) => <FilmCard key={src} src={src} index={i} onSelect={setPlayerSrc} />)}
+        </div>
+      </div>
 
+      {playerSrc && <FullPlayer src={playerSrc} onClose={() => setPlayerSrc(null)} />}
+
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px 40px", maxWidth: 960, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
+          <div style={{ display: "flex", gap: 24 }}>
+            {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/story", label: "story" }].map((l) => (
+              <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
+            ))}
+          </div>
+        </div>
+      </footer>
     </>
   );
 }

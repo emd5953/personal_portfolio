@@ -189,10 +189,10 @@ const educationRows = [
 ];
 
 const projectRows = [
-  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Multimodal AI · GCP", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app" },
-  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · Next.js", link: "https://lease-iq.vercel.app/" },
-  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/" },
-  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app" },
+  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Multimodal AI · GCP", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app", photos: ["/assets/career/curation.png"] },
+  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · Next.js", link: "https://lease-iq.vercel.app/", photos: ["/assets/career/leaseIQ.png"] },
+  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/", photos: ["/assets/career/nextstep.png"] },
+  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app", photos: ["/assets/career/aspot1.png", "/assets/career/aspot2.jpg"] },
 ];
 
 function PhotoRow({ photos }: { photos: string[] }) {
@@ -206,44 +206,59 @@ function PhotoRow({ photos }: { photos: string[] }) {
           alt=""
           loading="lazy"
           style={{
-            height: 120,
+            height: 220,
             borderRadius: 8,
             objectFit: "cover",
             flexShrink: 0,
-            filter: "brightness(0.6) saturate(0.35) contrast(1.15) sepia(0.15)",
             transition: "filter 0.5s ease",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(0.85) saturate(0.7) sepia(0)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.filter = "brightness(0.6) saturate(0.35) contrast(1.15) sepia(0.15)"; }}
         />
       ))}
     </div>
   );
 }
 
-function TableSection({ label, rows }: { label: string | string[]; rows: { period: string; name: string; detail: string; link?: string }[] }) {
-  const labels = Array.isArray(label) ? label : [label];
+function ExpandableProjects({ rows }: { rows: typeof projectRows }) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const toggle = (i: number) => setExpanded(expanded === i ? null : i);
+
   return (
     <section style={{ padding: "80px 0" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
         <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
-          {labels.map((l, i) => (
-            <p key={i} style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>{l}</p>
-          ))}
+          <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>PROJECTS</p>
         </div>
         <div style={{ flex: 1 }}>
           {rows.map((row, i) => {
-            const inner = (
-              <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 32, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <span style={{ fontSize: 13, color: "var(--color-text-dim)", width: 60, flexShrink: 0 }}>{row.period}</span>
-                <span style={{ flex: 1, fontSize: 14, color: "var(--color-text)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{row.name}</span>
-                <span style={{ fontSize: 13, color: "var(--color-text-dim)", flexShrink: 0 }}>{row.detail}</span>
+            const hasPhotos = row.photos.length > 0;
+            return (
+              <div key={i}>
+                <div
+                  onClick={hasPhotos ? () => toggle(i) : undefined}
+                  style={{ display: "flex", alignItems: "baseline", gap: 32, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: hasPhotos ? "pointer" : "default" }}
+                >
+                  <span style={{ fontSize: 13, color: "var(--color-text-dim)", width: 60, flexShrink: 0 }}>{row.period}</span>
+                  <span style={{ flex: 1, fontSize: 14, color: "var(--color-text)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{row.name}</span>
+                  <span style={{ fontSize: 13, color: "var(--color-text-dim)", flexShrink: 0 }}>{row.detail}</span>
+                  {hasPhotos && (
+                    <svg
+                      style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expanded === i ? "rotate(180deg)" : "rotate(0)", marginLeft: 8 }}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                </div>
+                <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expanded === i ? 600 : 0, opacity: expanded === i ? 1 : 0 }}>
+                  <div style={{ padding: "14px 0 10px 92px" }}>
+                    {row.link && (
+                      <a href={row.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "var(--color-amber-dim)", textDecoration: "none", display: "inline-block", marginBottom: 8 }}>visit →</a>
+                    )}
+                    <PhotoRow photos={row.photos} />
+                  </div>
+                </div>
               </div>
             );
-            if (row.link) {
-              return <a key={i} href={row.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>{inner}</a>;
-            }
-            return inner;
           })}
         </div>
       </div>
@@ -283,7 +298,7 @@ function ExpandableEducation({ rows }: { rows: typeof educationRows }) {
                     </svg>
                   )}
                 </div>
-                <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expanded === i ? 400 : 0, opacity: expanded === i ? 1 : 0 }}>
+                <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expanded === i ? 600 : 0, opacity: expanded === i ? 1 : 0 }}>
                   <div style={{ padding: "14px 0 10px 92px" }}>
                     {row.details && <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{row.details}</p>}
                     <PhotoRow photos={row.photos} />
@@ -385,7 +400,7 @@ export default function CareerPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expandedIndex === i ? 400 : 0, opacity: expandedIndex === i ? 1 : 0, marginTop: expandedIndex === i ? 14 : 0 }}>
+                  <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expandedIndex === i ? 600 : 0, opacity: expandedIndex === i ? 1 : 0, marginTop: expandedIndex === i ? 14 : 0 }}>
                     <div style={{ paddingLeft: 76 }}>
                       <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{exp.details}</p>
                       {exp.href && (
@@ -404,7 +419,7 @@ export default function CareerPage() {
           <ExpandableEducation rows={educationRows} />
         </div>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <TableSection label="PROJECTS" rows={projectRows} />
+          <ExpandableProjects rows={projectRows} />
         </div>
 
       </div>
