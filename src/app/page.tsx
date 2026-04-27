@@ -303,10 +303,10 @@ export default function LandingPage() {
               right now i&apos;m a forward deployed engineer based in nyc — building products from zero to one. ai, product, agents, workflows, integrations the whole thing.
             </p>
             <p className="real-p">
-              before that i was a swe lead, and also hacking at YC hackathons in SF, Stanford &amp; Columbia building AI tools. i graduated with a CS degree, an outstanding senior award and as an entrepreneur scholar.
+              before that i was a SWE lead, and also hacking at YC hackathons in SF, Stanford &amp; Columbia building AI tools. i graduated with a CS degree, an outstanding senior award and as an entrepreneur scholar.
             </p>
             <p className="real-p real-dim">
-              when i&apos;m not shipping code i&apos;m shooting film, playing guitar, hooping, or trying to catch golden hour before it disappears. i like r&amp;b, afrobeats, going out, and being outside. people say i&apos;m performative but i genuinely hate matcha.
+              when i&apos;m not shipping code i&apos;m shooting film, playing guitar, hooping, or trying to catch golden hour before it disappears. i like r&amp;b, going out, and being outside. people say i&apos;m performative but i genuinely hate matcha.
             </p>
           </div>
         </div>
