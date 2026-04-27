@@ -1,11 +1,345 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
+function FallingLeaves({ spawnAt }: { spawnAt: { x: number; y: number } | null }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const leavesRef = useRef<{ x: number; y: number; size: number; speed: number; drift: number; rotation: number; rotSpeed: number; opacity: number; color: string }[]>([]);
+  const initRef = useRef(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const colors = ["#000000", "#000000", "#000000", "#010101", "#000000", "#020202"];
+    const leaves = leavesRef.current;
+
+    function makeLeaf(x: number, y: number) {
+      return {
+        x, y,
+        size: 4 + Math.random() * 8,
+        speed: 0.3 + Math.random() * 0.7,
+        drift: (Math.random() - 0.5) * 0.5,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.02,
+        opacity: 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      };
+    }
+
+    if (!initRef.current) {
+      for (let i = 0; i < 25; i++) {
+        leaves.push(makeLeaf(Math.random() * canvas.width, Math.random() * canvas.height - canvas.height));
+      }
+      initRef.current = true;
+    }
+
+    // Store makeLeaf on ref so we can use it from the spawn effect
+    (canvasRef as unknown as { current: HTMLCanvasElement & { _makeLeaf: typeof makeLeaf } }).current._makeLeaf = makeLeaf;
+
+    function draw() {
+      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+      for (let i = leaves.length - 1; i >= 0; i--) {
+        const leaf = leaves[i];
+        leaf.y += leaf.speed;
+        leaf.x += leaf.drift + Math.sin(leaf.y * 0.01) * 0.3;
+        leaf.rotation += leaf.rotSpeed;
+
+        if (leaf.y > canvas!.height + 20) {
+          if (leaves.length > 25) { leaves.splice(i, 1); continue; }
+          leaf.y = -20;
+          leaf.x = Math.random() * canvas!.width;
+        }
+        if (leaf.x > canvas!.width + 20) leaf.x = -20;
+        if (leaf.x < -20) leaf.x = canvas!.width + 20;
+
+        ctx!.save();
+        ctx!.translate(leaf.x, leaf.y);
+        ctx!.rotate(leaf.rotation);
+        ctx!.globalAlpha = leaf.opacity;
+        ctx!.fillStyle = leaf.color;
+        ctx!.beginPath();
+        ctx!.ellipse(0, 0, leaf.size * 0.4, leaf.size, 0, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+      }
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
+  }, []);
+
+  // Spawn leaves when spawnAt changes
+  useEffect(() => {
+    if (!spawnAt) return;
+    const leaves = leavesRef.current;
+    const canvas = canvasRef.current as HTMLCanvasElement & { _makeLeaf?: (x: number, y: number) => typeof leaves[0] };
+    if (!canvas?._makeLeaf) return;
+    const burst = 8 + Math.floor(Math.random() * 6);
+    for (let i = 0; i < burst; i++) {
+      leaves.push(canvas._makeLeaf(
+        spawnAt.x + (Math.random() - 0.5) * 60,
+        spawnAt.y + (Math.random() - 0.5) * 30,
+      ));
+    }
+  }, [spawnAt]);
+
+  return <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />;
+}
+
+const quips = [
+  "here come the leaves 🍃",
+  "why are you clicking here?",
+  "touch grass... oh wait",
+  "🌴 vibes",
+  "im an island boy 🏝️",
+];
+
+function ClickQuip({ x, y, text }: { x: number; y: number; text: string }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => { const t = setTimeout(() => setVisible(false), 2000); return () => clearTimeout(t); }, []);
+  if (!visible) return null;
+  return (
+    <div style={{
+      position: "fixed", left: x, top: y - 50, zIndex: 999, pointerEvents: "none",
+      transform: "translateX(-50%)",
+      animation: "quipIn 0.3s ease, quipOut 0.4s ease 1.6s forwards",
+    }}>
+      <div style={{
+        background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 400,
+        fontStyle: "italic", fontFamily: "var(--font-inter), sans-serif",
+        padding: "5px 12px", borderRadius: 14, whiteSpace: "nowrap",
+        boxShadow: "none",
+      }}>
+        {text}
+      </div>
+      <div style={{
+        width: 8, height: 8, background: "rgba(255,255,255,0.15)", borderRadius: "50%",
+        marginLeft: "50%", marginTop: 3,
+      }} />
+      <div style={{
+        width: 5, height: 5, background: "rgba(255,255,255,0.15)", borderRadius: "50%",
+        marginLeft: "55%", marginTop: 2,
+      }} />
+    </div>
+  );
+}
+
+const experiences = [
+  {
+    company: "BENMORE TECHNOLOGIES",
+    role: "Forward Deployed Engineer",
+    period: "2026 – Present",
+    href: "https://benmore.tech",
+    logo: "/assets/career/benmore.png",
+    details: "Working with startups & SMBs. Building products from zero to one — ai, product, agents, workflows, integrations. Bootstrapped to 2M ARR.",
+    photos: [] as string[],
+  },
+  {
+    company: "ALERVIO",
+    role: "Software Engineer",
+    period: "2025",
+    logo: "/assets/career/alervio_logo.jpeg",
+    details: "Full Stack Lead for B2B/B2C product. Dealing with nutrition and restaurant data.",
+    photos: [] as string[],
+  },
+  {
+    company: "Y COMBINATOR",
+    role: "Startup School 2026 · 2x Hackathon",
+    period: "2026",
+    logo: "/assets/career/Y_Combinator_logo.svg",
+    details: "Referred to YC Startup School 2026 by Aaron Epstein and participated in two YC hackathons in SF.",
+    photos: ["/assets/career/yc.jpg", "/assets/career/susa.jpg"],
+  },
+  {
+    company: "COLUMBIA UNIVERSITY",
+    role: "AI for Good Hackathon",
+    period: "2026",
+    logo: "/assets/career/columbia_uni.png",
+    details: "Building Wavelength. Scan and see what songs are being played near you",
+    photos: ["/assets/career/columbia1.jpg", "/assets/career/columbia2.jpg", "/assets/career/ColumbiaHack.jpeg"],
+  },
+  {
+    company: "STANFORD UNIVERSITY",
+    role: "Stanford X Google Deepmind Hackathon",
+    period: "2026",
+    logo: "/assets/career/stanford logo.png",
+    details: "Building Curation.you. Your everyday pictures turned into production ready videos.",
+    photos: ["/assets/career/wall.jpg"],
+  },
+];
+
+const educationRows = [
+  { period: "2025", name: "PENN STATE", detail: "B.S. Computer Science", details: "Graduated with a degree in Computer Science from the College of Engineering.", photos: ["/assets/career/graduation1.jpg", "/assets/career/graduation2.jpg", "/assets/career/graduation3.jpg", "/assets/career/graduation4.jpg"] },
+  { period: "2025", name: "OUTSTANDING SENIOR AWARD", detail: "College of Engineering", details: "Recognized as an outstanding senior in the College of Engineering.", photos: ["/assets/career/truist1.jpg"] },
+  { period: "2025", name: "ENTREPRENEUR SCHOLAR", detail: "Scholarship", details: "Selected as a global entrepreneur scholar.", photos: ["/assets/career/truist2.jpg"] },
+  { period: "2023", name: "IEEE", detail: "Member", details: "", photos: [] as string[] },
+  { period: "2023", name: "GLOBAL AMBASSADORS", detail: "Member", details: "", photos: [] as string[] },
+  { period: "2023", name: "MAEP", detail: "Member", details: "Multicultural Academic Excellence Program.", photos: [] as string[] },
+  { period: "2021", name: "UNIVERSITY OF WASHINGTON", detail: "Admitted", details: "", photos: [] as string[] },
+];
+
+const projectRows = [
+  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Multimodal AI · GCP", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app" },
+  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · Next.js", link: "https://lease-iq.vercel.app/" },
+  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/" },
+  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app" },
+];
+
+function PhotoRow({ photos }: { photos: string[] }) {
+  if (!photos.length) return null;
+  return (
+    <div style={{ display: "flex", gap: 8, marginTop: 12, overflowX: "auto" }}>
+      {photos.map((src) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          loading="lazy"
+          style={{
+            height: 120,
+            borderRadius: 8,
+            objectFit: "cover",
+            flexShrink: 0,
+            filter: "brightness(0.6) saturate(0.35) contrast(1.15) sepia(0.15)",
+            transition: "filter 0.5s ease",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(0.85) saturate(0.7) sepia(0)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.filter = "brightness(0.6) saturate(0.35) contrast(1.15) sepia(0.15)"; }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TableSection({ label, rows }: { label: string | string[]; rows: { period: string; name: string; detail: string; link?: string }[] }) {
+  const labels = Array.isArray(label) ? label : [label];
+  return (
+    <section style={{ padding: "80px 0" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+        <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
+          {labels.map((l, i) => (
+            <p key={i} style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>{l}</p>
+          ))}
+        </div>
+        <div style={{ flex: 1 }}>
+          {rows.map((row, i) => {
+            const inner = (
+              <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 32, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 13, color: "var(--color-text-dim)", width: 60, flexShrink: 0 }}>{row.period}</span>
+                <span style={{ flex: 1, fontSize: 14, color: "var(--color-text)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{row.name}</span>
+                <span style={{ fontSize: 13, color: "var(--color-text-dim)", flexShrink: 0 }}>{row.detail}</span>
+              </div>
+            );
+            if (row.link) {
+              return <a key={i} href={row.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>{inner}</a>;
+            }
+            return inner;
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExpandableEducation({ rows }: { rows: typeof educationRows }) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const toggle = (i: number) => setExpanded(expanded === i ? null : i);
+
+  return (
+    <section style={{ padding: "80px 0" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+        <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>EDUCATION &</p>
+          <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>AWARDS</p>
+        </div>
+        <div style={{ flex: 1 }}>
+          {rows.map((row, i) => {
+            const hasContent = row.details || row.photos.length > 0;
+            return (
+              <div key={i}>
+                <div
+                  onClick={hasContent ? () => toggle(i) : undefined}
+                  style={{ display: "flex", alignItems: "baseline", gap: 32, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: hasContent ? "pointer" : "default" }}
+                >
+                  <span style={{ fontSize: 13, color: "var(--color-text-dim)", width: 60, flexShrink: 0 }}>{row.period}</span>
+                  <span style={{ flex: 1, fontSize: 14, color: "var(--color-text)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{row.name}</span>
+                  <span style={{ fontSize: 13, color: "var(--color-text-dim)", flexShrink: 0 }}>{row.detail}</span>
+                  {hasContent && (
+                    <svg
+                      style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expanded === i ? "rotate(180deg)" : "rotate(0)", marginLeft: 8 }}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                </div>
+                <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expanded === i ? 400 : 0, opacity: expanded === i ? 1 : 0 }}>
+                  <div style={{ padding: "14px 0 10px 92px" }}>
+                    {row.details && <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{row.details}</p>}
+                    <PhotoRow photos={row.photos} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function CareerPage() {
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const toggle = (i: number) => setExpandedIndex(expandedIndex === i ? null : i);
+  const [spawnAt, setSpawnAt] = useState<{ x: number; y: number } | null>(null);
+  const [activeQuips, setActiveQuips] = useState<{ id: number; x: number; y: number; text: string }[]>([]);
+  const clickCountRef = useRef(0);
+  const quipIdRef = useRef(0);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest("[data-content], nav, footer")) return;
+      setSpawnAt({ x: e.clientX, y: e.clientY });
+      clickCountRef.current++;
+      // Show quip every 3rd click
+      if (clickCountRef.current % 3 === 1) {
+        const id = quipIdRef.current++;
+        const text = quips[Math.floor(Math.random() * quips.length)];
+        setActiveQuips(prev => [...prev, { id, x: e.clientX, y: e.clientY, text }]);
+        setTimeout(() => setActiveQuips(prev => prev.filter(q => q.id !== id)), 2200);
+      }
+    }
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, []);
+
   return (
     <>
       <div className="grain" />
+      <style>{`
+        @keyframes quipIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes quipOut { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+      `}</style>
+      <FallingLeaves spawnAt={spawnAt} />
+      {activeQuips.map(q => <ClickQuip key={q.id} x={q.x} y={q.y} text={q.text} />)}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1 }}>
+        <img
+          src="/assets/landing/9.jpg"
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 70%", filter: "brightness(0.15) saturate(0.15) contrast(1.1)" }}
+        />
+      </div>
       <nav className="site-nav">
         <Link href="/" className="font-display text-[16px] font-semibold text-white no-underline tracking-tight">enrin</Link>
         <div className="flex gap-7">
@@ -15,126 +349,87 @@ export default function CareerPage() {
         </div>
       </nav>
 
-      <style>{`
-        .exp-row { transition: background 0.3s ease; }
-        .exp-row:hover { background: rgba(255,255,255,0.02); }
-      `}</style>
+      <div data-content style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px" }}>
 
-      {/* HERO */}
-      <section className="pt-[80px] pb-[120px] px-10 max-md:pt-[60px] max-md:pb-[80px] max-md:px-6">
-        <div className="max-w-[960px] mx-auto">
-          <h1 className="font-display text-[clamp(2.5rem,8vw,5.5rem)] font-bold tracking-[-4px] leading-[0.9] text-text max-md:tracking-[-3px]">career</h1>
-          <p className="text-[13px] font-light tracking-[5px] text-amber-dim mt-6 lowercase">experience / projects / highlights</p>
-        </div>
-      </section>
+        {/* HERO */}
+        <section style={{ paddingTop: 20, paddingBottom: 0 }}>
+          <h1 className="font-display" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", fontWeight: 700, letterSpacing: -4, lineHeight: 0.9, color: "var(--color-text)" }}>career</h1>
+        </section>
 
-      {/* EXPERIENCE */}
-      <section className="py-[100px] px-10 border-t border-border max-md:py-16 max-md:px-6">
-        <div className="max-w-[960px] mx-auto flex gap-[80px] items-start max-md:flex-col max-md:gap-8">
-          <p className="text-[13px] font-light tracking-[5px] text-amber-dim lowercase shrink-0 pt-2 w-[140px] max-md:w-auto">experience</p>
-          <div className="flex-1">
-            {[
-              { period: "2024 – present", company: "benmore technologies", role: "forward deployed engineer", href: "https://benmore.tech" },
-              { period: "2024", company: "alervio", role: "software engineer lead" },
-              { period: "2024", company: "life after ostomy", role: "software engineer", href: "https://lifeafterostomy.com" },
-            ].map((exp, i) => (
-              <div key={i} className="exp-row flex items-baseline gap-6 py-5 border-b border-white/[0.06] max-md:flex-col max-md:gap-1 max-md:py-4">
-                <span className="text-[13px] text-text-dim tracking-wide w-[140px] shrink-0 max-md:w-auto">{exp.period}</span>
-                <span className="flex-1 text-[15px] text-text font-medium tracking-tight lowercase">
-                  {exp.href ? (
-                    <a href={exp.href} target="_blank" rel="noopener noreferrer" className="text-text no-underline hover:text-amber transition-colors">{exp.company}</a>
-                  ) : exp.company}
-                </span>
-                <span className="text-[13px] text-text-dim shrink-0">{exp.role}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* EDUCATION & AWARDS */}
-      <section className="py-[100px] px-10 border-t border-border max-md:py-16 max-md:px-6">
-        <div className="max-w-[960px] mx-auto flex gap-[80px] items-start max-md:flex-col max-md:gap-8">
-          <div className="shrink-0 w-[140px] max-md:w-auto">
-            <p className="text-[13px] font-light tracking-[5px] text-amber-dim lowercase pt-2">education &amp;</p>
-            <p className="text-[13px] font-light tracking-[5px] text-amber-dim lowercase">awards</p>
-          </div>
-          <div className="flex-1">
-            {[
-              { period: "2024", item: "penn state university", detail: "b.s. computer science" },
-              { period: "2024", item: "outstanding senior award", detail: "college of engineering" },
-              { period: "2024", item: "entrepreneur scholar", detail: "global designation" },
-            ].map((row, i) => (
-              <div key={i} className="exp-row flex items-baseline gap-6 py-5 border-b border-white/[0.06] max-md:flex-col max-md:gap-1 max-md:py-4">
-                <span className="text-[13px] text-text-dim tracking-wide w-[140px] shrink-0 max-md:w-auto">{row.period}</span>
-                <span className="flex-1 text-[15px] text-text font-medium tracking-tight lowercase">{row.item}</span>
-                <span className="text-[13px] text-text-dim shrink-0">{row.detail}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PROJECTS */}
-      <section className="py-[100px] px-10 border-t border-border max-md:py-16 max-md:px-6">
-        <div className="max-w-[960px] mx-auto">
-          <p className="text-[13px] font-light tracking-[5px] text-amber-dim lowercase mb-14">projects</p>
-          <div className="grid grid-cols-2 gap-8 max-md:grid-cols-1 max-md:gap-12">
-            {[
-              { img: "career/curation.png", title: "aesthetic alchemist", desc: "cinematic content engine — decodes visual inspiration into video & audio scripts", tags: "multimodal ai · veo 3 · gcp", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app" },
-              { img: "career/leaseIQ.png", title: "leaseiq", desc: "smart apartment hunting — scrapes 15+ sites, analyzes leases with ai", tags: "firecrawl · openrouter · next.js", link: "https://lease-iq.vercel.app/" },
-              { img: "career/nextstep.png", title: "nextstep", desc: "swipe-based job matching with real-time chat and ai recommendations", tags: "react native · node · mongodb", link: "https://nextstep4.com/" },
-              { img: "career/aspot1.png", title: "aspot", desc: "intelligent travel planning from real-time data and preferences", tags: "next.js · postgresql · spring", link: "https://aspot-monolith.vercel.app" },
-            ].map((p) => (
-              <a key={p.title} href={p.link} target="_blank" rel="noopener noreferrer" className="block no-underline group">
-                <div className="overflow-hidden rounded-md mb-4">
-                  <img src={`/assets/${p.img}`} alt={p.title} loading="lazy" className="w-full h-[240px] max-md:h-[200px] object-cover brightness-[0.45] saturate-[0.3] contrast-[1.15] sepia-[0.2] group-hover:brightness-[0.65] group-hover:saturate-[0.55] transition-all duration-700" />
+        {/* EXPERIENCE */}
+        <section style={{ padding: "40px 0 80px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+            <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", width: 180, flexShrink: 0, paddingTop: 40, margin: 0 }}>EXPERIENCE</p>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, paddingTop: 22 }}>
+              {experiences.map((exp, i) => (
+                <div key={i} style={{ padding: "18px 0" }}>
+                  <button
+                    onClick={() => toggle(i)}
+                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 20, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}
+                  >
+                    <span style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+                      <img src={exp.logo} alt={exp.company} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 13, color: "var(--color-text)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{exp.company}</span>
+                        <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>|</span>
+                        <span style={{ fontSize: 13, color: "var(--color-text-dim)" }}>{exp.role}</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: "var(--color-text-dim)", margin: "4px 0 0" }}>{exp.period}</p>
+                    </div>
+                    <svg
+                      style={{ width: 18, height: 18, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expandedIndex === i ? "rotate(180deg)" : "rotate(0)" }}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expandedIndex === i ? 400 : 0, opacity: expandedIndex === i ? 1 : 0, marginTop: expandedIndex === i ? 14 : 0 }}>
+                    <div style={{ paddingLeft: 76 }}>
+                      <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{exp.details}</p>
+                      {exp.href && (
+                        <a href={exp.href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "var(--color-amber-dim)", textDecoration: "none", marginTop: 8, display: "inline-block" }}>visit →</a>
+                      )}
+                      <PhotoRow photos={exp.photos} />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-baseline gap-4 mb-1">
-                  <h3 className="font-display text-[16px] font-semibold text-text tracking-tight lowercase group-hover:text-amber transition-colors duration-300">{p.title}</h3>
-                  <span className="text-text-dim text-[11px] tracking-wide shrink-0">{p.tags}</span>
-                </div>
-                <p className="text-text-mid text-[13px] leading-relaxed mt-1">{p.desc}</p>
-              </a>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* HIGHLIGHTS */}
-      <section className="py-[100px] px-10 border-t border-border max-md:py-16 max-md:px-6">
-        <div className="max-w-[960px] mx-auto">
-          <p className="text-[13px] font-light tracking-[5px] text-amber-dim lowercase mb-6">highlights</p>
-          <p className="text-[22px] text-text font-normal leading-[1.6] mb-12 max-md:text-[19px]">yc hackathons in sf, columbia ai hackathon, global entrepreneur scholar, and a few other moments along the way.</p>
-          <div className="grid grid-cols-3 gap-4 max-md:grid-cols-2 max-md:gap-3">
-            {["career/yc.jpg", "career/columbia1.jpg", "career/susa.jpg", "career/columbia2.jpg", "career/wall.jpg", "career/ColumbiaHack.jpeg", "career/truist1.jpg", "career/nb.jpg", "career/truist2.jpg"].map((img) => (
-              <div key={img} className="overflow-hidden rounded-sm">
-                <img src={`/assets/${img}`} alt="" loading="lazy" className="w-full aspect-square object-cover brightness-[0.55] saturate-[0.3] contrast-[1.2] sepia-[0.25] hover:brightness-[0.78] hover:saturate-[0.65] hover:sepia-[0.08] transition-all duration-700" />
-              </div>
-            ))}
-          </div>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <ExpandableEducation rows={educationRows} />
         </div>
-      </section>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <TableSection label="PROJECTS" rows={projectRows} />
+        </div>
 
-      {/* END */}
-      <section className="pt-20 px-10 pb-10 border-t border-border max-md:pt-[60px] max-md:px-6 max-md:pb-[30px]">
-        <div className="max-w-[700px] mx-auto flex justify-between items-start gap-10 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-7">
-          <div className="flex gap-8 max-md:gap-6">
-            {[{ href: "/", num: "01", label: "home" }, { href: "/story", num: "02", label: "story" }, { href: "/art", num: "03", label: "art" }].map((l) => (
-              <Link key={l.num} href={l.href} className="no-underline text-inherit flex flex-col gap-1 hover:-translate-y-1 transition-transform duration-300 group">
-                <span className="text-[10px] text-text-faint tracking-[1px]">{l.num}</span>
-                <span className="font-display text-lg font-semibold tracking-tight group-hover:text-amber transition-colors duration-300">{l.label}</span>
-              </Link>
-            ))}
-          </div>
-          <div className="flex gap-5 max-sm:flex-wrap max-sm:justify-center max-sm:gap-3.5">
-            {[{ href: "mailto:nrndbrma@gmail.com", label: "email" }, { href: "https://www.linkedin.com/in/enrinjr/", label: "linkedin" }, { href: "https://github.com/emd5953", label: "github" }, { href: "/assets/ResumeEnrinDebbarma.pdf", label: "resume" }].map((c) => (
-              <a key={c.label} href={c.href} target={c.href.startsWith("mailto") ? undefined : "_blank"} rel={c.href.startsWith("mailto") ? undefined : "noopener noreferrer"} className="text-text-dim no-underline text-xs hover:text-amber-dim transition-colors duration-300">{c.label}</a>
+      </div>
+
+      {/* FOOTER */}
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "80px 40px 40px", maxWidth: 960, margin: "0 auto" }}>
+        <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 32 }}>Contact</p>
+        <div style={{ display: "flex", gap: 28, marginBottom: 60, alignItems: "center" }}>
+          {[
+            { href: "https://www.linkedin.com/in/enrinjr/", label: "LinkedIn", icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> },
+            { href: "https://github.com/emd5953", label: "GitHub", icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> },
+            { href: "mailto:nrndbrma@gmail.com", label: "Email", icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg> },
+          ].map((c) => (
+            <a key={c.label} href={c.href} target={c.href.startsWith("mailto") ? undefined : "_blank"} rel={c.href.startsWith("mailto") ? undefined : "noopener noreferrer"} aria-label={c.label} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", transition: "color 0.3s", display: "flex", alignItems: "center" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.8)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}>{c.icon}</a>
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 24 }}>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
+          <div style={{ display: "flex", gap: 24 }}>
+            {[{ href: "/", label: "home" }, { href: "/story", label: "story" }, { href: "/art", label: "art" }].map((l) => (
+              <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
             ))}
           </div>
         </div>
-        <p className="text-center text-[11px] text-text-faint mt-[60px] pt-5 border-t border-border">© 2025 enrinjr</p>
-      </section>
+      </footer>
     </>
   );
 }

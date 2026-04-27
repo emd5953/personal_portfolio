@@ -1,52 +1,87 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const photos = [
-  { src: "/assets/songCover.jpg", caption: "talent show" },
-  { src: "/assets/song1.jpg", caption: "poetic" },
-  { src: "/assets/song2.jpg", caption: "vulgarity" },
-  { src: "/assets/aboutme1.jpg", caption: "portrait" },
-  { src: "/assets/aboutme2.jpg", caption: "portrait" },
-  { src: "/assets/graduation1.jpg", caption: "graduation" },
-  { src: "/assets/graduation2.jpg", caption: "graduation" },
-  { src: "/assets/graduation3.jpg", caption: "graduation" },
-  { src: "/assets/graduation4.jpg", caption: "graduation" },
+const bgVideos = [
+  "/assets/videos/hero-bg.mp4",
+  "/assets/videos/066c54a2118a41449477037ab040d539.mp4",
+  "/assets/videos/4f3e5000c1c04199856b2b7cae303194.mp4",
+  "/assets/videos/58d06fabc773491297f61d8d0cfe9204.mp4",
+  "/assets/videos/6c30d6c75ad443588c4b1f36987ebc0b.mp4",
+  "/assets/videos/6d17cf98e38047d092c98b07fe9cc8c8.mp4",
+  "/assets/videos/7107492014e14bcab8c6313d1307c97c.mp4",
+  "/assets/videos/7c061707a4344326ab7762342310a400.mp4",
+  "/assets/videos/8d8f18a6ad4a46cba95f9863015150f5.mp4",
+  "/assets/videos/8f4b7b6364e34dd098ca2437a85761b8.mp4",
+  "/assets/videos/9364fa9aab21478baa8e25460bd484ad.mp4",
+  "/assets/videos/9efea14f0cce479eb7c3bda43308a0ec.mp4",
+  "/assets/videos/aa0b829d83114f2cbc0b24b52213cd75.mp4",
+  "/assets/videos/ae1dc2a101db4a79940a1dbe6e4fb68e.mp4",
+  "/assets/videos/c032cb96261947b9b9e4d5a58c50ebb6.mp4",
+  "/assets/videos/cd64ac014c84439ca6dceb61651b2557.mp4",
+  "/assets/videos/f7e7f0990fbb4c3c8e470cc757c6681d.mp4",
 ];
 
+const films = [
+  { id: "iuqZl8EFd4s", title: "untitled", tag: "short film" },
+];
+
+function FilmCard({ id, title, tag }: { id: string; title: string; tag: string }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ borderRadius: 12, overflow: "hidden", position: "relative", cursor: "pointer" }}
+    >
+      {hovered ? (
+        <iframe
+          src={`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&modestbranding=1`}
+          style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
+          allow="autoplay; encrypted-media"
+          loading="lazy"
+        />
+      ) : (
+        <img
+          src={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
+          alt={title}
+          style={{
+            width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block",
+          }}
+        />
+      )}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, padding: 20,
+        background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
+        pointerEvents: "none",
+      }}>
+        <p style={{ fontSize: 15, color: "var(--color-text)", fontWeight: 600, margin: 0, textTransform: "lowercase" }}>{title}</p>
+        <span style={{ fontSize: 11, color: "var(--color-text-dim)" }}>{tag}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function ArtPage() {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
-
-  const openLightbox = (i: number) => { setLightboxIndex(i); setLightboxOpen(true); document.body.style.overflow = "hidden"; };
-  const closeLightbox = useCallback(() => { setLightboxOpen(false); document.body.style.overflow = ""; }, []);
-  const prev = useCallback(() => setLightboxIndex((i) => (i - 1 + photos.length) % photos.length), []);
-  const next = useCallback(() => setLightboxIndex((i) => (i + 1) % photos.length), []);
+  const [bgVideo, setBgVideo] = useState("");
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (!lightboxOpen) return; if (e.key === "Escape") closeLightbox(); if (e.key === "ArrowLeft") prev(); if (e.key === "ArrowRight") next(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [lightboxOpen, closeLightbox, prev, next]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) setVisibleSections((prev) => new Set(prev).add(e.target.id)); }),
-      { threshold: 0.1, rootMargin: "0px 0px -60px 0px" }
-    );
-    sectionRefs.current.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    setBgVideo(bgVideos[Math.floor(Math.random() * bgVideos.length)]);
   }, []);
-
-  const ref = (id: string) => (el: HTMLElement | null) => { if (el) sectionRefs.current.set(id, el); };
-  const vis = (id: string) => visibleSections.has(id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8";
 
   return (
     <>
       <div className="grain" />
+      {/* Video background */}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1, overflow: "hidden" }}>
+        {bgVideo && (
+          <video key={bgVideo} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }}>
+            <source src={bgVideo} type="video/mp4" />
+          </video>
+        )}
+      </div>
+
       <nav className="site-nav">
         <Link href="/" className="font-display text-[16px] font-semibold text-white no-underline tracking-tight">enrin</Link>
         <div className="flex gap-7">
@@ -56,77 +91,24 @@ export default function ArtPage() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="h-[55vh] relative flex items-end pb-20 px-10 max-md:px-6 max-md:h-[45vh] max-md:pb-14">
-        <div className="absolute inset-0 bg-gradient-to-b from-teal/60 via-bg/30 to-bg" />
-        <div className="relative z-10 max-w-[960px] mx-auto w-full">
-          <p className="text-[11px] tracking-[3px] text-text-dim lowercase mb-4 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">films · frames · moments</p>
-          <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the art</h1>
-          <p className="text-text-mid text-[15px] mt-5 max-w-[480px] leading-relaxed opacity-0 animate-[heroFade_2s_ease_0.8s_forwards]">film, frames, and aesthetic moments — a visual diary</p>
-        </div>
-      </section>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
 
-      {/* FILMS */}
-      <section id="films" ref={ref("films")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("films")}`}>
-        <div className="max-w-[960px] mx-auto">
-          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">films</h2>
-          <p className="text-text-mid text-sm mb-8">short films and cinematic moments</p>
-          <div className="border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:border-text-dim/30 transition-all duration-300">
-            <div className="relative pb-[56.25%] h-0 overflow-hidden">
-              <iframe className="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/iuqZl8EFd4s" title="Film" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" />
-            </div>
-            <div className="p-4">
-              <span className="text-[11px] text-text-dim border border-border rounded-full px-3 py-0.5 lowercase">film</span>
-            </div>
-          </div>
-        </div>
-      </section>
+        {/* HERO */}
+        <section style={{ paddingTop: 20, paddingBottom: 60, position: "relative", zIndex: 1 }}>
+          <h1 className="font-display" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", fontWeight: 700, letterSpacing: -4, lineHeight: 0.9, color: "var(--color-text)" }}>the art</h1>
+          <p style={{ fontSize: 13, color: "var(--color-text-dim)", marginTop: 16 }}>films · frames · moments</p>
+        </section>
 
-      {/* PHOTOS */}
-      <section id="photos" ref={ref("photos")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("photos")}`}>
-        <div className="max-w-[960px] mx-auto">
-          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">photos</h2>
-          <p className="text-text-mid text-sm mb-8">aesthetic captures and visual stories</p>
-          <div className="columns-3 gap-5 max-[900px]:columns-2 max-[600px]:columns-1">
-            {photos.map((photo, i) => (
-              <div key={photo.src} className="break-inside-avoid mb-5 rounded-[10px] overflow-hidden relative cursor-pointer group hover:scale-[1.02] transition-transform duration-300" onClick={() => openLightbox(i)}>
-                <img src={photo.src} alt="Aesthetic photo" loading="lazy" className="w-full block rounded-[10px] brightness-[0.6] saturate-[0.35] contrast-[1.15] sepia-[0.2] group-hover:brightness-[0.8] group-hover:saturate-[0.65] transition-all duration-700" />
-                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent rounded-b-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-white text-sm font-medium lowercase">{photo.caption}</span>
-                </div>
-              </div>
-            ))}
+        {/* FILMS */}
+        <section style={{ padding: "60px 0 80px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", marginBottom: 32 }}>Films</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+            {films.map((f) => <FilmCard key={f.id} {...f} />)}
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* LIGHTBOX */}
-      {lightboxOpen && (
-        <div className="fixed inset-0 bg-black/92 z-[10000] flex items-center justify-center flex-col" onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}>
-          <button className="absolute top-6 right-8 bg-transparent border-none text-white text-4xl cursor-pointer hover:opacity-70 transition-opacity z-[10001]" aria-label="Close" onClick={closeLightbox}>&times;</button>
-          <button className="absolute top-1/2 left-4 -translate-y-1/2 bg-transparent border-none text-white text-5xl cursor-pointer hover:opacity-70 transition-opacity z-[10001] p-4" aria-label="Previous" onClick={(e) => { e.stopPropagation(); prev(); }}>&#8249;</button>
-          <button className="absolute top-1/2 right-4 -translate-y-1/2 bg-transparent border-none text-white text-5xl cursor-pointer hover:opacity-70 transition-opacity z-[10001] p-4" aria-label="Next" onClick={(e) => { e.stopPropagation(); next(); }}>&#8250;</button>
-          <img src={photos[lightboxIndex].src} alt="Full size photo" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg" />
-          <div className="text-gray-400 text-sm mt-4 lowercase">{photos[lightboxIndex].caption}</div>
-        </div>
-      )}
 
-      {/* FOOTER */}
-      <section className="pt-16 px-10 pb-10 border-t border-border max-md:px-6">
-        <div className="max-w-[700px] mx-auto flex justify-between items-start gap-10 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-7">
-          <div className="flex gap-8">
-            {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/story", label: "story" }].map((l) => (
-              <Link key={l.label} href={l.href} className="font-display text-lg font-semibold tracking-tight no-underline text-text hover:text-amber transition-colors duration-300">{l.label}</Link>
-            ))}
-          </div>
-          <div className="flex gap-5">
-            {[{ href: "mailto:nrndbrma@gmail.com", label: "email" }, { href: "https://www.linkedin.com/in/enrinjr/", label: "linkedin" }, { href: "https://github.com/emd5953", label: "github" }].map((c) => (
-              <a key={c.label} href={c.href} target={c.href.startsWith("mailto") ? undefined : "_blank"} rel={c.href.startsWith("mailto") ? undefined : "noopener noreferrer"} className="text-text-dim no-underline text-xs hover:text-amber-dim transition-colors duration-300">{c.label}</a>
-            ))}
-          </div>
-        </div>
-        <p className="text-center text-[11px] text-text-faint mt-14 pt-5 border-t border-border">© 2025 enrinjr</p>
-      </section>
     </>
   );
 }
