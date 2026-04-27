@@ -33,6 +33,68 @@ export default function StoryPage() {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [spotifyData, setSpotifyData] = useState<{ trackName?: string; artist?: string; album?: string; trackId?: string; playedAt?: string; playlists?: { id: string; name: string; tracks: number }[] } | null>(null);
+
+  // Edit mode state
+  const [editMode, setEditMode] = useState(false);
+  const [editPassword, setEditPassword] = useState("");
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [editingThought, setEditingThought] = useState<Thought | null>(null);
+  const [editingTimeline, setEditingTimeline] = useState<TimelineEntry | null>(null);
+  const [newThought, setNewThought] = useState({ title: "", preview: "", tag: "", date: "" });
+  const [newTimeline, setNewTimeline] = useState({ title: "", description: "", period: "", tags: "" });
+
+  const apiCall = async (method: string, type: string, body: object) => {
+    const res = await fetch(`/api/content?type=${type}`, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${editPassword}` },
+      body: JSON.stringify(body),
+    });
+    return res.json();
+  };
+
+  const handleLogin = async () => {
+    setAuthError("");
+    const res = await fetch("/api/content?action=export", { headers: { Authorization: `Bearer ${editPassword}` } });
+    const data = await res.json();
+    if (data.success) { setIsAuthed(true); setEditMode(true); setShowLogin(false); }
+    else setAuthError(data.error || "Wrong password");
+  };
+
+  const addThought = async () => {
+    if (!newThought.title) return;
+    const res = await apiCall("POST", "thoughts", { ...newThought, date: newThought.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toLowerCase() });
+    if (res.success) { setThoughts((prev) => [res.data, ...prev]); setNewThought({ title: "", preview: "", tag: "", date: "" }); }
+  };
+
+  const updateThought = async () => {
+    if (!editingThought) return;
+    const res = await apiCall("PUT", "thoughts", editingThought);
+    if (res.success) { setThoughts((prev) => prev.map((t) => (t.id === editingThought.id ? res.data : t))); setEditingThought(null); }
+  };
+
+  const deleteThought = async (id: string) => {
+    const res = await apiCall("DELETE", "thoughts", { id });
+    if (res.success) setThoughts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const addTimeline = async () => {
+    if (!newTimeline.title) return;
+    const res = await apiCall("POST", "timeline", { ...newTimeline, tags: newTimeline.tags.split(",").map((t) => t.trim()).filter(Boolean) });
+    if (res.success) { setTimeline((prev) => [res.data, ...prev]); setNewTimeline({ title: "", description: "", period: "", tags: "" }); }
+  };
+
+  const updateTimeline = async () => {
+    if (!editingTimeline) return;
+    const res = await apiCall("PUT", "timeline", editingTimeline);
+    if (res.success) { setTimeline((prev) => prev.map((t) => (t.id === editingTimeline.id ? res.data : t))); setEditingTimeline(null); }
+  };
+
+  const deleteTimeline = async (id: string) => {
+    const res = await apiCall("DELETE", "timeline", { id });
+    if (res.success) setTimeline((prev) => prev.filter((t) => t.id !== id));
+  };
   const heroBgMedia = [
     "/assets/story/qatarcafe.jpg",
     "/assets/story/gala.jpg",
@@ -222,9 +284,29 @@ export default function StoryPage() {
         <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">thoughts</h2>
           <p className="text-text text-sm mb-14">random musings, and life reflections</p>
+
+          {editMode && (
+            <div className="mb-8 p-5 border border-white/10 rounded-lg" style={{ background: "rgba(0,0,0,0.5)", textShadow: "none" }}>
+              <p className="text-text text-xs uppercase tracking-widest mb-3">add thought</p>
+              <input value={newThought.title} onChange={(e) => setNewThought({ ...newThought, title: e.target.value })} placeholder="title" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
+              <textarea value={newThought.preview} onChange={(e) => setNewThought({ ...newThought, preview: e.target.value })} placeholder="preview text" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={2} />
+              <div className="flex gap-2 mb-2">
+                <input value={newThought.tag} onChange={(e) => setNewThought({ ...newThought, tag: e.target.value })} placeholder="tag" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+                <input value={newThought.date} onChange={(e) => setNewThought({ ...newThought, date: e.target.value })} placeholder="date (e.g. apr 27, 2026)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+              </div>
+              <button onClick={addThought} className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-text text-xs rounded transition-colors">add</button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {displayThoughts.map((t) => (
-              <article key={t.id} className="border border-border rounded-lg p-7 hover:border-text-dim/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+              <article key={t.id} className="border border-border rounded-lg p-7 hover:border-text-dim/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative group">
+                {editMode && (
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ textShadow: "none" }}>
+                    <button onClick={() => setEditingThought(t)} className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-text text-[10px] rounded">edit</button>
+                    <button onClick={() => deleteThought(t.id)} className="px-2 py-0.5 bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[10px] rounded">×</button>
+                  </div>
+                )}
                 <div className="flex justify-between items-center mb-5">
                   <span className="text-[11px] text-text-mid uppercase tracking-wide font-medium">{t.date}</span>
                   <span className="text-[11px] text-text-mid border border-border rounded-full px-3 py-0.5 lowercase">{t.tag}</span>
@@ -242,12 +324,32 @@ export default function StoryPage() {
         <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">timeline</h2>
           <p className="text-text text-sm mb-14">the chapters that shaped who i am today</p>
+
+          {editMode && (
+            <div className="mb-8 p-5 border border-white/10 rounded-lg max-w-[800px] mx-auto" style={{ background: "rgba(0,0,0,0.5)", textShadow: "none" }}>
+              <p className="text-text text-xs uppercase tracking-widest mb-3">add timeline entry</p>
+              <input value={newTimeline.title} onChange={(e) => setNewTimeline({ ...newTimeline, title: e.target.value })} placeholder="title" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
+              <textarea value={newTimeline.description} onChange={(e) => setNewTimeline({ ...newTimeline, description: e.target.value })} placeholder="description" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={2} />
+              <div className="flex gap-2 mb-2">
+                <input value={newTimeline.period} onChange={(e) => setNewTimeline({ ...newTimeline, period: e.target.value })} placeholder="period (e.g. 2024 - present)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+                <input value={newTimeline.tags} onChange={(e) => setNewTimeline({ ...newTimeline, tags: e.target.value })} placeholder="tags (comma separated)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+              </div>
+              <button onClick={addTimeline} className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-text text-xs rounded transition-colors">add</button>
+            </div>
+          )}
+
           <div className="max-w-[800px] mx-auto relative">
             <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-border" />
             {displayTimeline.map((entry) => (
               <div key={entry.id} className="flex gap-8 mb-14 relative max-md:gap-5">
                 <div className="w-3 h-3 bg-text-dim border-[3px] border-bg rounded-full shrink-0 mt-2 z-10 relative" />
-                <div className="flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 hover:translate-x-2 transition-all duration-300 cursor-pointer">
+                <div className="flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 hover:translate-x-2 transition-all duration-300 cursor-pointer relative group">
+                  {editMode && (
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ textShadow: "none" }}>
+                      <button onClick={() => setEditingTimeline(entry)} className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-text text-[10px] rounded">edit</button>
+                      <button onClick={() => deleteTimeline(entry.id)} className="px-2 py-0.5 bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[10px] rounded">×</button>
+                    </div>
+                  )}
                   <p className="text-[11px] text-text-mid uppercase tracking-wide font-medium mb-3">{entry.period}</p>
                   <h3 className="font-display text-lg font-semibold text-text mb-3 leading-tight">{entry.title}</h3>
                   <p className="text-text text-sm leading-relaxed mb-4">{entry.description}</p>
@@ -261,11 +363,61 @@ export default function StoryPage() {
         </div>
       </section>
 
+      {/* LOGIN MODAL */}
+      {showLogin && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }} onClick={() => setShowLogin(false)}>
+          <div className="p-6 rounded-xl max-w-[340px] w-full" style={{ background: "#1a1d21", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-text text-sm font-medium mb-4">enter password</p>
+            <input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="password" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-3 outline-none focus:border-white/30" autoFocus />
+            {authError && <p className="text-red-400 text-xs mb-3">{authError}</p>}
+            <button onClick={handleLogin} className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 text-text text-sm rounded transition-colors">unlock</button>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {editingThought && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }} onClick={() => setEditingThought(null)}>
+          <div className="p-6 rounded-xl max-w-[440px] w-full" style={{ background: "#1a1d21", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-text text-sm font-medium mb-4">edit thought</p>
+            <input value={editingThought.title} onChange={(e) => setEditingThought({ ...editingThought, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
+            <textarea value={editingThought.preview} onChange={(e) => setEditingThought({ ...editingThought, preview: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={3} />
+            <div className="flex gap-2 mb-3">
+              <input value={editingThought.tag} onChange={(e) => setEditingThought({ ...editingThought, tag: e.target.value })} placeholder="tag" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+              <input value={editingThought.date} onChange={(e) => setEditingThought({ ...editingThought, date: e.target.value })} placeholder="date" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={updateThought} className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-text text-sm rounded transition-colors">save</button>
+              <button onClick={() => setEditingThought(null)} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-text-mid text-sm rounded transition-colors">cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingTimeline && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }} onClick={() => setEditingTimeline(null)}>
+          <div className="p-6 rounded-xl max-w-[440px] w-full" style={{ background: "#1a1d21", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-text text-sm font-medium mb-4">edit timeline entry</p>
+            <input value={editingTimeline.title} onChange={(e) => setEditingTimeline({ ...editingTimeline, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
+            <textarea value={editingTimeline.description} onChange={(e) => setEditingTimeline({ ...editingTimeline, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={3} />
+            <div className="flex gap-2 mb-3">
+              <input value={editingTimeline.period} onChange={(e) => setEditingTimeline({ ...editingTimeline, period: e.target.value })} placeholder="period" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+              <input value={editingTimeline.tags.join(", ")} onChange={(e) => setEditingTimeline({ ...editingTimeline, tags: e.target.value.split(",").map((t) => t.trim()) })} placeholder="tags (comma separated)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={updateTimeline} className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-text text-sm rounded transition-colors">save</button>
+              <button onClick={() => setEditingTimeline(null)} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-text-mid text-sm rounded transition-colors">cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FOOTER */}
       <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px 40px", maxWidth: 960, margin: "0 auto", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
-          <div style={{ display: "flex", gap: 24 }}>
+          <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+            <button onClick={() => { if (isAuthed) { setEditMode(!editMode); } else { setShowLogin(true); } }} style={{ fontSize: 11, color: editMode ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.15)", background: "none", border: "none", cursor: "pointer", transition: "color 0.3s" }}>{editMode ? "exit edit" : "✎"}</button>
             {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/art", label: "art" }].map((l) => (
               <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
             ))}
