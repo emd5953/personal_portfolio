@@ -286,15 +286,15 @@ export default function StoryPage() {
           <p className="text-text text-sm mb-14">random musings, and life reflections</p>
 
           {editMode && (
-            <div className="mb-8 p-5 border border-white/10 rounded-lg" style={{ background: "rgba(0,0,0,0.5)", textShadow: "none" }}>
-              <p className="text-text text-xs uppercase tracking-widest mb-3">add thought</p>
-              <input value={newThought.title} onChange={(e) => setNewThought({ ...newThought, title: e.target.value })} placeholder="title" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
-              <textarea value={newThought.preview} onChange={(e) => setNewThought({ ...newThought, preview: e.target.value })} placeholder="preview text" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={2} />
-              <div className="flex gap-2 mb-2">
-                <input value={newThought.tag} onChange={(e) => setNewThought({ ...newThought, tag: e.target.value })} placeholder="tag" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
-                <input value={newThought.date} onChange={(e) => setNewThought({ ...newThought, date: e.target.value })} placeholder="date (e.g. apr 27, 2026)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+            <div className="mb-10 p-7 rounded-[28px] backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textShadow: "none", boxShadow: "0 12px 48px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+              <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 20 }}>💭 new thought</p>
+              <input value={newThought.title} onChange={(e) => setNewThought({ ...newThought, title: e.target.value })} placeholder="title" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 14, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", fontFamily: "inherit" }} />
+              <textarea value={newThought.preview} onChange={(e) => setNewThought({ ...newThought, preview: e.target.value })} placeholder="what's on your mind..." rows={3} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
+              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+                <input value={newThought.tag} onChange={(e) => setNewThought({ ...newThought, tag: e.target.value })} placeholder="tag" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+                <input value={newThought.date} onChange={(e) => setNewThought({ ...newThought, date: e.target.value })} placeholder="date (e.g. apr 27, 2026)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
               </div>
-              <button onClick={addThought} className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-text text-xs rounded transition-colors">add</button>
+              <button onClick={addThought} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "8px 28px", fontSize: 11, color: "rgba(255,255,255,0.6)", cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.9)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}>add</button>
             </div>
           )}
 
@@ -326,15 +326,15 @@ export default function StoryPage() {
           <p className="text-text text-sm mb-14">the chapters that shaped who i am today</p>
 
           {editMode && (
-            <div className="mb-8 p-5 border border-white/10 rounded-lg max-w-[800px] mx-auto" style={{ background: "rgba(0,0,0,0.5)", textShadow: "none" }}>
-              <p className="text-text text-xs uppercase tracking-widest mb-3">add timeline entry</p>
-              <input value={newTimeline.title} onChange={(e) => setNewTimeline({ ...newTimeline, title: e.target.value })} placeholder="title" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
-              <textarea value={newTimeline.description} onChange={(e) => setNewTimeline({ ...newTimeline, description: e.target.value })} placeholder="description" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={2} />
-              <div className="flex gap-2 mb-2">
-                <input value={newTimeline.period} onChange={(e) => setNewTimeline({ ...newTimeline, period: e.target.value })} placeholder="period (e.g. 2024 - present)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
-                <input value={newTimeline.tags} onChange={(e) => setNewTimeline({ ...newTimeline, tags: e.target.value })} placeholder="tags (comma separated)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+            <div className="mb-10 p-7 rounded-[28px] backdrop-blur-xl max-w-[800px] mx-auto" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textShadow: "none", boxShadow: "0 12px 48px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+              <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 20 }}>💭 new chapter</p>
+              <input value={newTimeline.title} onChange={(e) => setNewTimeline({ ...newTimeline, title: e.target.value })} placeholder="title" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 14, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", fontFamily: "inherit" }} />
+              <textarea value={newTimeline.description} onChange={(e) => setNewTimeline({ ...newTimeline, description: e.target.value })} placeholder="description" rows={3} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
+              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+                <input value={newTimeline.period} onChange={(e) => setNewTimeline({ ...newTimeline, period: e.target.value })} placeholder="period (e.g. 2024 - present)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+                <input value={newTimeline.tags} onChange={(e) => setNewTimeline({ ...newTimeline, tags: e.target.value })} placeholder="tags (comma separated)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
               </div>
-              <button onClick={addTimeline} className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-text text-xs rounded transition-colors">add</button>
+              <button onClick={addTimeline} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "8px 28px", fontSize: 11, color: "rgba(255,255,255,0.6)", cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.9)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}>add</button>
             </div>
           )}
 
@@ -365,48 +365,49 @@ export default function StoryPage() {
 
       {/* LOGIN MODAL */}
       {showLogin && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }} onClick={() => setShowLogin(false)}>
-          <div className="p-6 rounded-xl max-w-[340px] w-full" style={{ background: "#1a1d21", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-text text-sm font-medium mb-4">enter password</p>
-            <input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="password" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-3 outline-none focus:border-white/30" autoFocus />
-            {authError && <p className="text-red-400 text-xs mb-3">{authError}</p>}
-            <button onClick={handleLogin} className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 text-text text-sm rounded transition-colors">unlock</button>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-lg" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setShowLogin(false)}>
+          <div className="backdrop-blur-2xl" style={{ background: "rgba(10, 13, 15, 0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 28, padding: 36, maxWidth: 360, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
+            <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>🔒 authenticate</p>
+            <input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="password" autoFocus style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 14, color: "var(--color-text)", width: "100%", marginBottom: 14, outline: "none", fontFamily: "inherit" }} />
+            {authError && <p style={{ color: "#f87171", fontSize: 12, marginBottom: 14 }}>{authError}</p>}
+            <button onClick={handleLogin} style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "11px 0", fontSize: 12, color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 2, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}>unlock</button>
           </div>
         </div>
       )}
 
-      {/* EDIT MODAL */}
+      {/* EDIT THOUGHT MODAL */}
       {editingThought && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }} onClick={() => setEditingThought(null)}>
-          <div className="p-6 rounded-xl max-w-[440px] w-full" style={{ background: "#1a1d21", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-text text-sm font-medium mb-4">edit thought</p>
-            <input value={editingThought.title} onChange={(e) => setEditingThought({ ...editingThought, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
-            <textarea value={editingThought.preview} onChange={(e) => setEditingThought({ ...editingThought, preview: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={3} />
-            <div className="flex gap-2 mb-3">
-              <input value={editingThought.tag} onChange={(e) => setEditingThought({ ...editingThought, tag: e.target.value })} placeholder="tag" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
-              <input value={editingThought.date} onChange={(e) => setEditingThought({ ...editingThought, date: e.target.value })} placeholder="date" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-lg" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setEditingThought(null)}>
+          <div className="backdrop-blur-2xl" style={{ background: "rgba(10, 13, 15, 0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 28, padding: 36, maxWidth: 500, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
+            <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>💭 edit thought</p>
+            <input value={editingThought.title} onChange={(e) => setEditingThought({ ...editingThought, title: e.target.value })} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 15, fontWeight: 600, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", fontFamily: "inherit" }} />
+            <textarea value={editingThought.preview} onChange={(e) => setEditingThought({ ...editingThought, preview: e.target.value })} rows={4} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
+            <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+              <input value={editingThought.tag} onChange={(e) => setEditingThought({ ...editingThought, tag: e.target.value })} placeholder="tag" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+              <input value={editingThought.date} onChange={(e) => setEditingThought({ ...editingThought, date: e.target.value })} placeholder="date" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
             </div>
-            <div className="flex gap-2">
-              <button onClick={updateThought} className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-text text-sm rounded transition-colors">save</button>
-              <button onClick={() => setEditingThought(null)} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-text-mid text-sm rounded transition-colors">cancel</button>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={updateThought} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "10px 0", fontSize: 12, color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}>save</button>
+              <button onClick={() => setEditingThought(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "10px 24px", fontSize: 12, color: "rgba(255,255,255,0.35)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}>cancel</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* EDIT TIMELINE MODAL */}
       {editingTimeline && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }} onClick={() => setEditingTimeline(null)}>
-          <div className="p-6 rounded-xl max-w-[440px] w-full" style={{ background: "#1a1d21", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-text text-sm font-medium mb-4">edit timeline entry</p>
-            <input value={editingTimeline.title} onChange={(e) => setEditingTimeline({ ...editingTimeline, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30" />
-            <textarea value={editingTimeline.description} onChange={(e) => setEditingTimeline({ ...editingTimeline, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text mb-2 outline-none focus:border-white/30 resize-none" rows={3} />
-            <div className="flex gap-2 mb-3">
-              <input value={editingTimeline.period} onChange={(e) => setEditingTimeline({ ...editingTimeline, period: e.target.value })} placeholder="period" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
-              <input value={editingTimeline.tags.join(", ")} onChange={(e) => setEditingTimeline({ ...editingTimeline, tags: e.target.value.split(",").map((t) => t.trim()) })} placeholder="tags (comma separated)" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-text outline-none focus:border-white/30" />
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-lg" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setEditingTimeline(null)}>
+          <div className="backdrop-blur-2xl" style={{ background: "rgba(10, 13, 15, 0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 28, padding: 36, maxWidth: 500, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
+            <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>💭 edit chapter</p>
+            <input value={editingTimeline.title} onChange={(e) => setEditingTimeline({ ...editingTimeline, title: e.target.value })} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 15, fontWeight: 600, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", fontFamily: "inherit" }} />
+            <textarea value={editingTimeline.description} onChange={(e) => setEditingTimeline({ ...editingTimeline, description: e.target.value })} rows={4} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
+            <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+              <input value={editingTimeline.period} onChange={(e) => setEditingTimeline({ ...editingTimeline, period: e.target.value })} placeholder="period" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+              <input value={editingTimeline.tags.join(", ")} onChange={(e) => setEditingTimeline({ ...editingTimeline, tags: e.target.value.split(",").map((t) => t.trim()) })} placeholder="tags (comma separated)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
             </div>
-            <div className="flex gap-2">
-              <button onClick={updateTimeline} className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-text text-sm rounded transition-colors">save</button>
-              <button onClick={() => setEditingTimeline(null)} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-text-mid text-sm rounded transition-colors">cancel</button>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={updateTimeline} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "10px 0", fontSize: 12, color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}>save</button>
+              <button onClick={() => setEditingTimeline(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "10px 24px", fontSize: 12, color: "rgba(255,255,255,0.35)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}>cancel</button>
             </div>
           </div>
         </div>

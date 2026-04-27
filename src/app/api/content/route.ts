@@ -2,10 +2,53 @@ import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 const EDIT_PASSWORD = process.env.EDIT_PASSWORD || "enrin2025";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+const LOCKOUT_MS = LOCKOUT_MINUTES * 60 * 1000;
+const attempts = new Map<string, { count: number; lockedUntil: number }>();
 
-function verifyPassword(request: NextRequest): boolean {
+function getIP(request: NextRequest): string {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
+
+function checkRateLimit(ip: string): string | null {
+  const record = attempts.get(ip);
+  if (!record) return null;
+  if (record.lockedUntil > Date.now()) {
+    const mins = Math.ceil((record.lockedUntil - Date.now()) / 60000);
+    return `Too many failed attempts. Try again in ${mins} min.`;
+  }
+  if (record.lockedUntil <= Date.now() && record.count >= MAX_ATTEMPTS) {
+    attempts.delete(ip);
+  }
+  return null;
+}
+
+function recordFailure(ip: string) {
+  const record = attempts.get(ip) || { count: 0, lockedUntil: 0 };
+  record.count++;
+  if (record.count >= MAX_ATTEMPTS) record.lockedUntil = Date.now() + LOCKOUT_MS;
+  attempts.set(ip, record);
+}
+
+function clearFailures(ip: string) {
+  attempts.delete(ip);
+}
+
+function verifyPassword(request: NextRequest): { ok: boolean; error?: string; status?: number } {
+  const ip = getIP(request);
+  const blocked = checkRateLimit(ip);
+  if (blocked) return { ok: false, error: blocked, status: 429 };
+
   const password = request.headers.get("authorization")?.replace("Bearer ", "") || null;
-  return password === EDIT_PASSWORD;
+  if (password !== EDIT_PASSWORD) {
+    recordFailure(ip);
+    const record = attempts.get(ip);
+    const remaining = MAX_ATTEMPTS - (record?.count || 0);
+    return { ok: false, error: remaining > 0 ? `Wrong password. ${remaining} attempts left.` : `Locked out for ${LOCKOUT_MINUTES} minutes.`, status: 401 };
+  }
+  clearFailures(ip);
+  return { ok: true };
 }
 
 export async function GET(request: NextRequest) {
@@ -25,7 +68,7 @@ export async function GET(request: NextRequest) {
       return Response.json({ success: true, data });
     }
     if (action === "export") {
-      if (!verifyPassword(request)) return Response.json({ success: false, error: "Invalid password" }, { status: 401 });
+      const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
       const { data: thoughts } = await supabase.from("thoughts").select("*").order("created_at", { ascending: false });
       const { data: timeline } = await supabase.from("timeline").select("*").order("sort_order", { ascending: true });
       return Response.json({ success: true, data: { thoughts, timeline } });
@@ -38,7 +81,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!verifyPassword(request)) return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
   const body = await request.json();
@@ -73,7 +116,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  if (!verifyPassword(request)) return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
   const body = await request.json();
@@ -92,7 +135,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!verifyPassword(request)) return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
   const body = await request.json();

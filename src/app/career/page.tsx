@@ -158,7 +158,7 @@ const experiences = [
     period: "2026",
     logo: "/assets/career/Y_Combinator_logo.svg",
     details: "Referred to YC Startup School 2026 by Aaron Epstein and participated in two YC hackathons in SF.",
-    photos: ["/assets/career/yc.jpg", "/assets/career/susa.jpg"],
+    photos: ["/assets/career/yc.jpg", "/assets/career/susa.jpg", "/assets/career/nb.jpg", "/assets/career/wall.jpg"],
   },
   {
     company: "COLUMBIA UNIVERSITY",
@@ -174,14 +174,14 @@ const experiences = [
     period: "2026",
     logo: "/assets/career/stanford logo.png",
     details: "Building Curation.you. Your everyday pictures turned into production ready videos.",
-    photos: ["/assets/career/wall.jpg"],
+    photos: [],
   },
 ];
 
 const educationRows = [
-  { period: "2025", name: "PENN STATE", detail: "B.S. Computer Science", details: "Graduated with a degree in Computer Science from the College of Engineering.", photos: ["/assets/career/graduation1.jpg", "/assets/career/graduation2.jpg", "/assets/career/graduation3.jpg", "/assets/career/graduation4.jpg"] },
-  { period: "2025", name: "OUTSTANDING SENIOR AWARD", detail: "College of Engineering", details: "Recognized as an outstanding senior in the College of Engineering.", photos: ["/assets/career/truist1.jpg"] },
-  { period: "2025", name: "ENTREPRENEUR SCHOLAR", detail: "Scholarship", details: "Selected as a global entrepreneur scholar.", photos: ["/assets/career/truist2.jpg"] },
+  { period: "2025", name: "PENN STATE", detail: "B.S. Computer Science", details: "", photos: ["/assets/career/graduation1.jpg", "/assets/career/graduation2.jpg", "/assets/career/graduation3.jpg", "/assets/career/graduation4.jpg"] },
+  { period: "2025", name: "OUTSTANDING SENIOR AWARD", detail: "College of Engineering", details: "", photos: ["/assets/career/profile-pic.jpg"] },
+  { period: "2025", name: "ENTREPRENEUR SCHOLAR", detail: "Scholarship", details: "", photos: ["/assets/career/truist1.jpg", "/assets/career/truist2.jpg", "/assets/career/truist3.jpg", "/assets/career/truist4.jpeg"] },
   { period: "2023", name: "IEEE", detail: "Member", details: "", photos: [] as string[] },
   { period: "2023", name: "GLOBAL AMBASSADORS", detail: "Member", details: "", photos: [] as string[] },
   { period: "2023", name: "MAEP", detail: "Member", details: "Multicultural Academic Excellence Program.", photos: [] as string[] },
@@ -189,77 +189,84 @@ const educationRows = [
 ];
 
 const projectRows = [
-  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Multimodal AI · GCP", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app", photos: ["/assets/career/curation.png"] },
-  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · Next.js", link: "https://lease-iq.vercel.app/", photos: ["/assets/career/leaseIQ.png"] },
-  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/", photos: ["/assets/career/nextstep.png"] },
-  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app", photos: ["/assets/career/aspot1.png", "/assets/career/aspot2.jpg"] },
+  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Multimodal AI · GCP", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app", details: "AI-powered style curation tool that transforms your aesthetic vision into reality using multimodal models.", photos: ["/assets/career/curation.png"] },
+  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · Next.js", link: "https://lease-iq.vercel.app/", details: "Smart lease analysis platform that crawls and breaks down rental agreements using AI.", photos: ["/assets/career/leaseIQ.png"] },
+  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/", details: "Mobile app helping students navigate their next career move with personalized guidance.", photos: ["/assets/career/nextstep.png"] },
+  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app", details: "Full-stack platform connecting people to local spots and experiences.", photos: ["/assets/career/aspot2.jpg"] },
 ];
 
 function PhotoRow({ photos }: { photos: string[] }) {
   if (!photos.length) return null;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showHint, setShowHint] = useState(true);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || photos.length <= 2) { setShowHint(false); return; }
+    // Nudge scroll to hint
+    const timer = setTimeout(() => {
+      el.scrollTo({ left: 60, behavior: "smooth" });
+      setTimeout(() => el.scrollTo({ left: 0, behavior: "smooth" }), 600);
+    }, 800);
+    const onScroll = () => setShowHint(false);
+    el.addEventListener("scroll", onScroll, { once: true });
+    return () => { clearTimeout(timer); el.removeEventListener("scroll", onScroll); };
+  }, [photos.length]);
+
   return (
-    <div style={{ display: "flex", gap: 8, marginTop: 12, overflowX: "auto" }}>
-      {photos.map((src) => (
-        <img
-          key={src}
-          src={src}
-          alt=""
-          loading="lazy"
-          style={{
-            height: 220,
-            borderRadius: 8,
-            objectFit: "cover",
-            flexShrink: 0,
-            transition: "filter 0.5s ease",
-          }}
-        />
-      ))}
+    <div style={{ position: "relative", marginTop: 12 }}>
+      <div ref={scrollRef} className="[&::-webkit-scrollbar]:hidden" style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
+        {photos.map((src) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            loading="lazy"
+            style={{
+              height: 220,
+              borderRadius: 8,
+              objectFit: "cover",
+              flexShrink: 0,
+              transition: "filter 0.5s ease",
+            }}
+          />
+        ))}
+      </div>
+      {showHint && photos.length > 2 && (
+        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to left, rgba(10,13,15,0.8), transparent)", pointerEvents: "none", borderRadius: "0 8px 8px 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 18, animation: "scrollHint 1.5s ease-in-out infinite" }}>›</span>
+        </div>
+      )}
     </div>
   );
 }
 
-function ExpandableProjects({ rows }: { rows: typeof projectRows }) {
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const toggle = (i: number) => setExpanded(expanded === i ? null : i);
-
+function ProjectCards({ rows }: { rows: typeof projectRows }) {
   return (
     <section style={{ padding: "80px 0" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
         <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
           <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>PROJECTS</p>
         </div>
-        <div style={{ flex: 1 }}>
-          {rows.map((row, i) => {
-            const hasPhotos = row.photos.length > 0;
-            return (
-              <div key={i}>
-                <div
-                  onClick={hasPhotos ? () => toggle(i) : undefined}
-                  style={{ display: "flex", alignItems: "baseline", gap: 32, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: hasPhotos ? "pointer" : "default" }}
-                >
-                  <span style={{ fontSize: 13, color: "var(--color-text-dim)", width: 60, flexShrink: 0 }}>{row.period}</span>
-                  <span style={{ flex: 1, fontSize: 14, color: "var(--color-text)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{row.name}</span>
-                  <span style={{ fontSize: 13, color: "var(--color-text-dim)", flexShrink: 0 }}>{row.detail}</span>
-                  {hasPhotos && (
-                    <svg
-                      style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expanded === i ? "rotate(180deg)" : "rotate(0)", marginLeft: 8 }}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
-                </div>
-                <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expanded === i ? 600 : 0, opacity: expanded === i ? 1 : 0 }}>
-                  <div style={{ padding: "14px 0 10px 92px" }}>
-                    {row.link && (
-                      <a href={row.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "var(--color-amber-dim)", textDecoration: "none", display: "inline-block", marginBottom: 8 }}>visit →</a>
-                    )}
-                    <PhotoRow photos={row.photos} />
+        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+          {rows.map((row, i) => (
+            <a key={i} href={row.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", transition: "border-color 0.3s, transform 0.3s", cursor: "pointer" }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", padding: 12, aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                {row.photos[0] && <img src={row.photos[0]} alt={row.name} style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 6 }} />}
+              </div>
+              <div style={{ padding: "12px 16px 16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: "var(--color-text)", margin: 0 }}>{row.name.charAt(0) + row.name.slice(1).toLowerCase()}</p>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {row.detail.split(" · ").map((tag) => (
+                      <span key={tag} style={{ fontSize: 9, color: "var(--color-text-dim)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, padding: "1px 6px", textTransform: "uppercase", letterSpacing: 0.5 }}>{tag}</span>
+                    ))}
                   </div>
                 </div>
+                <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.6, margin: 0 }}>{row.details}</p>
               </div>
-            );
-          })}
+            </a>
+          ))}
         </div>
       </div>
     </section>
@@ -298,10 +305,12 @@ function ExpandableEducation({ rows }: { rows: typeof educationRows }) {
                     </svg>
                   )}
                 </div>
-                <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expanded === i ? 600 : 0, opacity: expanded === i ? 1 : 0 }}>
+                <div style={{ display: "grid", gridTemplateRows: expanded === i ? "1fr" : "0fr", transition: "grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease", opacity: expanded === i ? 1 : 0 }}>
+                  <div style={{ overflow: "hidden" }}>
                   <div style={{ padding: "14px 0 10px 92px" }}>
                     {row.details && <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{row.details}</p>}
                     <PhotoRow photos={row.photos} />
+                  </div>
                   </div>
                 </div>
               </div>
@@ -345,6 +354,7 @@ export default function CareerPage() {
       <style>{`
         @keyframes quipIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
         @keyframes quipOut { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+        @keyframes scrollHint { 0%, 100% { transform: translateX(0); opacity: 0.4; } 50% { transform: translateX(6px); opacity: 0.8; } }
       `}</style>
       <FallingLeaves spawnAt={spawnAt} />
       {activeQuips.map(q => <ClickQuip key={q.id} x={q.x} y={q.y} text={q.text} />)}
@@ -382,7 +392,7 @@ export default function CareerPage() {
                     onClick={() => toggle(i)}
                     style={{ width: "100%", display: "flex", alignItems: "center", gap: 20, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}
                   >
-                    <span style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+                    <span style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: expandedIndex === i ? "rotate(-8deg) scale(1.05)" : "rotate(0) scale(1)" }}>
                       <img src={exp.logo} alt={exp.company} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -400,13 +410,15 @@ export default function CareerPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <div style={{ overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.3s ease", maxHeight: expandedIndex === i ? 600 : 0, opacity: expandedIndex === i ? 1 : 0, marginTop: expandedIndex === i ? 14 : 0 }}>
-                    <div style={{ paddingLeft: 76 }}>
+                  <div style={{ display: "grid", gridTemplateRows: expandedIndex === i ? "1fr" : "0fr", transition: "grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease", opacity: expandedIndex === i ? 1 : 0 }}>
+                    <div style={{ overflow: "hidden" }}>
+                    <div style={{ paddingLeft: 76, paddingTop: 14, paddingBottom: 8 }}>
                       <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{exp.details}</p>
                       {exp.href && (
                         <a href={exp.href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "var(--color-amber-dim)", textDecoration: "none", marginTop: 8, display: "inline-block" }}>visit →</a>
                       )}
                       <PhotoRow photos={exp.photos} />
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -419,7 +431,7 @@ export default function CareerPage() {
           <ExpandableEducation rows={educationRows} />
         </div>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <ExpandableProjects rows={projectRows} />
+          <ProjectCards rows={projectRows} />
         </div>
 
       </div>
