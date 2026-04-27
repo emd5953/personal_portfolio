@@ -16,7 +16,7 @@ const reelImages = [
   "8f4a1cf2-5864-4f53-a8fb-7e61c77dafb8.JPG",
   "IMG_0477.jpg", "IMG_0532.jpg", "IMG_0550.jpg", "IMG_1210.jpg",
   "IMG_6910.jpg", "IMG_6955.jpg", "IMG_7103.jpg", "IMG_7220.jpg",
-  "IMG_7769.JPG", "IMG_7838.jpg", "IMG_8363.JPG", "IMG_9498.JPG",
+  "IMG_7581.jpg", "IMG_7769.JPG", "IMG_7838.jpg", "IMG_8363.JPG", "IMG_9498.JPG",
   "IMG_9919.jpg", "a023b683-71c9-47c5-ac18-c4c693423a79.jpg",
   "about-pic.jpg", "aboutme1.jpg", "aboutme2.jpg",
   "song1.jpg", "song2.jpg", "songCover.jpg",

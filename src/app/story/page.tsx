@@ -32,6 +32,8 @@ export default function StoryPage() {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [spotifyData, setSpotifyData] = useState<{ trackName?: string; artist?: string; album?: string; trackId?: string; playedAt?: string; playlists?: { id: string; name: string; tracks: number }[] } | null>(null);
+  const [heroBgIndex, setHeroBgIndex] = useState(0);
+  const heroBgImages = ["/assets/qatarcafe.jpg", "/assets/gala.jpg"];
 
   useEffect(() => {
     fetch("/api/content?type=thoughts").then((r) => r.json()).then((d) => { if (d.success && d.data.length) setThoughts(d.data); }).catch(() => {});
@@ -40,6 +42,18 @@ export default function StoryPage() {
       if (data.lastPlayed) setSpotifyData({ trackName: data.lastPlayed.name, artist: data.lastPlayed.artist, album: data.lastPlayed.album, trackId: data.lastPlayed.trackId, playedAt: data.lastPlayed.playedAt, playlists: data.randomPlaylists });
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    setHeroBgIndex(Math.floor(Math.random() * heroBgImages.length));
+    const interval = setInterval(() => {
+      setHeroBgIndex((prev) => {
+        let next;
+        do { next = Math.floor(Math.random() * heroBgImages.length); } while (next === prev && heroBgImages.length > 1);
+        return next;
+      });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [heroBgImages.length]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -68,8 +82,25 @@ export default function StoryPage() {
       </nav>
 
       {/* HERO */}
+      {/* Fixed full-page background */}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1 }}>
+        {heroBgImages.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center 72%",
+              filter: "brightness(0.55)",
+              transition: "opacity 2s ease-in-out",
+              opacity: i === heroBgIndex ? 1 : 0,
+            }}
+          />
+        ))}
+      </div>
+
       <section className="h-[70vh] relative flex items-end pb-20 px-10 max-md:px-6 max-md:h-[55vh] max-md:pb-14">
-        <div className="absolute inset-0 bg-gradient-to-b from-teal/60 via-bg/30 to-bg" />
         <div className="relative z-10 max-w-[960px] mx-auto w-full">
           <p className="text-[11px] tracking-[3px] text-text-dim lowercase mb-4 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · art · timeline</p>
           <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
