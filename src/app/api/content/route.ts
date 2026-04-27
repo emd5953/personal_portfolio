@@ -52,6 +52,7 @@ function verifyPassword(request: NextRequest): { ok: boolean; error?: string; st
 }
 
 export async function GET(request: NextRequest) {
+  if (!supabase) return Response.json({ success: false, error: "Database not configured" }, { status: 503 });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
   const action = searchParams.get("action");
@@ -81,6 +82,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!supabase) return Response.json({ success: false, error: "Database not configured" }, { status: 503 });
   const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  if (!supabase) return Response.json({ success: false, error: "Database not configured" }, { status: 503 });
   const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
@@ -135,6 +138,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  if (!supabase) return Response.json({ success: false, error: "Database not configured" }, { status: 503 });
   const auth = verifyPassword(request); if (!auth.ok) return Response.json({ success: false, error: auth.error }, { status: auth.status });
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
