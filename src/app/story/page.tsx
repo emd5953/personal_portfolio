@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface Thought {
@@ -32,8 +33,19 @@ export default function StoryPage() {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [spotifyData, setSpotifyData] = useState<{ trackName?: string; artist?: string; album?: string; trackId?: string; playedAt?: string; playlists?: { id: string; name: string; tracks: number }[] } | null>(null);
+  const heroBgMedia = [
+    "/assets/story/qatarcafe.jpg",
+    "/assets/story/gala.jpg",
+    "/assets/story/2.jpg",
+    "/assets/story/3.jpg",
+    "/assets/story/bg1.mp4",
+    "/assets/story/bg8.mp4",
+  ];
   const [heroBgIndex, setHeroBgIndex] = useState(0);
-  const heroBgImages = ["/assets/qatarcafe.jpg", "/assets/gala.jpg"];
+
+  useEffect(() => {
+    setHeroBgIndex(Math.floor(Math.random() * heroBgMedia.length));
+  }, [heroBgMedia.length]);
 
   useEffect(() => {
     fetch("/api/content?type=thoughts").then((r) => r.json()).then((d) => { if (d.success && d.data.length) setThoughts(d.data); }).catch(() => {});
@@ -44,16 +56,15 @@ export default function StoryPage() {
   }, []);
 
   useEffect(() => {
-    setHeroBgIndex(Math.floor(Math.random() * heroBgImages.length));
     const interval = setInterval(() => {
       setHeroBgIndex((prev) => {
         let next;
-        do { next = Math.floor(Math.random() * heroBgImages.length); } while (next === prev && heroBgImages.length > 1);
+        do { next = Math.floor(Math.random() * heroBgMedia.length); } while (next === prev && heroBgMedia.length > 1);
         return next;
       });
     }, 10000);
     return () => clearInterval(interval);
-  }, [heroBgImages.length]);
+  }, [heroBgMedia.length]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -84,46 +95,68 @@ export default function StoryPage() {
       {/* HERO */}
       {/* Fixed full-page background */}
       <div style={{ position: "fixed", inset: 0, zIndex: -1 }}>
-        {heroBgImages.map((src, i) => (
-          <img
-            key={src}
-            src={src}
-            alt=""
-            style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover", objectPosition: "center 72%",
-              filter: "brightness(0.55)",
-              transition: "opacity 2s ease-in-out",
-              opacity: i === heroBgIndex ? 1 : 0,
-            }}
-          />
-        ))}
+        {heroBgMedia.map((src, i) => {
+          const isVideo = src.endsWith(".mp4");
+          return isVideo ? (
+            <video
+              key={src}
+              src={src}
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={{
+                position: "absolute", inset: 0, width: "100%", height: "100%",
+                objectFit: "cover", objectPosition: "center 72%",
+                filter: "brightness(0.55)",
+                transition: "opacity 2s ease-in-out",
+                opacity: i === heroBgIndex ? 1 : 0,
+              }}
+            />
+          ) : (
+            <Image
+              key={src}
+              src={src}
+              alt=""
+              fill
+              quality={100}
+              priority
+              sizes="100vw"
+              style={{
+                objectFit: "cover", objectPosition: "center 72%",
+                filter: "brightness(0.55)",
+                transition: "opacity 2s ease-in-out",
+                opacity: i === heroBgIndex ? 1 : 0,
+              }}
+            />
+          );
+        })}
       </div>
 
-      <section className="h-[70vh] relative flex items-end pb-20 px-10 max-md:px-6 max-md:h-[55vh] max-md:pb-14">
-        <div className="relative z-10 max-w-[960px] mx-auto w-full">
-          <p className="text-[11px] tracking-[3px] text-text-dim lowercase mb-4 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · art · timeline</p>
+      <section className="h-[55vh] relative flex items-end pb-20 px-16 max-md:px-8 max-md:h-[58vh] max-md:pb-14">
+        <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+          <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · art · timeline</p>
           <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
-          <p className="text-text-mid text-[15px] mt-5 max-w-[480px] leading-relaxed opacity-0 animate-[heroFade_2s_ease_0.8s_forwards]">thoughts, sounds, art, and moments that shaped the journey from curiosity to nostalgia</p>
+          <p className="text-text-mid text-[15px] mt-8 max-w-[480px] leading-relaxed opacity-0 animate-[heroFade_2s_ease_0.8s_forwards]">thoughts, sounds, art, and moments that shaped the journey from curiosity to nostalgia</p>
         </div>
       </section>
 
       {/* SOUNDS */}
-      <section id="sounds" ref={ref("sounds")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("sounds")}`}>
-        <div className="max-w-[960px] mx-auto">
-          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">sounds</h2>
-          <p className="text-text-mid text-sm mb-8">the soundtrack to thinking, and living</p>
+      <section id="sounds" ref={ref("sounds")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 mt-24 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("sounds")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-3">sounds</h2>
+          <p className="text-text text-sm mb-4">the soundtrack to thinking, and living</p>
 
           {/* Current track */}
-          <div className="border border-border rounded-lg p-8 max-w-[500px] mb-10">
-            <p className="text-[10px] tracking-[2px] text-text-dim uppercase mb-4">
-              {spotifyData?.playedAt ? <>last played <span className="text-text-faint font-normal">({new Date(spotifyData.playedAt).toLocaleTimeString()})</span></> : "today's most played"}
+          <div className="border border-border rounded-lg p-6 max-w-[550px] mb-6">
+            <p className="text-[10px] tracking-[2px] text-text-mid uppercase font-medium mb-3">
+              {spotifyData?.playedAt ? <>last played <span className="text-text-mid font-normal">({new Date(spotifyData.playedAt).toLocaleTimeString()})</span></> : "today's most played"}
             </p>
-            <h3 className="font-display text-2xl font-semibold text-text mb-2">{spotifyData?.trackName || "loading..."}</h3>
+            <h3 className="font-display text-xl font-semibold text-text mb-1">{spotifyData?.trackName || "loading..."}</h3>
             <p className="text-text-mid text-base mb-1">{spotifyData?.artist || "loading..."}</p>
-            <p className="text-[12px] text-text-dim tracking-wide uppercase">{spotifyData?.album ? `from ${spotifyData.album}` : "loading..."}</p>
+            <p className="text-[11px] text-text-mid tracking-wide uppercase">{spotifyData?.album ? `from ${spotifyData.album}` : "loading..."}</p>
             {spotifyData?.trackId && (
-              <div className="mt-5 rounded-xl overflow-hidden">
+              <div className="mt-3 rounded-xl overflow-hidden">
                 <iframe style={{ borderRadius: 12 }} src={`https://open.spotify.com/embed/track/${spotifyData.trackId}?utm_source=generator&theme=0`} width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
               </div>
             )}
@@ -132,15 +165,11 @@ export default function StoryPage() {
           {/* Playlists */}
           {spotifyData?.playlists && spotifyData.playlists.length > 0 && (
             <>
-              <p className="text-text-dim text-xs tracking-[2px] uppercase mb-6">featured playlists today</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <p className="text-text-mid text-xs tracking-[2px] uppercase font-medium mb-4">featured playlists today</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-w-[800px]">
                 {spotifyData.playlists.map((p) => (
-                  <div key={p.id} className="rounded-xl overflow-hidden border border-border">
-                    <div className="p-4 pb-2">
-                      <h4 className="text-text text-sm font-medium mb-1">{p.name}</h4>
-                      <p className="text-text-dim text-xs">{p.tracks} tracks</p>
-                    </div>
-                    <iframe style={{ borderRadius: "0 0 12px 12px" }} src={`https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0`} width="100%" height="380" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+                  <div key={p.id}>
+                    <iframe style={{ borderRadius: 8, display: "block" }} src={`https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0`} width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
                   </div>
                 ))}
               </div>
@@ -150,20 +179,20 @@ export default function StoryPage() {
       </section>
 
       {/* ART */}
-      <section id="art" ref={ref("art")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("art")}`}>
-        <div className="max-w-[960px] mx-auto">
-          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-10">art</h2>
-          <p className="text-text-mid text-sm mb-8">visual stories and creative expressions</p>
+      <section id="art" ref={ref("art")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("art")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-12">art</h2>
+          <p className="text-text text-sm mb-10">visual stories and creative expressions</p>
 
           {/* Song covers */}
-          <div className="relative w-full max-w-[900px] mx-auto rounded-2xl overflow-hidden mb-3">
+          <div className="relative w-full max-w-[600px] rounded-2xl overflow-hidden mb-3">
             <img src="/assets/songCover.jpg" alt="Main song cover" className="w-full block rounded-2xl" />
             <div className="absolute inset-0 flex justify-between items-start p-10 max-md:hidden">
-              <div className="max-w-[220px] self-end text-center">
+              <div className="max-w-[150px] self-end text-center">
                 <img src="/assets/song1.jpg" alt="Song cover 1" className="w-full rounded-xl shadow-2xl hover:scale-[1.3] transition-transform duration-300" />
                 <p className="text-white text-sm italic mt-2 drop-shadow-lg">poetic</p>
               </div>
-              <div className="max-w-[220px] text-center">
+              <div className="max-w-[150px] text-center">
                 <img src="/assets/song2.jpg" alt="Song cover 2" className="w-full rounded-xl shadow-2xl hover:scale-[1.3] transition-transform duration-300" />
                 <p className="text-white text-sm italic mt-2 drop-shadow-lg">vulgarity</p>
               </div>
@@ -172,7 +201,7 @@ export default function StoryPage() {
           <p className="text-center text-sm text-text-mid italic mb-10">talent show april 25&apos;</p>
 
           {/* Additional images */}
-          <div className="grid grid-cols-2 gap-8 max-w-[700px] mx-auto mb-10 max-md:grid-cols-1 max-md:max-w-[300px]">
+          <div className="grid grid-cols-2 gap-6 max-w-[500px] mb-8 max-md:grid-cols-1 max-md:max-w-[250px]">
             {[{ src: "topAlbums.PNG", cap: "top albums" }, { src: "topSongs.PNG", cap: "top songs" }].map((item) => (
               <div key={item.src} className="text-center">
                 <img src={`/assets/${item.src}`} alt={item.cap} className="w-full rounded-xl shadow-lg hover:scale-105 transition-transform duration-300" />
@@ -182,26 +211,26 @@ export default function StoryPage() {
           </div>
 
           {/* Video */}
-          <div className="relative pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-[900px] mx-auto max-md:pb-[56.25%]">
+          <div className="relative pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-[600px] max-md:pb-[56.25%]">
             <iframe className="absolute inset-0 w-full h-full rounded-2xl" src="https://www.youtube.com/embed/iuqZl8EFd4s" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
           </div>
         </div>
       </section>
 
       {/* THOUGHTS */}
-      <section id="thoughts" ref={ref("thoughts")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("thoughts")}`}>
-        <div className="max-w-[960px] mx-auto">
-          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">thoughts</h2>
-          <p className="text-text-mid text-sm mb-10">random musings, and life reflections</p>
+      <section id="thoughts" ref={ref("thoughts")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("thoughts")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">thoughts</h2>
+          <p className="text-text text-sm mb-14">random musings, and life reflections</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {displayThoughts.map((t) => (
               <article key={t.id} className="border border-border rounded-lg p-7 hover:border-text-dim/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                 <div className="flex justify-between items-center mb-5">
-                  <span className="text-[11px] text-text-dim uppercase tracking-wide font-medium">{t.date}</span>
-                  <span className="text-[11px] text-text-dim border border-border rounded-full px-3 py-0.5 lowercase">{t.tag}</span>
+                  <span className="text-[11px] text-text-mid uppercase tracking-wide font-medium">{t.date}</span>
+                  <span className="text-[11px] text-text-mid border border-border rounded-full px-3 py-0.5 lowercase">{t.tag}</span>
                 </div>
                 <h3 className="font-display text-lg font-semibold text-text mb-3 leading-tight">{t.title}</h3>
-                <p className="text-text-mid text-sm leading-relaxed">{t.preview}</p>
+                <p className="text-text text-sm leading-relaxed">{t.preview}</p>
               </article>
             ))}
           </div>
@@ -209,21 +238,21 @@ export default function StoryPage() {
       </section>
 
       {/* TIMELINE */}
-      <section id="timeline" ref={ref("timeline")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("timeline")}`}>
-        <div className="max-w-[960px] mx-auto">
-          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">timeline</h2>
-          <p className="text-text-mid text-sm mb-10">the chapters that shaped who i am today</p>
+      <section id="timeline" ref={ref("timeline")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("timeline")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">timeline</h2>
+          <p className="text-text text-sm mb-14">the chapters that shaped who i am today</p>
           <div className="max-w-[800px] mx-auto relative">
             <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-border" />
             {displayTimeline.map((entry) => (
               <div key={entry.id} className="flex gap-8 mb-14 relative max-md:gap-5">
                 <div className="w-3 h-3 bg-text-dim border-[3px] border-bg rounded-full shrink-0 mt-2 z-10 relative" />
                 <div className="flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 hover:translate-x-2 transition-all duration-300 cursor-pointer">
-                  <p className="text-[11px] text-text-dim uppercase tracking-wide font-medium mb-3">{entry.period}</p>
+                  <p className="text-[11px] text-text-mid uppercase tracking-wide font-medium mb-3">{entry.period}</p>
                   <h3 className="font-display text-lg font-semibold text-text mb-3 leading-tight">{entry.title}</h3>
-                  <p className="text-text-mid text-sm leading-relaxed mb-4">{entry.description}</p>
+                  <p className="text-text text-sm leading-relaxed mb-4">{entry.description}</p>
                   <div className="flex gap-2 flex-wrap">
-                    {entry.tags.map((tag) => <span key={tag} className="text-[11px] text-text-dim border border-border rounded-full px-3 py-0.5 lowercase">{tag}</span>)}
+                    {entry.tags.map((tag) => <span key={tag} className="text-[11px] text-text-mid border border-border rounded-full px-3 py-0.5 lowercase">{tag}</span>)}
                   </div>
                 </div>
               </div>
@@ -233,25 +262,16 @@ export default function StoryPage() {
       </section>
 
       {/* FOOTER */}
-      <section className="pt-16 px-10 pb-10 border-t border-border max-md:px-6">
-        <div className="max-w-[700px] mx-auto flex justify-between items-start gap-10 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-7">
-          <div className="flex gap-8">
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px 40px", maxWidth: 960, margin: "0 auto", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
+          <div style={{ display: "flex", gap: 24 }}>
             {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/art", label: "art" }].map((l) => (
-              <Link key={l.label} href={l.href} className="font-display text-lg font-semibold tracking-tight no-underline text-text hover:text-amber transition-colors duration-300">{l.label}</Link>
-            ))}
-          </div>
-          <div className="flex gap-5 items-center max-sm:flex-wrap max-sm:justify-center max-sm:gap-3.5">
-            {[
-              { href: "https://www.linkedin.com/in/enrinjr/", label: "LinkedIn", icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> },
-              { href: "https://github.com/emd5953", label: "GitHub", icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> },
-              { href: "mailto:nrndbrma@gmail.com", label: "Email", icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg> },
-            ].map((c) => (
-              <a key={c.label} href={c.href} target={c.href.startsWith("mailto") ? undefined : "_blank"} rel={c.href.startsWith("mailto") ? undefined : "noopener noreferrer"} aria-label={c.label} className="text-text-dim no-underline hover:text-amber-dim transition-colors duration-300 flex items-center">{c.icon}</a>
+              <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
             ))}
           </div>
         </div>
-        <p className="text-center text-[11px] text-text-faint mt-14 pt-5 border-t border-border">© 2025 enrinjr</p>
-      </section>
+      </footer>
     </>
   );
 }
