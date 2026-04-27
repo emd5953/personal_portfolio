@@ -1,275 +1,221 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import "../story.css";
 
 interface Thought {
-  id: string;
-  date: string;
-  tag: string;
-  title: string;
-  preview: string;
+  id: string; date: string; tag: string; title: string; preview: string;
+}
+interface TimelineEntry {
+  id: string; period: string; title: string; description: string; tags: string[];
 }
 
-interface TimelineEntry {
-  id: string;
-  period: string;
-  title: string;
-  description: string;
-  tags: string[];
-}
+const fallbackThoughts: Thought[] = [
+  { id: "1", date: "jul 27, 2025", tag: "nostalgia", title: "flashbacks & reminiscing", preview: "3 am. i spent the night confused... do not trust your thoughts after 11pm." },
+  { id: "2", date: "mar 15, 2025", tag: "reflection", title: "the art of debugging life", preview: "sometimes fixing code is easier than fixing yourself." },
+  { id: "3", date: "mar 10, 2025", tag: "tech", title: "why i fell in love with react", preview: "it wasn't the syntax or the ecosystem. it was the moment i realized how components mirror life." },
+  { id: "4", date: "mar 8, 2025", tag: "life", title: "coffee shop chronicles", preview: "the best ideas come in the most unexpected places." },
+  { id: "5", date: "mar 5, 2025", tag: "journey", title: "from music to code", preview: "how i transitioned creativity from music, art & style to software development." },
+  { id: "6", date: "feb 28, 2025", tag: "code", title: "late night code sessions", preview: "when the world sleeps, the best code awakens." },
+];
+
+const fallbackTimeline: TimelineEntry[] = [
+  { id: "1", period: "2021 – present", title: "the developer era", description: "diving deep into code, building projects, and discovering my passion for creating digital experiences.", tags: ["learning", "building", "growing"] },
+  { id: "2", period: "2019 – 2021", title: "the discovery phase", description: "exploring different paths, trying new things, and slowly gravitating towards technology.", tags: ["exploration", "first code", "curiosity"] },
+  { id: "3", period: "2017 – 2019", title: "the foundation years", description: "high school adventures, forming friendships that still matter today.", tags: ["friendship", "growth", "foundation"] },
+  { id: "4", period: "early years", title: "the beginning", description: "where it all started. building with legos, taking apart electronics.", tags: ["curiosity", "wonder", "beginning"] },
+];
 
 export default function StoryPage() {
   const [thoughts, setThoughts] = useState<Thought[]>([]);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const [spotifyData, setSpotifyData] = useState<{ trackName?: string; artist?: string; album?: string; trackId?: string; playedAt?: string; playlists?: { id: string; name: string; tracks: number }[] } | null>(null);
 
   useEffect(() => {
-    // Load dynamic content
-    fetch("/api/content?type=thoughts")
-      .then((r) => r.json())
-      .then((d) => { if (d.success && d.data.length) setThoughts(d.data); })
-      .catch(() => {});
-
-    fetch("/api/content?type=timeline")
-      .then((r) => r.json())
-      .then((d) => { if (d.success && d.data.length) setTimeline(d.data); })
-      .catch(() => {});
-
-    // Load Spotify
-    loadSpotify();
-
-    // Scroll reveal
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("revealed"); }),
-      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
-    );
-    document.querySelectorAll(".scroll-reveal").forEach((el) => observer.observe(el));
-
-    // Progress dots
-    const updateProgress = () => {
-      const sections = document.querySelectorAll("section[id]");
-      let current = "intro";
-      sections.forEach((s) => {
-        if (s.getBoundingClientRect().top <= window.innerHeight / 2) current = s.id;
-      });
-      document.querySelectorAll(".progress-dot").forEach((dot) => {
-        dot.classList.toggle("active", (dot as HTMLElement).dataset.section === current);
-      });
-    };
-    window.addEventListener("scroll", updateProgress);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("scroll", updateProgress);
-    };
+    fetch("/api/content?type=thoughts").then((r) => r.json()).then((d) => { if (d.success && d.data.length) setThoughts(d.data); }).catch(() => {});
+    fetch("/api/content?type=timeline").then((r) => r.json()).then((d) => { if (d.success && d.data.length) setTimeline(d.data); }).catch(() => {});
+    fetch("/api/spotify").then((r) => r.json()).then((data) => {
+      if (data.lastPlayed) setSpotifyData({ trackName: data.lastPlayed.name, artist: data.lastPlayed.artist, album: data.lastPlayed.album, trackId: data.lastPlayed.trackId, playedAt: data.lastPlayed.playedAt, playlists: data.randomPlaylists });
+    }).catch(() => {});
   }, []);
 
-  async function loadSpotify() {
-    try {
-      const res = await fetch("/api/spotify");
-      if (!res.ok) return;
-      const data = await res.json();
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) setVisibleSections((prev) => new Set(prev).add(e.target.id)); }),
+      { threshold: 0.1, rootMargin: "0px 0px -60px 0px" }
+    );
+    sectionRefs.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
-      const trackTitle = document.querySelector(".track-title");
-      const trackArtist = document.querySelector(".track-artist");
-      const trackMood = document.querySelector(".track-mood");
-      const indicator = document.querySelector(".today-indicator");
-
-      if (data.lastPlayed) {
-        if (trackTitle) trackTitle.textContent = data.lastPlayed.name;
-        if (trackArtist) trackArtist.textContent = data.lastPlayed.artist;
-        if (trackMood) trackMood.textContent = `from ${data.lastPlayed.album}`;
-        if (indicator) indicator.innerHTML = `last played <span style="color:var(--text-secondary);font-weight:normal;">(${new Date(data.lastPlayed.playedAt).toLocaleTimeString()})</span>`;
-
-        const musicPlayer = document.querySelector(".music-player");
-        const featuredHeader = document.querySelector(".featured-playlists-header");
-        if (musicPlayer && featuredHeader) {
-          let embed = document.getElementById("spotify-embed-container");
-          if (!embed) {
-            embed = document.createElement("div");
-            embed.id = "spotify-embed-container";
-            embed.style.marginTop = "20px";
-            musicPlayer.insertBefore(embed, featuredHeader);
-          }
-          embed.innerHTML = `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/${data.lastPlayed.trackId}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
-        }
-      }
-
-      if (data.randomPlaylists?.length) {
-        const grid = document.getElementById("dynamic-playlists");
-        if (grid) {
-          grid.innerHTML = data.randomPlaylists.map((p: { id: string; name: string; tracks: number }) =>
-            `<div class="playlist-embed-container"><h4 style="margin-bottom:10px;color:#333;">${p.name}</h4><p style="margin-bottom:15px;color:#666;font-size:14px;">${p.tracks} tracks</p><iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0" width="100%" height="380" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`
-          ).join("");
-        }
-      }
-
-      const controls = document.querySelector(".player-controls");
-      if (controls) (controls as HTMLElement).style.display = "none";
-    } catch {
-      const trackTitle = document.querySelector(".track-title");
-      if (trackTitle) trackTitle.textContent = "Unable to load";
-    }
-  }
-
-  // Fallback data
-  const displayThoughts = thoughts.length ? thoughts : [
-    { id: "1", date: "jul 27, 2025", tag: "nostalgia", title: "flashbacks & reminiscing", preview: "3 am. i spent the night confused... do not trust your thoughts after 11pm." },
-    { id: "2", date: "mar 15, 2025", tag: "reflection", title: "the art of debugging life", preview: "sometimes fixing code is easier than fixing yourself." },
-    { id: "3", date: "mar 10, 2025", tag: "tech", title: "why i fell in love with react", preview: "it wasn't the syntax or the ecosystem. it was the moment i realized how components mirror life." },
-    { id: "4", date: "mar 8, 2025", tag: "life", title: "coffee shop chronicles", preview: "the best ideas come in the most unexpected places." },
-    { id: "5", date: "mar 5, 2025", tag: "journey", title: "from music to code", preview: "how i transitioned creativity from music, art & style to software development." },
-    { id: "6", date: "feb 28, 2025", tag: "code", title: "late night code sessions", preview: "when the world sleeps, the best code awakens." },
-  ];
-
-  const displayTimeline = timeline.length ? timeline : [
-    { id: "1", period: "2021 - present", title: "the developer era", description: "diving deep into code, building projects, and discovering my passion for creating digital experiences.", tags: ["learning", "building", "growing"] },
-    { id: "2", period: "2019 - 2021", title: "the discovery phase", description: "exploring different paths, trying new things, and slowly gravitating towards technology.", tags: ["exploration", "first code", "curiosity"] },
-    { id: "3", period: "2017 - 2019", title: "the foundation years", description: "high school adventures, forming friendships that still matter today.", tags: ["friendship", "growth", "foundation"] },
-    { id: "4", period: "early years", title: "the beginning", description: "where it all started. building with legos, taking apart electronics.", tags: ["curiosity", "wonder", "beginning"] },
-  ];
+  const ref = (id: string) => (el: HTMLElement | null) => { if (el) sectionRefs.current.set(id, el); };
+  const vis = (id: string) => visibleSections.has(id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8";
+  const displayThoughts = thoughts.length ? thoughts : fallbackThoughts;
+  const displayTimeline = timeline.length ? timeline : fallbackTimeline;
 
   return (
     <>
-      <nav className="story-nav">
-        <Link href="/" className="nav-logo">enrin</Link>
-        <div className="nav-sections">
-          <a href="#sounds" className="nav-section">sounds</a>
-          <a href="#art" className="nav-section">art</a>
-          <a href="#thoughts" className="nav-section">thoughts</a>
-          <a href="#timeline" className="nav-section">timeline</a>
-        </div>
-        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-          <Link href="/art" className="nav-section">art</Link>
-          <Link href="/career" className="back-btn">career</Link>
+      <div className="grain" />
+      <nav className="site-nav">
+        <Link href="/" className="font-display text-[16px] font-semibold text-white no-underline tracking-tight">enrin</Link>
+        <div className="flex gap-7">
+          <Link href="/career" className="text-white/45 no-underline text-[13px] font-normal tracking-wide hover:text-white transition-colors duration-400">career</Link>
+          <Link href="/story" className="text-white/80 no-underline text-[13px] font-normal tracking-wide">story</Link>
+          <Link href="/art" className="text-white/45 no-underline text-[13px] font-normal tracking-wide hover:text-white transition-colors duration-400">art</Link>
         </div>
       </nav>
 
-      <div className="progress-indicator">
-        {["intro", "sounds", "art", "thoughts", "timeline"].map((s) => (
-          <div key={s} className={`progress-dot ${s === "intro" ? "active" : ""}`} data-section={s}
-            onClick={() => document.getElementById(s)?.scrollIntoView({ behavior: "smooth" })} />
-        ))}
-      </div>
-
-      <section id="intro" className="intro-section">
-        <div className="intro-content">
-          <h1 className="intro-title">the story</h1>
-          <p className="intro-subtitle">thoughts, sounds, art, and moments that shaped the journey from curiosity to nostalgia</p>
-          <a href="#sounds" className="start-btn">explore</a>
+      {/* HERO */}
+      <section className="h-[70vh] relative flex items-end pb-20 px-10 max-md:px-6 max-md:h-[55vh] max-md:pb-14">
+        <div className="absolute inset-0 bg-gradient-to-b from-teal/60 via-bg/30 to-bg" />
+        <div className="relative z-10 max-w-[960px] mx-auto w-full">
+          <p className="text-[11px] tracking-[3px] text-text-dim lowercase mb-4 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · art · timeline</p>
+          <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
+          <p className="text-text-mid text-[15px] mt-5 max-w-[480px] leading-relaxed opacity-0 animate-[heroFade_2s_ease_0.8s_forwards]">thoughts, sounds, art, and moments that shaped the journey from curiosity to nostalgia</p>
         </div>
       </section>
 
-      <section id="sounds" className="content-section section-sounds">
-        <div className="section-container">
-          <div className="section-header scroll-reveal">
-            <h2 className="section-title">sounds</h2>
-            <p className="section-description">the soundtrack to thinking, and living</p>
+      {/* SOUNDS */}
+      <section id="sounds" ref={ref("sounds")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("sounds")}`}>
+        <div className="max-w-[960px] mx-auto">
+          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">sounds</h2>
+          <p className="text-text-mid text-sm mb-8">the soundtrack to thinking, and living</p>
+
+          {/* Current track */}
+          <div className="border border-border rounded-lg p-8 max-w-[500px] mb-10">
+            <p className="text-[10px] tracking-[2px] text-text-dim uppercase mb-4">
+              {spotifyData?.playedAt ? <>last played <span className="text-text-faint font-normal">({new Date(spotifyData.playedAt).toLocaleTimeString()})</span></> : "today's most played"}
+            </p>
+            <h3 className="font-display text-2xl font-semibold text-text mb-2">{spotifyData?.trackName || "loading..."}</h3>
+            <p className="text-text-mid text-base mb-1">{spotifyData?.artist || "loading..."}</p>
+            <p className="text-[12px] text-text-dim tracking-wide uppercase">{spotifyData?.album ? `from ${spotifyData.album}` : "loading..."}</p>
+            {spotifyData?.trackId && (
+              <div className="mt-5 rounded-xl overflow-hidden">
+                <iframe style={{ borderRadius: 12 }} src={`https://open.spotify.com/embed/track/${spotifyData.trackId}?utm_source=generator&theme=0`} width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+              </div>
+            )}
           </div>
-          <div className="music-player scroll-reveal">
-            <div className="today-indicator">today&apos;s most played</div>
-            <div className="current-track">
-              <div className="track-title">loading...</div>
-              <div className="track-artist">loading...</div>
-              <div className="track-mood">loading...</div>
-            </div>
-            <div className="player-controls">
-              <button className="control-btn">⏮</button>
-              <button className="control-btn">⏯</button>
-              <button className="control-btn">⏭</button>
-              <button className="control-btn">🔀</button>
-            </div>
-            <div className="featured-playlists-header">featured playlists today</div>
-            <div className="playlist-grid" id="dynamic-playlists" />
-          </div>
+
+          {/* Playlists */}
+          {spotifyData?.playlists && spotifyData.playlists.length > 0 && (
+            <>
+              <p className="text-text-dim text-xs tracking-[2px] uppercase mb-6">featured playlists today</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {spotifyData.playlists.map((p) => (
+                  <div key={p.id} className="rounded-xl overflow-hidden border border-border">
+                    <div className="p-4 pb-2">
+                      <h4 className="text-text text-sm font-medium mb-1">{p.name}</h4>
+                      <p className="text-text-dim text-xs">{p.tracks} tracks</p>
+                    </div>
+                    <iframe style={{ borderRadius: "0 0 12px 12px" }} src={`https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0`} width="100%" height="380" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      <section id="art" className="content-section section-art">
-        <div className="section-container">
-          <div className="section-header scroll-reveal">
-            <h2 className="section-title">art</h2>
-            <p className="section-description">visual stories and creative expressions</p>
-          </div>
-          <div className="song-covers-section scroll-reveal">
-            <div className="main-cover-container">
-              <img src="/assets/songCover.jpg" alt="Main song cover" className="main-cover-bg" />
-              <div className="side-covers">
-                <div className="side-cover-item left">
-                  <img src="/assets/song1.jpg" alt="Song cover 1" className="side-cover-image" />
-                  <p className="cover-caption">poetic</p>
-                </div>
-                <div className="side-cover-item right">
-                  <img src="/assets/song2.jpg" alt="Song cover 2" className="side-cover-image" />
-                  <p className="cover-caption">vulgarity</p>
-                </div>
+      {/* ART */}
+      <section id="art" ref={ref("art")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("art")}`}>
+        <div className="max-w-[960px] mx-auto">
+          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-10">art</h2>
+          <p className="text-text-mid text-sm mb-8">visual stories and creative expressions</p>
+
+          {/* Song covers */}
+          <div className="relative w-full max-w-[900px] mx-auto rounded-2xl overflow-hidden mb-3">
+            <img src="/assets/songCover.jpg" alt="Main song cover" className="w-full block rounded-2xl" />
+            <div className="absolute inset-0 flex justify-between items-start p-10 max-md:hidden">
+              <div className="max-w-[220px] self-end text-center">
+                <img src="/assets/song1.jpg" alt="Song cover 1" className="w-full rounded-xl shadow-2xl hover:scale-[1.3] transition-transform duration-300" />
+                <p className="text-white text-sm italic mt-2 drop-shadow-lg">poetic</p>
+              </div>
+              <div className="max-w-[220px] text-center">
+                <img src="/assets/song2.jpg" alt="Song cover 2" className="w-full rounded-xl shadow-2xl hover:scale-[1.3] transition-transform duration-300" />
+                <p className="text-white text-sm italic mt-2 drop-shadow-lg">vulgarity</p>
               </div>
             </div>
-            <p className="main-cover-caption">talent show april 25&apos;</p>
           </div>
-          <div className="additional-images-section scroll-reveal">
-            <div className="additional-image-item">
-              <img src="/assets/topAlbums.PNG" alt="Top albums" className="additional-image" />
-              <p className="cover-caption">top albums</p>
-            </div>
-            <div className="additional-image-item">
-              <img src="/assets/topSongs.PNG" alt="Top songs" className="additional-image" />
-              <p className="cover-caption">top songs</p>
-            </div>
+          <p className="text-center text-sm text-text-mid italic mb-10">talent show april 25&apos;</p>
+
+          {/* Additional images */}
+          <div className="grid grid-cols-2 gap-8 max-w-[700px] mx-auto mb-10 max-md:grid-cols-1 max-md:max-w-[300px]">
+            {[{ src: "topAlbums.PNG", cap: "top albums" }, { src: "topSongs.PNG", cap: "top songs" }].map((item) => (
+              <div key={item.src} className="text-center">
+                <img src={`/assets/${item.src}`} alt={item.cap} className="w-full rounded-xl shadow-lg hover:scale-105 transition-transform duration-300" />
+                <p className="text-text-mid text-sm italic mt-2">{item.cap}</p>
+              </div>
+            ))}
           </div>
-          <div className="video-section scroll-reveal">
-            <div className="video-container-large">
-              <iframe src="https://www.youtube.com/embed/iuqZl8EFd4s" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
-            </div>
+
+          {/* Video */}
+          <div className="relative pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-[900px] mx-auto max-md:pb-[56.25%]">
+            <iframe className="absolute inset-0 w-full h-full rounded-2xl" src="https://www.youtube.com/embed/iuqZl8EFd4s" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
           </div>
         </div>
       </section>
 
-      <section id="thoughts" className="content-section section-thoughts">
-        <div className="section-container">
-          <div className="section-header scroll-reveal">
-            <h2 className="section-title">thoughts</h2>
-            <p className="section-description">random musings, and life reflections</p>
-          </div>
-          <div className="thoughts-grid">
+      {/* THOUGHTS */}
+      <section id="thoughts" ref={ref("thoughts")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("thoughts")}`}>
+        <div className="max-w-[960px] mx-auto">
+          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">thoughts</h2>
+          <p className="text-text-mid text-sm mb-10">random musings, and life reflections</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {displayThoughts.map((t) => (
-              <article key={t.id} className="thought-card scroll-reveal">
-                <div className="thought-meta">
-                  <span className="thought-date">{t.date}</span>
-                  <span className="thought-tag">{t.tag}</span>
+              <article key={t.id} className="border border-border rounded-lg p-7 hover:border-text-dim/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-center mb-5">
+                  <span className="text-[11px] text-text-dim uppercase tracking-wide font-medium">{t.date}</span>
+                  <span className="text-[11px] text-text-dim border border-border rounded-full px-3 py-0.5 lowercase">{t.tag}</span>
                 </div>
-                <h3 className="thought-title">{t.title}</h3>
-                <p className="thought-preview">{t.preview}</p>
+                <h3 className="font-display text-lg font-semibold text-text mb-3 leading-tight">{t.title}</h3>
+                <p className="text-text-mid text-sm leading-relaxed">{t.preview}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="timeline" className="content-section section-timeline">
-        <div className="section-container">
-          <div className="section-header scroll-reveal">
-            <h2 className="section-title">timeline</h2>
-            <p className="section-description">the chapters that shaped who i am today</p>
-          </div>
-          <div className="timeline-container">
-            <div className="timeline-line" />
+      {/* TIMELINE */}
+      <section id="timeline" ref={ref("timeline")} className={`py-20 px-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-6 ${vis("timeline")}`}>
+        <div className="max-w-[960px] mx-auto">
+          <h2 className="font-display text-[11px] tracking-[4px] text-text-dim uppercase mb-14">timeline</h2>
+          <p className="text-text-mid text-sm mb-10">the chapters that shaped who i am today</p>
+          <div className="max-w-[800px] mx-auto relative">
+            <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-border" />
             {displayTimeline.map((entry) => (
-              <div key={entry.id} className="timeline-item scroll-reveal">
-                <div className="timeline-marker" />
-                <div className="timeline-content">
-                  <div className="timeline-period">{entry.period}</div>
-                  <h3 className="timeline-title">{entry.title}</h3>
-                  <p className="timeline-description">{entry.description}</p>
-                  <div className="timeline-tags">
-                    {entry.tags.map((tag) => <span key={tag} className="timeline-tag">{tag}</span>)}
+              <div key={entry.id} className="flex gap-8 mb-14 relative max-md:gap-5">
+                <div className="w-3 h-3 bg-text-dim border-[3px] border-bg rounded-full shrink-0 mt-2 z-10 relative" />
+                <div className="flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 hover:translate-x-2 transition-all duration-300 cursor-pointer">
+                  <p className="text-[11px] text-text-dim uppercase tracking-wide font-medium mb-3">{entry.period}</p>
+                  <h3 className="font-display text-lg font-semibold text-text mb-3 leading-tight">{entry.title}</h3>
+                  <p className="text-text-mid text-sm leading-relaxed mb-4">{entry.description}</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {entry.tags.map((tag) => <span key={tag} className="text-[11px] text-text-dim border border-border rounded-full px-3 py-0.5 lowercase">{tag}</span>)}
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* FOOTER */}
+      <section className="pt-16 px-10 pb-10 border-t border-border max-md:px-6">
+        <div className="max-w-[700px] mx-auto flex justify-between items-start gap-10 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-7">
+          <div className="flex gap-8">
+            {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/art", label: "art" }].map((l) => (
+              <Link key={l.label} href={l.href} className="font-display text-lg font-semibold tracking-tight no-underline text-text hover:text-amber transition-colors duration-300">{l.label}</Link>
+            ))}
+          </div>
+          <div className="flex gap-5 max-sm:flex-wrap max-sm:justify-center max-sm:gap-3.5">
+            {[{ href: "mailto:nrndbrma@gmail.com", label: "email" }, { href: "https://www.linkedin.com/in/enrinjr/", label: "linkedin" }, { href: "https://github.com/emd5953", label: "github" }].map((c) => (
+              <a key={c.label} href={c.href} target={c.href.startsWith("mailto") ? undefined : "_blank"} rel={c.href.startsWith("mailto") ? undefined : "noopener noreferrer"} className="text-text-dim no-underline text-xs hover:text-amber-dim transition-colors duration-300">{c.label}</a>
+            ))}
+          </div>
+        </div>
+        <p className="text-center text-[11px] text-text-faint mt-14 pt-5 border-t border-border">© 2025 enrinjr</p>
       </section>
     </>
   );

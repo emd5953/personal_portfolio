@@ -35,25 +35,33 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [timeStr, setTimeStr] = useState("");
   const [easterEggVisible, setEasterEggVisible] = useState(false);
+  const [workHover, setWorkHover] = useState(false);
   const [realVisible, setRealVisible] = useState(false);
   const [shuffledReel, setShuffledReel] = useState<string[]>([]);
+  const [shuffledHero, setShuffledHero] = useState<{ src: string; pos: string }[]>(
+    heroImages.map((src, i) => ({ src, pos: heroPositions[i] }))
+  );
   const reelRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const realRef = useRef<HTMLDivElement>(null);
 
-  // Shuffle reel on mount
+  // Shuffle reel + hero order on mount
   useEffect(() => {
     const shuffled = shuffleArray(reelImages);
-    setShuffledReel([...shuffled, ...shuffled]);
+    // Offset the second copy so no identical image sits next to itself at the seam
+    const half = Math.floor(shuffled.length / 2);
+    const secondCopy = [...shuffled.slice(half), ...shuffled.slice(0, half)];
+    setShuffledReel([...shuffled, ...secondCopy]);
+    setShuffledHero(shuffleArray(heroImages.map((src, i) => ({ src, pos: heroPositions[i] }))));
   }, []);
 
   // Hero slideshow
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+      setCurrentSlide((prev) => (prev + 1) % shuffledHero.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [shuffledHero]);
 
   // Timestamp
   useEffect(() => {
@@ -243,13 +251,13 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="hero">
         <div className="hero-slides">
-          {heroImages.map((src, i) => (
+          {shuffledHero.map((hero, i) => (
             <img
-              key={src}
-              src={src}
+              key={hero.src}
+              src={hero.src}
               alt=""
               className={`hero-slide ${i === currentSlide ? "active" : ""}`}
-              style={{ objectPosition: heroPositions[i] }}
+              style={{ objectPosition: hero.pos }}
             />
           ))}
         </div>
@@ -284,7 +292,7 @@ export default function LandingPage() {
               <img src="/assets/aboutme1.jpg" alt="Enrin" className="real-photo" />
             </div>
             <p className={`easter-egg ${easterEggVisible ? "show" : ""}`}>
-              matcha is overrated btw
+              matcha is overrated 
             </p>
           </div>
           <div className="real-text-col">
@@ -298,18 +306,42 @@ export default function LandingPage() {
               before that i was a swe lead, and also hacking at YC hackathons in SF, Stanford &amp; Columbia building AI tools. i graduated with a CS degree, an outstanding senior award and as an entrepreneur scholar.
             </p>
             <p className="real-p real-dim">
-              when i&apos;m not shipping code i&apos;m shooting film, playing guitar, hooping, or trying to catch golden hour before it disappears. i like afrobeats, r&amp;b, going out, and being outside. people say i&apos;m performative but i genuinely hate matcha.
+              when i&apos;m not shipping code i&apos;m shooting film, playing guitar, hooping, or trying to catch golden hour before it disappears. i like r&amp;b, afrobeats, going out, and being outside. people say i&apos;m performative but i genuinely hate matcha.
             </p>
           </div>
         </div>
       </section>
 
       {/* WORK STRIP */}
-      <section className="work-strip">
-        <Link href="/career" className="work-banner">
-          <span className="work-banner-text">see what i&apos;ve been building →</span>
-          <span className="work-banner-sub">career · projects · experience</span>
-        </Link>
+      <section
+        className="work-strip"
+        onMouseEnter={() => setWorkHover(true)}
+        onMouseLeave={() => setWorkHover(false)}
+      >
+        <div className="work-banner-wrap">
+          <Link href="/career" className={`work-banner ${workHover ? "work-banner-hidden" : ""}`}>
+            <span className="work-banner-text">see what i&apos;ve been building →</span>
+            <span className="work-banner-sub">career · projects · experience</span>
+          </Link>
+          <div className={`work-projects ${workHover ? "work-projects-open" : ""}`}>
+            {[
+              { img: "/assets/career/curation.png", title: "aesthetic alchemist", tags: "multimodal ai · gcp", href: "https://aesthetic-alchemist-454548514001.us-west1.run.app" },
+              { img: "/assets/career/leaseIQ.png", title: "leaseiq", tags: "firecrawl · next.js", href: "https://lease-iq.vercel.app/" },
+              { img: "/assets/career/nextstep.png", title: "nextstep", tags: "react native · node", href: "https://nextstep4.com/" },
+              { img: "/assets/career/aspot1.png", title: "aspot", tags: "next.js · spring", href: "https://aspot-monolith.vercel.app" },
+            ].map((p, i) => (
+              <a key={p.title} href={p.href} target="_blank" rel="noopener noreferrer" className="work-card" style={{ transitionDelay: workHover ? `${i * 0.08}s` : "0s" }}>
+                <div className="work-card-img">
+                  <img src={p.img} alt={p.title} />
+                </div>
+                <div className="work-card-info">
+                  <span className="work-card-title">{p.title}</span>
+                  <span className="work-card-tags">{p.tags}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* PHOTO REEL */}

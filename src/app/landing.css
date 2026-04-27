@@ -1,40 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/*
+  Landing page styles.
+  Global reset, fonts, body, grain, scrollbar, and keyframes live in globals.css.
+  We alias the @theme tokens to the short names this file uses.
+*/
 
 :root {
-  --bg: #0a0d0f;
-  --surface: #10161c;
-  --teal: #0f2027;
-  --teal-mid: #163a3a;
-  --amber: #d4944a;
-  --amber-dim: #a07040;
-  --text: #e0d5c8;
-  --text-mid: #8a9098;
-  --text-dim: #505860;
-  --text-faint: #282e34;
-  --border: rgba(255,255,255,0.04);
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  overflow-x: hidden;
-}
-
-/* ---- GRAIN ---- */
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 200px;
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --teal: var(--color-teal);
+  --teal-mid: var(--color-teal-mid);
+  --amber: var(--color-amber);
+  --amber-dim: var(--color-amber-dim);
+  --text: var(--color-text);
+  --text-mid: var(--color-text-mid);
+  --text-dim: var(--color-text-dim);
+  --text-faint: var(--color-text-faint);
+  --border: var(--color-border);
 }
 
 /* ---- NAV ---- */
@@ -51,7 +32,7 @@ body {
 }
 
 .nav-name {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: #fff;
@@ -121,7 +102,7 @@ body {
 }
 
 .title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(4.5rem, 14vw, 10rem);
   font-weight: 700;
   letter-spacing: -5px;
@@ -191,16 +172,6 @@ body {
 .s-letter:nth-child(29) { animation-delay: 2.84s; }
 .s-letter:nth-child(30) { animation-delay: 2.87s; }
 
-@keyframes letterIn {
-  0% { opacity: 0; filter: blur(8px); transform: translateY(10px); }
-  100% { opacity: 1; filter: blur(0); transform: translateY(0); }
-}
-
-@keyframes subtitleIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
 .hero-bottom {
   position: absolute;
   bottom: 36px;
@@ -227,10 +198,6 @@ body {
   color: var(--text-dim);
   opacity: 0;
   animation: heroFade 2s ease 1.3s forwards;
-}
-
-@keyframes heroFade {
-  to { opacity: 1; }
 }
 
 /* ---- REAL SECTION — YOUR VOICE ---- */
@@ -266,6 +233,7 @@ body {
 .real-photo {
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: cover;
   object-position: 56% 30%;
   transform: scale(2.4);
@@ -336,39 +304,141 @@ body {
   border-top: 1px solid var(--border);
 }
 
-.work-banner {
-  display: block;
+.work-banner-wrap {
   max-width: 960px;
   margin: 0 auto;
+}
+
+.work-banner {
+  display: block;
   padding: 48px 0;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.4s;
+  transition: opacity 0.3s ease, padding 0.4s ease;
 }
 
-.work-banner:hover {
-  transform: translateX(8px);
+.work-banner-hidden {
+  opacity: 1;
+}
+
+.work-banner-hidden .work-banner-text {
+  color: #f5c46c;
+  text-shadow: 0 0 40px rgba(245, 196, 108, 0.35);
+}
+
+.work-banner-hidden .work-banner-sub {
+  color: var(--text-mid);
 }
 
 .work-banner-text {
   display: block;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.5px;
-  color: var(--text);
-  transition: color 0.4s;
+  color: var(--amber);
   margin-bottom: 6px;
+  transition: color 0.3s ease;
 }
 
 .work-banner:hover .work-banner-text {
-  color: var(--amber);
+  color: #f0b865;
+  text-shadow: 0 0 30px rgba(240, 184, 101, 0.3);
 }
 
 .work-banner-sub {
   font-size: 13px;
   color: var(--text-dim);
   letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.work-banner:hover .work-banner-sub {
+  color: var(--text-mid);
+}
+
+/* expandable project grid */
+.work-projects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.55s cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 0.4s ease,
+              padding 0.4s ease;
+  padding-bottom: 0;
+}
+
+.work-projects-open {
+  max-height: 600px;
+  opacity: 1;
+  padding-bottom: 48px;
+}
+
+.work-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.work-projects-open .work-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.work-card-img {
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.work-card-img img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.5) saturate(0.3) contrast(1.15);
+  transition: filter 0.5s ease, transform 0.5s ease;
+}
+
+.work-card:hover .work-card-img img {
+  filter: brightness(0.75) saturate(0.55) contrast(1.08);
+  transform: scale(1.03);
+}
+
+.work-card-info {
+  padding: 10px 2px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.work-card-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  transition: color 0.3s;
+}
+
+.work-card:hover .work-card-title {
+  color: var(--amber);
+}
+
+.work-card-tags {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 /* ---- PHOTO REEL — wong kar-wai memory wall ---- */
@@ -416,12 +486,6 @@ body {
   animation-delay: -5s;
 }
 
-@keyframes reelGlow {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-  50% { transform: translate(30px, -10px) scale(1.1); opacity: 0.35; }
-  100% { transform: translate(-20px, 5px) scale(0.95); opacity: 0.28; }
-}
-
 /* fade edges */
 .reel::before,
 .reel::after {
@@ -455,9 +519,11 @@ body {
 .reel-track img {
   height: 340px;
   width: auto;
+  max-width: none;
+  max-height: none;
   flex-shrink: 0;
   border-radius: 3px;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   filter: brightness(0.55) saturate(0.3) contrast(1.2) sepia(0.25) hue-rotate(-5deg);
   transition: filter 1.2s cubic-bezier(0.23, 1, 0.32, 1),
@@ -519,7 +585,7 @@ body {
 }
 
 .end-label {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.5px;
@@ -570,9 +636,10 @@ body {
   .easter-egg { text-align: center; }
 
   .work-strip { padding: 0 24px; }
+  .work-projects { grid-template-columns: 1fr; }
 
   .reel { padding: 50px 0; }
-  .reel-track img { height: 240px; }
+  .reel-track img { height: 240px; max-width: none; }
   .reel-glow { filter: blur(80px); }
 
   .end { padding: 60px 24px 30px; }
@@ -588,8 +655,3 @@ body {
   .work-banner-text { font-size: 18px; }
   .end-contact { flex-wrap: wrap; justify-content: center; gap: 14px; }
 }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--teal-mid); border-radius: 2px; }
