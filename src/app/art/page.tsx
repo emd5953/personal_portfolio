@@ -4,36 +4,38 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 
 const bgVideos = [
-  "/assets/videos/background1.mp4",
-  "/assets/videos/background2.mp4",
-  "/assets/videos/background3.mp4",
-  "/assets/videos/background4.mp4",
-  "/assets/videos/background5.mp4",
-  "/assets/videos/background6.mp4",
+  "/assets/videos/bg1.mp4",
+  "/assets/videos/bg2.mp4",
+  "/assets/videos/bg3.mp4",
+  "/assets/videos/bg4.mp4",
+  "/assets/videos/bg5.mp4",
+  "/assets/videos/bg6.mp4",
+  "/assets/videos/bg7.mp4",
+  "/assets/videos/bg8.mp4",
 ];
 
 const films = [
-  "/assets/videos/066c54a2118a41449477037ab040d539.mp4",
-  "/assets/videos/4f3e5000c1c04199856b2b7cae303194.mp4",
   "/assets/videos/58d06fabc773491297f61d8d0cfe9204.mp4",
   "/assets/videos/6c30d6c75ad443588c4b1f36987ebc0b.mp4",
   "/assets/videos/6d17cf98e38047d092c98b07fe9cc8c8.mp4",
   "/assets/videos/7107492014e14bcab8c6313d1307c97c.mp4",
   "/assets/videos/7c061707a4344326ab7762342310a400.mp4",
   "/assets/videos/850812c039434f97b74b340a741aecae.mp4",
-  "/assets/videos/8d8f18a6ad4a46cba95f9863015150f5.mp4",
   "/assets/videos/8f4b7b6364e34dd098ca2437a85761b8.mp4",
-  "/assets/videos/9364fa9aab21478baa8e25460bd484ad.mp4",
-  "/assets/videos/9efea14f0cce479eb7c3bda43308a0ec.mp4",
   "/assets/videos/aa0b829d83114f2cbc0b24b52213cd75.mp4",
-  "/assets/videos/ae1dc2a101db4a79940a1dbe6e4fb68e.mp4",
   "/assets/videos/c032cb96261947b9b9e4d5a58c50ebb6.mp4",
   "/assets/videos/cd64ac014c84439ca6dceb61651b2557.mp4",
   "/assets/videos/d636659e9c75487b9070cd85f32387ca.mp4",
   "/assets/videos/d636659e9c75487b9070cd85f32387ca_2.mp4",
   "/assets/videos/f7e7f0990fbb4c3c8e470cc757c6681d.mp4",
-  "/assets/videos/IMG_1723.mp4",
-  "/assets/videos/IMG_1759.mp4",
+  "/assets/videos/bg1.mp4",
+  "/assets/videos/bg2.mp4",
+  "/assets/videos/bg3.mp4",
+  "/assets/videos/bg4.mp4",
+  "/assets/videos/bg5.mp4",
+  "/assets/videos/bg6.mp4",
+  "/assets/videos/bg7.mp4",
+  "/assets/videos/bg8.mp4",
 ];
 
 const offsets = [
