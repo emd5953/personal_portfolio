@@ -625,33 +625,41 @@
   .title { letter-spacing: -3px; }
   .hero-bottom { left: 20px; right: 20px; bottom: 24px; }
 
-  .real { padding: 80px 24px; }
+  .real { padding: 60px 20px; }
   .real-inner {
     flex-direction: column;
-    gap: 36px;
+    gap: 28px;
     align-items: center;
     text-align: center;
   }
-  .real-photo-col { width: 220px; height: 220px; }
+  .real-photo-col { width: 200px; height: 200px; }
   .easter-egg { text-align: center; }
 
-  .work-strip { padding: 0 24px; }
+  .work-strip { padding: 0 20px; }
   .work-projects { grid-template-columns: 1fr; }
 
-  .reel { padding: 50px 0; }
-  .reel-track img { height: 240px; max-width: none; }
+  .reel { padding: 40px 0; }
+  .reel-track { padding: 0 20px; }
+  .reel-track img { height: 200px; max-width: none; }
   .reel-glow { filter: blur(80px); }
+  .reel::before, .reel::after { width: 40px; }
 
-  .end { padding: 60px 24px 30px; }
-  .end-inner { flex-direction: column; align-items: center; text-align: center; gap: 28px; }
-  .end-links { gap: 24px; }
+  .end { padding: 40px 20px 30px; }
+  .end-inner { flex-direction: column; align-items: center; text-align: center; gap: 24px; }
+  .end-links { gap: 20px; }
 }
 
 @media (max-width: 480px) {
+  .nav { padding: 14px 16px; }
   .nav-links a { font-size: 12px; }
-  .nav-links { gap: 14px; }
-  .subtitle { letter-spacing: 2px; font-size: 11px; }
-  .real-big { font-size: 19px; }
+  .nav-links { gap: 12px; }
+  .subtitle { letter-spacing: 2px; font-size: 10px; }
+  .title { letter-spacing: -2px; }
+  .real-big { font-size: 18px; }
+  .real { padding: 40px 16px; }
+  .work-strip { padding: 0 16px; }
   .work-banner-text { font-size: 18px; }
+  .reel-track img { height: 160px; }
+  .end { padding: 30px 16px 24px; }
   .end-contact { flex-wrap: wrap; justify-content: center; gap: 14px; }
 }

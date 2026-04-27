@@ -59,6 +59,10 @@ body {
   background: transparent;
 }
 
+@media (max-width: 768px) {
+  .site-nav { padding: 16px 20px; }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--color-bg); }
@@ -88,4 +92,18 @@ body {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Career page responsive */
+@media (max-width: 768px) {
+  .career-section-layout {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+  .career-section-layout > *:first-child {
+    width: 100% !important;
+  }
+  .career-project-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

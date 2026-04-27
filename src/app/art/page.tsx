@@ -269,8 +269,8 @@ export default function ArtPage() {
         </div>
       </nav>
 
-      <div style={{ maxWidth: 1100, padding: "0 40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}>
-        <section style={{ paddingTop: 240, paddingBottom: 20 }}>
+      <div style={{ maxWidth: 1100, padding: "0 clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}>
+        <section style={{ paddingTop: "clamp(120px, 20vw, 240px)", paddingBottom: 20 }}>
           <h1 className="font-display" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", fontWeight: 700, letterSpacing: -4, lineHeight: 0.9, color: "var(--color-text)" }}>the art</h1>
           <p style={{ fontSize: 13, color: "var(--color-text-dim)", marginTop: 16 }}>films · frames · moments</p>
         </section>
@@ -280,14 +280,14 @@ export default function ArtPage() {
       </div>
 
       <div style={{ width: "100%", overflow: "hidden", position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", gap: 18, overflowX: "scroll", padding: "40px 40px", scrollbarWidth: "none", msOverflowStyle: "none", alignItems: "center" }} className="[&::-webkit-scrollbar]:hidden">
+        <div style={{ display: "flex", gap: 18, overflowX: "scroll", padding: "40px clamp(16px, 4vw, 40px)", scrollbarWidth: "none", msOverflowStyle: "none", alignItems: "center" }} className="[&::-webkit-scrollbar]:hidden">
           {shuffledFilms.map((src, i) => <FilmCard key={src} src={src} index={i} onSelect={setPlayerSrc} />)}
         </div>
       </div>
 
       {playerSrc && <FullPlayer src={playerSrc} onClose={() => setPlayerSrc(null)} />}
 
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px 40px", maxWidth: 960, margin: "0 auto", position: "relative", zIndex: 1 }}>
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px clamp(16px, 4vw, 40px)", maxWidth: 960, margin: "0 auto", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
           <div style={{ display: "flex", gap: 24 }}>

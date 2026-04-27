@@ -244,11 +244,11 @@ function PhotoRow({ photos }: { photos: string[] }) {
 function ProjectCards({ rows }: { rows: typeof projectRows }) {
   return (
     <section style={{ padding: "80px 0" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+      <div className="career-section-layout" style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
         <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
           <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>PROJECTS</p>
         </div>
-        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+        <div className="career-project-grid" style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           {rows.map((row, i) => (
             <a key={i} href={row.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", transition: "border-color 0.3s, transform 0.3s", cursor: "pointer" }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "translateY(0)"; }}>
               <div style={{ background: "rgba(255,255,255,0.03)", padding: 12, aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
@@ -279,7 +279,7 @@ function ExpandableEducation({ rows }: { rows: typeof educationRows }) {
 
   return (
     <section style={{ padding: "80px 0" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+      <div className="career-section-layout" style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
         <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
           <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>EDUCATION &</p>
           <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>AWARDS</p>
@@ -374,7 +374,7 @@ export default function CareerPage() {
         </div>
       </nav>
 
-      <div data-content style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px" }}>
+      <div data-content style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px)" }}>
 
         {/* HERO */}
         <section style={{ paddingTop: 20, paddingBottom: 0 }}>
@@ -383,7 +383,7 @@ export default function CareerPage() {
 
         {/* EXPERIENCE */}
         <section style={{ padding: "40px 0 80px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+          <div className="career-section-layout" style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
             <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", width: 180, flexShrink: 0, paddingTop: 40, margin: 0 }}>EXPERIENCE</p>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, paddingTop: 22 }}>
               {experiences.map((exp, i) => (
@@ -437,7 +437,7 @@ export default function CareerPage() {
       </div>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "80px 40px 40px", maxWidth: 960, margin: "0 auto" }}>
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "80px clamp(16px, 4vw, 40px) 40px", maxWidth: 960, margin: "0 auto" }}>
         <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 32 }}>Contact</p>
         <div style={{ display: "flex", gap: 28, marginBottom: 60, alignItems: "center" }}>
           {[

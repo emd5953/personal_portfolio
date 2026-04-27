@@ -195,8 +195,8 @@ export default function StoryPage() {
         })}
       </div>
 
-      <section className="h-[55vh] relative flex items-end pb-20 px-16 max-md:px-8 max-md:h-[58vh] max-md:pb-14">
-        <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <section className="h-[55vh] relative flex items-end pb-20 px-6 md:px-16 max-md:h-[58vh] max-md:pb-14">
+        <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · art · timeline</p>
           <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
           <p className="text-text-mid text-[15px] mt-8 max-w-[480px] leading-relaxed opacity-0 animate-[heroFade_2s_ease_0.8s_forwards]">thoughts, sounds, art, and moments that shaped the journey from curiosity to nostalgia</p>
@@ -204,13 +204,13 @@ export default function StoryPage() {
       </section>
 
       {/* SOUNDS */}
-      <section id="sounds" ref={ref("sounds")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 mt-24 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("sounds")}`}>
-        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <section id="sounds" ref={ref("sounds")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-6 md:px-16 mt-24 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("sounds")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-3">sounds</h2>
           <p className="text-text text-sm mb-4">the soundtrack to thinking, and living</p>
 
           {/* Current track */}
-          <div className="border border-border rounded-lg p-6 max-w-[550px] mb-6">
+          <div className="border border-border rounded-lg p-4 md:p-6 max-w-full md:max-w-[550px] mb-6">
             <p className="text-[10px] tracking-[2px] text-text-mid uppercase font-medium mb-3">
               {spotifyData?.playedAt ? <>last played <span className="text-text-mid font-normal">({new Date(spotifyData.playedAt).toLocaleTimeString()})</span></> : "today's most played"}
             </p>
@@ -241,13 +241,13 @@ export default function StoryPage() {
       </section>
 
       {/* ART */}
-      <section id="art" ref={ref("art")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("art")}`}>
-        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <section id="art" ref={ref("art")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("art")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-12">art</h2>
           <p className="text-text text-sm mb-10">visual stories and creative expressions</p>
 
           {/* Song covers */}
-          <div className="relative w-full max-w-[600px] rounded-2xl overflow-hidden mb-3">
+          <div className="relative w-full max-w-full md:max-w-[600px] rounded-2xl overflow-hidden mb-3">
             <img src="/assets/songCover.jpg" alt="Main song cover" className="w-full block rounded-2xl" />
             <div className="absolute inset-0 flex justify-between items-start p-10 max-md:hidden">
               <div className="max-w-[150px] self-end text-center">
@@ -273,15 +273,15 @@ export default function StoryPage() {
           </div>
 
           {/* Video */}
-          <div className="relative pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-[600px] max-md:pb-[56.25%]">
+          <div className="relative pb-[56.25%] md:pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-full md:max-w-[600px] max-md:pb-[56.25%]">
             <iframe className="absolute inset-0 w-full h-full rounded-2xl" src="https://www.youtube.com/embed/iuqZl8EFd4s" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
           </div>
         </div>
       </section>
 
       {/* THOUGHTS */}
-      <section id="thoughts" ref={ref("thoughts")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("thoughts")}`}>
-        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <section id="thoughts" ref={ref("thoughts")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("thoughts")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">thoughts</h2>
           <p className="text-text text-sm mb-14">random musings, and life reflections</p>
 
@@ -320,8 +320,8 @@ export default function StoryPage() {
       </section>
 
       {/* TIMELINE */}
-      <section id="timeline" ref={ref("timeline")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("timeline")}`}>
-        <div className="max-w-[1100px]" style={{ marginLeft: "40px", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <section id="timeline" ref={ref("timeline")} style={{ paddingTop: 60, paddingBottom: 60 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("timeline")}`}>
+        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">timeline</h2>
           <p className="text-text text-sm mb-14">the chapters that shaped who i am today</p>
 
@@ -414,7 +414,7 @@ export default function StoryPage() {
       )}
 
       {/* FOOTER */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px 40px", maxWidth: 960, margin: "0 auto", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px clamp(16px, 4vw, 40px)", maxWidth: 960, margin: "0 auto", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
           <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
