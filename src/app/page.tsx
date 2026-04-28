@@ -328,7 +328,7 @@ export default function LandingPage() {
               { img: "/assets/career/curation.png", title: "aesthetic alchemist", tags: "multimodal ai · gcp", href: "https://aesthetic-alchemist-454548514001.us-west1.run.app" },
               { img: "/assets/career/leaseIQ.png", title: "leaseiq", tags: "firecrawl · next.js", href: "https://lease-iq.vercel.app/" },
               { img: "/assets/career/nextstep.png", title: "nextstep", tags: "react native · node", href: "https://nextstep4.com/" },
-              { img: "/assets/career/aspot1.png", title: "aspot", tags: "next.js · spring", href: "https://aspot-monolith.vercel.app" },
+              { img: "/assets/career/aspot2.jpg", title: "aspot", tags: "next.js · spring", href: "https://aspot-monolith.vercel.app" },
             ].map((p, i) => (
               <a key={p.title} href={p.href} target="_blank" rel="noopener noreferrer" className="work-card" style={{ transitionDelay: workHover ? `${i * 0.08}s` : "0s" }}>
                 <div className="work-card-img">

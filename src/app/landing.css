@@ -517,7 +517,7 @@
 
 /* images sized by their natural aspect ratio — no forced crops */
 .reel-track img {
-  height: 340px;
+  height: 260px;
   width: auto;
   max-width: none;
   max-height: none;
