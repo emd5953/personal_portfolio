@@ -20,6 +20,7 @@ const reelImages = [
   "IMG_9919.jpg", "a023b683-71c9-47c5-ac18-c4c693423a79.jpg",
   "about-pic.jpg", "aboutme1.jpg", "aboutme2.jpg",
   "song1.jpg", "song2.jpg", "songCover.jpg",
+  "philly1.jpg",
 ];
 
 function shuffleArray<T>(arr: T[]): T[] {

@@ -102,6 +102,7 @@ export default function StoryPage() {
     "/assets/story/3.jpg",
     "/assets/story/bg1.mp4",
     "/assets/story/bg8.mp4",
+    "/assets/philly2.jpg",
   ];
   const [heroBgIndex, setHeroBgIndex] = useState(0);
 
