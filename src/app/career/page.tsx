@@ -189,10 +189,10 @@ const educationRows = [
 ];
 
 const projectRows = [
-  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Multimodal AI · GCP", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app", details: "AI-powered style curation tool that transforms your aesthetic vision into reality using multimodal models.", photos: ["/assets/career/curation.png"] },
-  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · Next.js", link: "https://lease-iq.vercel.app/", details: "Smart lease analysis platform that crawls and breaks down rental agreements using AI.", photos: ["/assets/career/leaseIQ.png"] },
-  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/", details: "Mobile app helping students navigate their next career move with personalized guidance.", photos: ["/assets/career/nextstep.png"] },
-  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app", details: "Full-stack platform connecting people to local spots and experiences.", photos: ["/assets/career/aspot2.jpg"] },
+  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Gemini 3.1 Pro · Veo 3.1", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app", details: "Curation tool that transforms your everyday pictures into production-grade short form content.", photos: ["/assets/career/curation.png"] },
+  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · ", link: "https://lease-iq.vercel.app/", details: "Smart lease analysis platform that crawls and breaks down rental agreements using AI.", photos: ["/assets/career/leaseIQ.png"] },
+  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/", details: "Job matching platform w/ AI agent that applies to jobs for you.", photos: ["/assets/career/nextstep.png"] },
+  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app", details: "AI Itinerary Generator giving you curated plans.", photos: ["/assets/career/aspot2.jpg"] },
 ];
 
 function PhotoRow({ photos }: { photos: string[] }) {
