@@ -355,6 +355,20 @@ export default function CareerPage() {
         @keyframes quipIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
         @keyframes quipOut { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
         @keyframes scrollHint { 0%, 100% { transform: translateX(0); opacity: 0.4; } 50% { transform: translateX(6px); opacity: 0.8; } }
+        @keyframes resumeBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+        .resume-btn {
+          display: inline-block;
+          font-size: 14px;
+          color: var(--color-text-mid);
+          text-decoration: none;
+          letter-spacing: 0.02em;
+          padding-top: 4px;
+          transition: color 0.3s;
+        }
+        .resume-btn:hover {
+          color: var(--color-text);
+        }
       `}</style>
       <FallingLeaves spawnAt={spawnAt} />
       {activeQuips.map(q => <ClickQuip key={q.id} x={q.x} y={q.y} text={q.text} />)}
@@ -432,6 +446,27 @@ export default function CareerPage() {
         </div>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <ProjectCards rows={projectRows} />
+        </div>
+
+        {/* RESUME DOWNLOAD */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <section style={{ padding: "80px 0" }}>
+            <div className="career-section-layout" style={{ display: "flex", alignItems: "flex-start", gap: 80 }}>
+              <div style={{ width: 180, flexShrink: 0, paddingTop: 4 }}>
+                <p style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>RESUME</p>
+              </div>
+              <div style={{ flex: 1 }}>
+                <a
+                  href="/assets/ResumeEnrinDebbarma.pdf"
+                  download="ResumeEnrinDebbarma.pdf"
+                  className="resume-btn"
+                  aria-label="Download resume"
+                >
+                  download pdf
+                </a>
+              </div>
+            </div>
+          </section>
         </div>
 
       </div>
