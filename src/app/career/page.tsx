@@ -136,6 +136,14 @@ function ClickQuip({ x, y, text }: { x: number; y: number; text: string }) {
 
 const experiences = [
   {
+    company: "THE REASONING COMPANY",
+    role: "Forward Deployed Engineer",
+    period: "May 2026 – Present · San Francisco Bay Area",
+    logo: "/assets/career/thereasoningcompany.png",
+    details: "AI agents for enterprises in NYC. Currently piloting with MSG, etc.",
+    photos: [] as string[],
+  },
+  {
     company: "BENMORE TECHNOLOGIES",
     role: "Forward Deployed Engineer",
     period: "2026 – Present",
