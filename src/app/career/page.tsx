@@ -138,7 +138,7 @@ const experiences = [
   {
     company: "THE REASONING COMPANY",
     role: "Forward Deployed Engineer",
-    period: "May 2026 – Present · San Francisco Bay Area",
+    period: "May 26' – Present",
     logo: "/assets/career/thereasoningcompany.png",
     details: "AI agents for enterprises in NYC. Currently piloting with MSG, etc.",
     photos: [] as string[],
@@ -146,7 +146,7 @@ const experiences = [
   {
     company: "BENMORE TECHNOLOGIES",
     role: "Forward Deployed Engineer",
-    period: "2026 – Present",
+    period: "Jan 26' – May 26'",
     href: "https://benmore.tech",
     logo: "/assets/career/benmore.png",
     details: "Working with startups & SMBs. Building products from zero to one — ai, product, agents, workflows, integrations. Bootstrapped to 2M ARR.",
@@ -163,7 +163,7 @@ const experiences = [
   {
     company: "Y COMBINATOR",
     role: "Startup School 2026 · 2x Hackathon",
-    period: "2026",
+    period: "26'",
     logo: "/assets/career/Y_Combinator_logo.svg",
     details: "Referred to YC Startup School 2026 by Aaron Epstein and participated in two YC hackathons in SF.",
     photos: ["/assets/career/yc.jpg", "/assets/career/susa.jpg", "/assets/career/nb.jpg", "/assets/career/wall.jpg"],
@@ -171,7 +171,7 @@ const experiences = [
   {
     company: "COLUMBIA UNIVERSITY",
     role: "AI for Good Hackathon",
-    period: "2026",
+    period: "26'",
     logo: "/assets/career/columbia_uni.png",
     details: "Building Wavelength. Scan and see what songs are being played near you",
     photos: ["/assets/career/columbia1.jpg", "/assets/career/columbia2.jpg", "/assets/career/ColumbiaHack.jpeg"],
@@ -179,7 +179,7 @@ const experiences = [
   {
     company: "STANFORD UNIVERSITY",
     role: "Stanford X Google Deepmind Hackathon",
-    period: "2026",
+    period: "26'",
     logo: "/assets/career/stanford logo.png",
     details: "Building Curation.you. Your everyday pictures turned into production ready videos.",
     photos: [],
