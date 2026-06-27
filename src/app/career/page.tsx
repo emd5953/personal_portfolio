@@ -139,8 +139,8 @@ const experiences = [
     company: "THE REASONING COMPANY",
     role: "Forward Deployed Engineer",
     period: "May 26' – Present",
-    logo: "/assets/career/thereasoningcompany.png",
-    details: "AI agents for enterprises in NYC. Currently piloting with MSG, etc.",
+    logo: "/assets/career/counterlogo.png",
+    details: "AI agents for enterprises in NYC. Building ChefOS, the Operating System for Hospitality.",
     photos: [] as string[],
   },
   {
@@ -149,7 +149,7 @@ const experiences = [
     period: "Jan 26' – May 26'",
     href: "https://benmore.tech",
     logo: "/assets/career/benmore.png",
-    details: "Working with startups & SMBs. Building products from zero to one — ai, product, agents, workflows, integrations. Bootstrapped to 2M ARR.",
+    details: "Working with startups & SMBs. Industries involved: PE (M&A), Voice Agents in Healthcare, Home Services, Legal AI. Bootstrapped to 2M ARR.",
     photos: [] as string[],
   },
   {
