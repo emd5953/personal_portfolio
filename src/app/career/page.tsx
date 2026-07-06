@@ -136,7 +136,7 @@ function ClickQuip({ x, y, text }: { x: number; y: number; text: string }) {
 
 const experiences = [
   {
-    company: "THE REASONING COMPANY",
+    company: "Counter Labs, Inc",
     role: "Forward Deployed Engineer",
     period: "May 26' – Present",
     logo: "/assets/career/counterlogo.png",
