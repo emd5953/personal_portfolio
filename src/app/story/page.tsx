@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type CSSProperties, type ReactNode, type RefObject } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import gsap from "gsap";
 
 interface Thought {
   id: string; date: string; tag: string; title: string; preview: string;
@@ -11,23 +12,173 @@ interface TimelineEntry {
   id: string; period: string; title: string; description: string; tags: string[];
 }
 
-const fallbackThoughts: Thought[] = [
-  { id: "1", date: "jul 27, 2025", tag: "nostalgia", title: "flashbacks & reminiscing", preview: "3 am. i spent the night confused... do not trust your thoughts after 11pm." },
-  { id: "2", date: "mar 15, 2025", tag: "reflection", title: "the art of debugging life", preview: "sometimes fixing code is easier than fixing yourself." },
-  { id: "3", date: "mar 10, 2025", tag: "tech", title: "why i fell in love with react", preview: "it wasn't the syntax or the ecosystem. it was the moment i realized how components mirror life." },
-  { id: "4", date: "mar 8, 2025", tag: "life", title: "coffee shop chronicles", preview: "the best ideas come in the most unexpected places." },
-  { id: "5", date: "mar 5, 2025", tag: "journey", title: "from music to code", preview: "how i transitioned creativity from music, art & style to software development." },
-  { id: "6", date: "feb 28, 2025", tag: "code", title: "late night code sessions", preview: "when the world sleeps, the best code awakens." },
-];
+// ---- shared editor UI ----
+const labelStyle: CSSProperties = { display: "block", fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6, fontWeight: 600 };
+const inputBase: CSSProperties = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 13px", fontSize: 14, color: "var(--color-text)", width: "100%", outline: "none", fontFamily: "inherit", transition: "border-color 0.2s, background 0.2s", boxSizing: "border-box" };
 
-const fallbackTimeline: TimelineEntry[] = [
-  { id: "1", period: "2021 – present", title: "the developer era", description: "diving deep into code, building projects, and discovering my passion for creating digital experiences.", tags: ["learning", "building", "growing"] },
-  { id: "2", period: "2019 – 2021", title: "the discovery phase", description: "exploring different paths, trying new things, and slowly gravitating towards technology.", tags: ["exploration", "first code", "curiosity"] },
-  { id: "3", period: "2017 – 2019", title: "the foundation years", description: "high school adventures, forming friendships that still matter today.", tags: ["friendship", "growth", "foundation"] },
-  { id: "4", period: "early years", title: "the beginning", description: "where it all started. building with legos, taking apart electronics.", tags: ["curiosity", "wonder", "beginning"] },
-];
+function focusOn(e: { currentTarget: HTMLElement }) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }
+function focusOff(e: { currentTarget: HTMLElement }) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }
+
+function Field({ label, value, onChange, placeholder, type, rows, onEnter, autoFocus }: {
+  label?: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; rows?: number; onEnter?: () => void; autoFocus?: boolean;
+}) {
+  const control = rows ? (
+    <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} onFocus={focusOn} onBlur={focusOff} style={{ ...inputBase, fontSize: 13, lineHeight: 1.7, resize: "none" }} />
+  ) : (
+    <input type={type || "text"} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoFocus={autoFocus} onKeyDown={onEnter ? (e) => e.key === "Enter" && onEnter() : undefined} onFocus={focusOn} onBlur={focusOff} style={inputBase} />
+  );
+  return <label style={{ display: "block", marginBottom: 14 }}>{label && <span style={labelStyle}>{label}</span>}{control}</label>;
+}
+
+function PrimaryBtn({ children, onClick, full }: { children: ReactNode; onClick: () => void; full?: boolean }) {
+  return <button onClick={onClick} style={{ width: full ? "100%" : "auto", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: full ? "11px 0" : "10px 26px", fontSize: 11, color: "rgba(255,255,255,0.9)", cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontWeight: 600, transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}>{children}</button>;
+}
+
+function GhostBtn({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return <button onClick={onClick} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "10px 22px", fontSize: 11, color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontWeight: 600, transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.8)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.4)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}>{children}</button>;
+}
+
+const panelStyle: CSSProperties = { background: "rgba(14,17,20,0.55)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: 24, backdropFilter: "blur(20px)", textShadow: "none", boxShadow: "0 16px 50px rgba(0,0,0,0.35)" };
+const modalStyle: CSSProperties = { background: "rgba(12,15,18,0.92)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: 28, maxWidth: 480, width: "100%", backdropFilter: "blur(24px)", boxShadow: "0 24px 80px rgba(0,0,0,0.5)" };
+const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 18, fontWeight: 600 };
+
+// ---- entry loading animation ----
+function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: RefObject<HTMLAudioElement | null> }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    const targetVol = 0.55;
+
+    // Try to autoplay; if blocked, start on the first user interaction.
+    // The preview src can arrive after mount, so also retry once the audio is ready.
+    let started = false;
+    const start = () => {
+      if (!audio || started) return;
+      started = true;
+      audio.volume = 0;
+      audio.play()
+        .then(() => gsap.to(audio, { volume: targetVol, duration: 2, ease: "power1.out" }))
+        .catch(() => { started = false; }); // allow a later attempt (e.g. user gesture)
+    };
+
+    if (audio) {
+      start();
+      audio.addEventListener("canplay", start);
+      window.addEventListener("pointerdown", start);
+      window.addEventListener("keydown", start);
+    }
+
+    const ctx = gsap.context(() => {
+      gsap.set([".ls-eyebrow", ".ls-title", ".ls-song", ".ls-barwrap"], { opacity: 0, y: 20 });
+      gsap.set(barRef.current, { width: 0 });
+      gsap.set(rootRef.current, { yPercent: 0 });
+
+      const tl = gsap.timeline({ onComplete: onDone });
+      tl.to(".ls-eyebrow", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" })
+        .to(".ls-title", { y: 0, opacity: 1, duration: 1, ease: "power4.out" }, "-=0.35")
+        .to(".ls-song", { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.55")
+        .to(".ls-barwrap", { y: 0, opacity: 1, duration: 0.5 }, "-=0.4")
+        .to(barRef.current, { width: "100%", duration: 3.2, ease: "power1.inOut" }, "-=0.2")
+        .to(".ls-content", { opacity: 0, y: -24, duration: 0.6, ease: "power2.in" }, "+=0.15")
+        .to(rootRef.current, { yPercent: -100, duration: 0.95, ease: "power4.inOut" }, "-=0.25");
+    }, rootRef);
+
+    return () => {
+      ctx.revert();
+      if (audio) audio.removeEventListener("canplay", start);
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
+  }, [onDone]);
+
+  return (
+    <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: 100000, background: "#070809", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <div className="ls-content" style={{ width: "100%", maxWidth: 520, padding: "0 32px", textAlign: "left" }}>
+        <p className="ls-eyebrow" style={{ fontSize: 10, letterSpacing: 5, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 18, fontWeight: 600 }}>now playing</p>
+        <h1 className="ls-title font-display" style={{ fontSize: "clamp(2.4rem, 7vw, 4rem)", fontWeight: 700, letterSpacing: "-2px", lineHeight: 0.95, color: "#f2f2f0", margin: 0 }}>the story</h1>
+        <p className="ls-song" style={{ marginTop: 20, fontSize: 14, color: "rgba(255,255,255,0.6)" }}>
+          bria&apos;s interlude
+        </p>
+        <div className="ls-barwrap" style={{ marginTop: 34, height: 2, width: "100%", background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+          <div ref={barRef} style={{ width: 0, height: "100%", background: "rgba(255,255,255,0.85)" }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- intro track (local audio, fully controllable) ----
+const INTRO_TRACK = { src: "/assets/story/brias_interlude.mp3" };
+
+// ---- persistent music player (button only) ----
+function MusicPlayer({ audioRef }: { audioRef: RefObject<HTMLAudioElement | null> }) {
+  const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.55);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => setPlaying(false);
+    const onVol = () => setVolume(audio.volume);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("volumechange", onVol);
+    setPlaying(!audio.paused);
+    setVolume(audio.volume);
+    return () => {
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("volumechange", onVol);
+    };
+  }, [audioRef]);
+
+  const toggle = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
+  };
+  const setVol = (v: number) => { const a = audioRef.current; if (a) a.volume = v; setVolume(v); };
+
+  return (
+    <div style={{
+      position: "fixed", top: 56, right: 20, zIndex: 9000,
+      display: "flex", alignItems: "center", gap: 12,
+      background: "rgba(12,15,18,0.72)", border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 24, padding: "6px 14px 6px 6px", backdropFilter: "blur(20px)",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.45)", textShadow: "none",
+    }}>
+      <button onClick={toggle} aria-label={playing ? "pause" : "play"} style={{
+        width: 40, height: 40, flexShrink: 0, borderRadius: "50%",
+        background: "rgba(255,255,255,0.9)", border: "none", cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", color: "#0c0f12",
+      }}>
+        {playing ? (
+          <svg width="14" height="14" viewBox="0 0 12 12"><rect x="1.5" y="1" width="3" height="10" rx="1" /><rect x="7.5" y="1" width="3" height="10" rx="1" /></svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 12 12"><path d="M2.5 1.2 L10.5 6 L2.5 10.8 Z" /></svg>
+        )}
+      </button>
+      <input type="range" min={0} max={1} step={0.01} value={volume} aria-label="volume"
+        onChange={(e) => setVol(Number(e.target.value))}
+        style={{
+          width: 80, height: 3, appearance: "none", WebkitAppearance: "none", borderRadius: 2,
+          background: `linear-gradient(to right, rgba(255,255,255,0.85) ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
+          cursor: "pointer", outline: "none",
+        }} />
+    </div>
+  );
+}
 
 export default function StoryPage() {
+  const [loading, setLoading] = useState(true);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
@@ -96,19 +247,17 @@ export default function StoryPage() {
     if (res.success) setTimeline((prev) => prev.filter((t) => t.id !== id));
   };
   const heroBgMedia = [
-    "/assets/story/qatarcafe.jpg",
-    "/assets/story/gala.jpg",
+    "/assets/story/bg8.mp4",
+    "/assets/story/bg1.mp4",
     "/assets/story/2.jpg",
     "/assets/story/3.jpg",
-    "/assets/story/bg1.mp4",
-    "/assets/story/bg8.mp4",
-    "/assets/philly2.jpg",
+    "/assets/story/qatarcafe.jpg",
+    "/assets/story/philly2.JPG",
+    "/assets/story/gala.jpg",
   ];
+  const IMAGE_DURATION = 7000; // how long each still image is shown
   const [heroBgIndex, setHeroBgIndex] = useState(0);
-
-  useEffect(() => {
-    setHeroBgIndex(Math.floor(Math.random() * heroBgMedia.length));
-  }, [heroBgMedia.length]);
+  const heroVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
     fetch("/api/content?type=thoughts").then((r) => r.json()).then((d) => { if (d.success && d.data.length) setThoughts(d.data); }).catch(() => {});
@@ -118,16 +267,28 @@ export default function StoryPage() {
     }).catch(() => {});
   }, []);
 
+  // Sequential background: videos play to the end, images hold for IMAGE_DURATION, then loop.
   useEffect(() => {
-    const interval = setInterval(() => {
-      setHeroBgIndex((prev) => {
-        let next;
-        do { next = Math.floor(Math.random() * heroBgMedia.length); } while (next === prev && heroBgMedia.length > 1);
-        return next;
-      });
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [heroBgMedia.length]);
+    const advance = () => setHeroBgIndex((prev) => (prev + 1) % heroBgMedia.length);
+    const isVideo = heroBgMedia[heroBgIndex].endsWith(".mp4");
+
+    if (isVideo) {
+      const video = heroVideoRefs.current[heroBgIndex];
+      if (video) {
+        try { video.currentTime = 0; } catch {}
+        video.play().catch(() => {});
+        video.onended = advance;
+        // Safety net in case "ended" never fires (e.g. load error).
+        const safety = setTimeout(advance, 30000);
+        return () => { video.onended = null; clearTimeout(safety); };
+      }
+      const t = setTimeout(advance, 12000);
+      return () => clearTimeout(t);
+    }
+
+    const t = setTimeout(advance, IMAGE_DURATION);
+    return () => clearTimeout(t);
+  }, [heroBgIndex, heroBgMedia.length]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -140,11 +301,14 @@ export default function StoryPage() {
 
   const ref = (id: string) => (el: HTMLElement | null) => { if (el) sectionRefs.current.set(id, el); };
   const vis = (id: string) => visibleSections.has(id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8";
-  const displayThoughts = thoughts.length ? thoughts : fallbackThoughts;
-  const displayTimeline = timeline.length ? timeline : fallbackTimeline;
+  const displayThoughts = thoughts;
+  const displayTimeline = timeline;
 
   return (
     <>
+      <audio ref={audioRef} src={INTRO_TRACK.src} preload="auto" />
+      {loading && <LoadingScreen onDone={() => setLoading(false)} audioRef={audioRef} />}
+      {!loading && <MusicPlayer audioRef={audioRef} />}
       <div className="grain" />
       <nav className="site-nav">
         <Link href="/" className="font-display text-[16px] font-semibold text-white no-underline tracking-tight">enrin</Link>
@@ -163,11 +327,11 @@ export default function StoryPage() {
           return isVideo ? (
             <video
               key={src}
+              ref={(el) => { heroVideoRefs.current[i] = el; }}
               src={src}
-              autoPlay
-              loop
               muted
               playsInline
+              preload="auto"
               style={{
                 position: "absolute", inset: 0, width: "100%", height: "100%",
                 objectFit: "cover", objectPosition: "center 72%",
@@ -196,7 +360,7 @@ export default function StoryPage() {
         })}
       </div>
 
-      <section className="h-[55vh] relative flex items-end pb-20 px-6 md:px-16 max-md:h-[58vh] max-md:pb-14">
+      <section className="h-[42vh] relative flex items-end pb-12 px-6 md:px-16 max-md:h-[48vh] max-md:pb-14">
         <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · music · timeline</p>
           <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
@@ -204,12 +368,12 @@ export default function StoryPage() {
       </section>
 
       {/* SOUNDS */}
-      <section id="sounds" ref={ref("sounds")} style={{ paddingTop: 90, paddingBottom: 90 }} className={`relative px-6 md:px-16 mt-24 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("sounds")}`}>
+      <section id="sounds" ref={ref("sounds")} style={{ paddingTop: 56, paddingBottom: 40 }} className={`relative px-6 md:px-16 mt-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("sounds")}`}>
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10">sounds</h2>
 
           {/* Current track */}
-          <div className="border border-border rounded-lg p-4 md:p-6 max-w-full md:max-w-[550px] mb-14">
+          <div className="border border-border rounded-lg p-4 md:p-6 max-w-full md:max-w-[550px] mb-24">
             <p className="text-[10px] tracking-[2px] text-text-mid uppercase font-medium mb-3">
               {spotifyData?.playedAt ? <>last played <span className="text-text-mid font-normal">({new Date(spotifyData.playedAt).toLocaleTimeString()})</span></> : "today's most played"}
             </p>
@@ -226,11 +390,12 @@ export default function StoryPage() {
           {/* Playlists */}
           {spotifyData?.playlists && spotifyData.playlists.length > 0 && (
             <>
-              <p className="text-text-mid text-xs tracking-[2px] uppercase font-medium mb-6">featured playlists today</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12 max-w-[900px]">
+              <div style={{ height: 36 }} />
+              <p className="text-text-mid text-xs tracking-[2px] uppercase font-medium mb-14">featured playlists today</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8 max-w-[900px]">
                 {spotifyData.playlists.map((p) => (
-                  <div key={p.id}>
-                    <iframe style={{ borderRadius: 8, display: "block" }} src={`https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0`} width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+                  <div key={p.id} className="rounded-xl overflow-hidden">
+                    <iframe style={{ borderRadius: 12, display: "block" }} src={`https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0`} width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
                   </div>
                 ))}
               </div>
@@ -240,25 +405,25 @@ export default function StoryPage() {
       </section>
 
       {/* ART */}
-      <section id="art" ref={ref("art")} style={{ paddingTop: 90, paddingBottom: 90 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("art")}`}>
+      <section id="art" ref={ref("art")} style={{ paddingTop: 40, paddingBottom: 48 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("art")}`}>
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10">music</h2>
 
           {/* Song covers */}
-          <div className="relative w-full max-w-full md:max-w-[600px] rounded-2xl overflow-hidden" style={{ marginBottom: 100 }}>
+          <div className="relative w-full max-w-full md:max-w-[610px] rounded-2xl overflow-hidden" style={{ marginBottom: 56 }}>
             <img src="/assets/songCover.jpg" alt="Main song cover" className="w-full block rounded-2xl" />
-            <div className="absolute inset-0 flex justify-between items-start p-10 max-md:hidden">
-              <div className="max-w-[150px] self-end text-center">
-                <img src="/assets/song1.jpg" alt="Song cover 1" className="w-full rounded-xl shadow-2xl hover:scale-[1.3] transition-transform duration-300" />
+            <div className="absolute inset-0 flex justify-between items-start p-8 max-md:hidden">
+              <div className="max-w-[175px] self-end text-center">
+                <img src="/assets/song1.jpg" alt="Song cover 1" className="w-full rounded-xl shadow-2xl hover:scale-[1.2] transition-transform duration-300" />
               </div>
-              <div className="max-w-[150px] text-center">
-                <img src="/assets/song2.jpg" alt="Song cover 2" className="w-full rounded-xl shadow-2xl hover:scale-[1.3] transition-transform duration-300" />
+              <div className="max-w-[175px] text-center">
+                <img src="/assets/song2.jpg" alt="Song cover 2" className="w-full rounded-xl shadow-2xl hover:scale-[1.2] transition-transform duration-300" />
               </div>
             </div>
           </div>
 
           {/* Additional images */}
-          <div className="grid grid-cols-2 max-w-[560px] max-md:grid-cols-1 max-md:max-w-[250px]" style={{ gap: 80, marginBottom: 100 }}>
+          <div className="grid grid-cols-2 max-w-[620px] max-md:grid-cols-1 max-md:max-w-[280px]" style={{ gap: 56, marginBottom: 56 }}>
             {[{ src: "topAlbums.PNG", cap: "top albums" }, { src: "topSongs.PNG", cap: "top songs" }].map((item) => (
               <div key={item.src} className="text-center">
                 <img src={`/assets/${item.src}`} alt={item.cap} className="w-full rounded-xl shadow-lg hover:scale-105 transition-transform duration-300" />
@@ -274,20 +439,20 @@ export default function StoryPage() {
       </section>
 
       {/* THOUGHTS */}
-      <section id="thoughts" ref={ref("thoughts")} style={{ paddingTop: 90, paddingBottom: 90 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("thoughts")}`}>
+      <section id="thoughts" ref={ref("thoughts")} style={{ paddingTop: 56, paddingBottom: 56 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("thoughts")}`}>
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">thoughts</h2>
 
           {editMode && (
-            <div className="mb-10 p-7 rounded-[28px] backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textShadow: "none", boxShadow: "0 12px 48px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-              <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 20 }}>💭 new thought</p>
-              <input value={newThought.title} onChange={(e) => setNewThought({ ...newThought, title: e.target.value })} placeholder="title" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 14, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", fontFamily: "inherit" }} />
-              <textarea value={newThought.preview} onChange={(e) => setNewThought({ ...newThought, preview: e.target.value })} placeholder="what's on your mind..." rows={3} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
-              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-                <input value={newThought.tag} onChange={(e) => setNewThought({ ...newThought, tag: e.target.value })} placeholder="tag" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
-                <input value={newThought.date} onChange={(e) => setNewThought({ ...newThought, date: e.target.value })} placeholder="date (e.g. apr 27, 2026)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+            <div className="max-w-[560px]" style={{ ...panelStyle, marginTop: 28, marginBottom: 56 }}>
+              <p style={eyebrow}>new thought</p>
+              <Field label="title" value={newThought.title} onChange={(v) => setNewThought({ ...newThought, title: v })} placeholder="a short title" />
+              <Field label="thought" value={newThought.preview} onChange={(v) => setNewThought({ ...newThought, preview: v })} placeholder="what's on your mind..." rows={3} />
+              <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ flex: 1 }}><Field label="tag" value={newThought.tag} onChange={(v) => setNewThought({ ...newThought, tag: v })} placeholder="reflection" /></div>
+                <div style={{ flex: 1 }}><Field label="date" value={newThought.date} onChange={(v) => setNewThought({ ...newThought, date: v })} placeholder="apr 27, 2026" /></div>
               </div>
-              <button onClick={addThought} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "8px 28px", fontSize: 11, color: "rgba(255,255,255,0.6)", cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.9)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}>add</button>
+              <div style={{ marginTop: 4 }}><PrimaryBtn onClick={addThought}>add thought</PrimaryBtn></div>
             </div>
           )}
 
@@ -313,27 +478,27 @@ export default function StoryPage() {
       </section>
 
       {/* TIMELINE */}
-      <section id="timeline" ref={ref("timeline")} style={{ paddingTop: 90, paddingBottom: 90 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("timeline")}`}>
+      <section id="timeline" ref={ref("timeline")} style={{ paddingTop: 56, paddingBottom: 56 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("timeline")}`}>
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">timeline</h2>
 
           {editMode && (
-            <div className="mb-10 p-7 rounded-[28px] backdrop-blur-xl max-w-[800px] mx-auto" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textShadow: "none", boxShadow: "0 12px 48px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-              <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 20 }}>💭 new chapter</p>
-              <input value={newTimeline.title} onChange={(e) => setNewTimeline({ ...newTimeline, title: e.target.value })} placeholder="title" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 14, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", fontFamily: "inherit" }} />
-              <textarea value={newTimeline.description} onChange={(e) => setNewTimeline({ ...newTimeline, description: e.target.value })} placeholder="description" rows={3} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "12px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 10, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
-              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-                <input value={newTimeline.period} onChange={(e) => setNewTimeline({ ...newTimeline, period: e.target.value })} placeholder="period (e.g. 2024 - present)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
-                <input value={newTimeline.tags} onChange={(e) => setNewTimeline({ ...newTimeline, tags: e.target.value })} placeholder="tags (comma separated)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+            <div className="max-w-[560px] mx-auto" style={{ ...panelStyle, marginTop: 28, marginBottom: 56 }}>
+              <p style={eyebrow}>new chapter</p>
+              <Field label="title" value={newTimeline.title} onChange={(v) => setNewTimeline({ ...newTimeline, title: v })} placeholder="the developer era" />
+              <Field label="description" value={newTimeline.description} onChange={(v) => setNewTimeline({ ...newTimeline, description: v })} placeholder="what happened in this chapter..." rows={3} />
+              <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ flex: 1 }}><Field label="period" value={newTimeline.period} onChange={(v) => setNewTimeline({ ...newTimeline, period: v })} placeholder="2024 - present" /></div>
+                <div style={{ flex: 1 }}><Field label="tags" value={newTimeline.tags} onChange={(v) => setNewTimeline({ ...newTimeline, tags: v })} placeholder="learning, building" /></div>
               </div>
-              <button onClick={addTimeline} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "8px 28px", fontSize: 11, color: "rgba(255,255,255,0.6)", cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.9)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}>add</button>
+              <div style={{ marginTop: 4 }}><PrimaryBtn onClick={addTimeline}>add chapter</PrimaryBtn></div>
             </div>
           )}
 
           <div className="max-w-[800px] mx-auto relative">
             <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-border" />
             {displayTimeline.map((entry) => (
-              <div key={entry.id} className="flex gap-8 relative max-md:gap-5" style={{ marginBottom: 90 }}>
+              <div key={entry.id} className="flex gap-8 relative max-md:gap-5" style={{ marginBottom: 48 }}>
                 <div className="w-3 h-3 bg-text-dim border-[3px] border-bg rounded-full shrink-0 mt-2 z-10 relative" />
                 <div className="flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 hover:translate-x-2 transition-all duration-300 cursor-pointer relative group">
                   {editMode && (
@@ -358,11 +523,11 @@ export default function StoryPage() {
       {/* LOGIN MODAL */}
       {showLogin && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-lg" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setShowLogin(false)}>
-          <div className="backdrop-blur-2xl" style={{ background: "rgba(10, 13, 15, 0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 28, padding: 36, maxWidth: 360, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
-            <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>🔒 authenticate</p>
-            <input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="password" autoFocus style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 14, color: "var(--color-text)", width: "100%", marginBottom: 14, outline: "none", fontFamily: "inherit" }} />
-            {authError && <p style={{ color: "#f87171", fontSize: 12, marginBottom: 14 }}>{authError}</p>}
-            <button onClick={handleLogin} style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "11px 0", fontSize: 12, color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 2, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}>unlock</button>
+          <div style={{ ...modalStyle, maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
+            <p style={eyebrow}>authenticate</p>
+            <Field type="password" value={editPassword} onChange={setEditPassword} onEnter={handleLogin} placeholder="password" autoFocus />
+            {authError && <p style={{ color: "#f87171", fontSize: 12, marginBottom: 14, marginTop: -4 }}>{authError}</p>}
+            <PrimaryBtn onClick={handleLogin} full>unlock</PrimaryBtn>
           </div>
         </div>
       )}
@@ -370,17 +535,17 @@ export default function StoryPage() {
       {/* EDIT THOUGHT MODAL */}
       {editingThought && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-lg" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setEditingThought(null)}>
-          <div className="backdrop-blur-2xl" style={{ background: "rgba(10, 13, 15, 0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 28, padding: 36, maxWidth: 500, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
-            <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>💭 edit thought</p>
-            <input value={editingThought.title} onChange={(e) => setEditingThought({ ...editingThought, title: e.target.value })} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 15, fontWeight: 600, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", fontFamily: "inherit" }} />
-            <textarea value={editingThought.preview} onChange={(e) => setEditingThought({ ...editingThought, preview: e.target.value })} rows={4} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
-            <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
-              <input value={editingThought.tag} onChange={(e) => setEditingThought({ ...editingThought, tag: e.target.value })} placeholder="tag" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
-              <input value={editingThought.date} onChange={(e) => setEditingThought({ ...editingThought, date: e.target.value })} placeholder="date" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <p style={eyebrow}>edit thought</p>
+            <Field label="title" value={editingThought.title} onChange={(v) => setEditingThought({ ...editingThought, title: v })} />
+            <Field label="thought" value={editingThought.preview} onChange={(v) => setEditingThought({ ...editingThought, preview: v })} rows={4} />
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1 }}><Field label="tag" value={editingThought.tag} onChange={(v) => setEditingThought({ ...editingThought, tag: v })} /></div>
+              <div style={{ flex: 1 }}><Field label="date" value={editingThought.date} onChange={(v) => setEditingThought({ ...editingThought, date: v })} /></div>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={updateThought} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "10px 0", fontSize: 12, color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}>save</button>
-              <button onClick={() => setEditingThought(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "10px 24px", fontSize: 12, color: "rgba(255,255,255,0.35)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}>cancel</button>
+            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+              <div style={{ flex: 1 }}><PrimaryBtn onClick={updateThought} full>save</PrimaryBtn></div>
+              <GhostBtn onClick={() => setEditingThought(null)}>cancel</GhostBtn>
             </div>
           </div>
         </div>
@@ -389,17 +554,17 @@ export default function StoryPage() {
       {/* EDIT TIMELINE MODAL */}
       {editingTimeline && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-lg" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setEditingTimeline(null)}>
-          <div className="backdrop-blur-2xl" style={{ background: "rgba(10, 13, 15, 0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 28, padding: 36, maxWidth: 500, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
-            <p style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>💭 edit chapter</p>
-            <input value={editingTimeline.title} onChange={(e) => setEditingTimeline({ ...editingTimeline, title: e.target.value })} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 15, fontWeight: 600, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", fontFamily: "inherit" }} />
-            <textarea value={editingTimeline.description} onChange={(e) => setEditingTimeline({ ...editingTimeline, description: e.target.value })} rows={4} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "14px 18px", fontSize: 13, color: "var(--color-text)", width: "100%", marginBottom: 12, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.7 }} />
-            <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
-              <input value={editingTimeline.period} onChange={(e) => setEditingTimeline({ ...editingTimeline, period: e.target.value })} placeholder="period" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
-              <input value={editingTimeline.tags.join(", ")} onChange={(e) => setEditingTimeline({ ...editingTimeline, tags: e.target.value.split(",").map((t) => t.trim()) })} placeholder="tags (comma separated)" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "10px 18px", fontSize: 13, color: "var(--color-text)", flex: 1, outline: "none" }} />
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <p style={eyebrow}>edit chapter</p>
+            <Field label="title" value={editingTimeline.title} onChange={(v) => setEditingTimeline({ ...editingTimeline, title: v })} />
+            <Field label="description" value={editingTimeline.description} onChange={(v) => setEditingTimeline({ ...editingTimeline, description: v })} rows={4} />
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1 }}><Field label="period" value={editingTimeline.period} onChange={(v) => setEditingTimeline({ ...editingTimeline, period: v })} /></div>
+              <div style={{ flex: 1 }}><Field label="tags" value={editingTimeline.tags.join(", ")} onChange={(v) => setEditingTimeline({ ...editingTimeline, tags: v.split(",").map((t) => t.trim()) })} /></div>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={updateTimeline} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "10px 0", fontSize: 12, color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}>save</button>
-              <button onClick={() => setEditingTimeline(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "10px 24px", fontSize: 12, color: "rgba(255,255,255,0.35)", cursor: "pointer", transition: "all 0.3s", letterSpacing: 1, textTransform: "uppercase" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}>cancel</button>
+            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+              <div style={{ flex: 1 }}><PrimaryBtn onClick={updateTimeline} full>save</PrimaryBtn></div>
+              <GhostBtn onClick={() => setEditingTimeline(null)}>cancel</GhostBtn>
             </div>
           </div>
         </div>
@@ -410,7 +575,7 @@ export default function StoryPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
           <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-            <button onClick={() => { if (isAuthed) { setEditMode(!editMode); } else { setShowLogin(true); } }} style={{ fontSize: 11, color: editMode ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.15)", background: "none", border: "none", cursor: "pointer", transition: "color 0.3s" }}>{editMode ? "exit edit" : "✎"}</button>
+            <button onClick={() => { if (isAuthed) { setEditMode(!editMode); } else { setShowLogin(true); } }} style={{ fontSize: 12, color: editMode ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.4)", background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 16, padding: "4px 14px", cursor: "pointer", transition: "color 0.3s, border-color 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.85)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = editMode ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.4)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}>{editMode ? "exit edit" : "✎ edit"}</button>
             {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/art", label: "art" }].map((l) => (
               <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
             ))}

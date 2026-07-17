@@ -25,6 +25,26 @@ export async function getSpotifyData() {
   if (!userResponse.ok) throw new Error(`User profile fetch failed: ${userResponse.status}`);
   const { id: userId } = await userResponse.json();
 
+  // Look up the intro/player track so we can use its 30s preview clip.
+  let introTrack: { name: string; artist: string; previewUrl: string | null; image?: string; trackId: string } | null = null;
+  const introQuery = encodeURIComponent("Summer's Over Interlude Drake");
+  const searchResponse = await fetch(`https://api.spotify.com/v1/search?q=${introQuery}&type=track&limit=1`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (searchResponse.ok) {
+    const searchData = await searchResponse.json();
+    const t = searchData.tracks?.items?.[0];
+    if (t) {
+      introTrack = {
+        name: t.name,
+        artist: (t.artists || []).map((a: { name: string }) => a.name).join(", "),
+        previewUrl: t.preview_url ?? null,
+        image: t.album?.images?.[0]?.url,
+        trackId: t.id,
+      };
+    }
+  }
+
   const firstResponse = await fetch("https://api.spotify.com/v1/me/player/recently-played?limit=50", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -113,5 +133,5 @@ export async function getSpotifyData() {
     }));
   }
 
-  return { lastPlayed, mostPlayedToday, randomPlaylists, playlistsCount: randomPlaylists.length, lastUpdated: new Date().toISOString(), date: new Date().toDateString() };
+  return { lastPlayed, mostPlayedToday, randomPlaylists, introTrack, playlistsCount: randomPlaylists.length, lastUpdated: new Date().toISOString(), date: new Date().toDateString() };
 }

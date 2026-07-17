@@ -5,7 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import "./landing.css";
 
-const heroImages = Array.from({ length: 10 }, (_, i) => `/assets/landing/${i + 1}.jpg`);
+const heroImages = Array.from({ length: 10 }, (_, i) => `/assets/landing/${i + 1}.${i + 1 === 6 ? "png" : "jpg"}`);
 const heroPositions = [
   "center 20%", "center 20%", "center 20%", "20% 69%", "65% 55%",
   "50% 70%", "52% 43%", "center 20%", "center 20%", "center 20%",
