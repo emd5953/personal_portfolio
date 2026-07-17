@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import gsap from "gsap";
 import "./landing.css";
 
 const heroImages = Array.from({ length: 10 }, (_, i) => `/assets/landing/${i + 1}.jpg`);
@@ -10,17 +11,9 @@ const heroPositions = [
   "50% 70%", "52% 43%", "center 20%", "center 20%", "center 20%",
 ];
 
-const reelImages = [
-  "101_0310.JPG", "101_0351.JPEG",
-  "6438b6dd-efc1-4111-b526-514d85313b19.JPG",
-  "8f4a1cf2-5864-4f53-a8fb-7e61c77dafb8.JPG",
-  "IMG_0477.jpg", "IMG_0532.jpg", "IMG_0550.jpg", "IMG_1210.jpg",
-  "IMG_6910.jpg", "IMG_6955.jpg", "IMG_7103.jpg", "IMG_7220.jpg",
-  "IMG_7581.jpg", "IMG_7769.JPG", "IMG_7838.jpg", "IMG_8363.JPG", "IMG_9498.JPG",
-  "IMG_9919.jpg", "a023b683-71c9-47c5-ac18-c4c693423a79.jpg",
-  "about-pic.jpg", "aboutme1.jpg", "aboutme2.jpg",
-  "song1.jpg", "song2.jpg", "songCover.jpg",
-  "philly1.jpg",
+const projects = [
+  { img: "/assets/career/aspot.png", title: "aSpot", tags: "tavily . next.js . supabase . resend ", desc: "AI itinerary platform giving you curated plans in minutes", href: "https://aspot-monolith.vercel.app" },
+  { img: "/assets/career/leaseIQ.png", title: "LeaseIQ", tags: "firecrawl · reducto . open router. render", desc: "Smart apartment hunting & lease analysis platform", href: "https://lease-iq.vercel.app/" },
 ];
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -36,23 +29,23 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [timeStr, setTimeStr] = useState("");
   const [easterEggVisible, setEasterEggVisible] = useState(false);
-  const [workHover, setWorkHover] = useState(false);
   const [realVisible, setRealVisible] = useState(false);
-  const [shuffledReel, setShuffledReel] = useState<string[]>([]);
   const [shuffledHero, setShuffledHero] = useState<{ src: string; pos: string }[]>(
     heroImages.map((src, i) => ({ src, pos: heroPositions[i] }))
   );
-  const reelRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
   const realRef = useRef<HTMLDivElement>(null);
+  const bannerArrowRef = useRef<HTMLSpanElement>(null);
 
-  // Shuffle reel + hero order on mount
+  const handleBannerEnter = useCallback(() => {
+    gsap.to(bannerArrowRef.current, { x: 14, duration: 0.6, ease: "back.out(4)" });
+  }, []);
+
+  const handleBannerLeave = useCallback(() => {
+    gsap.to(bannerArrowRef.current, { x: 0, duration: 0.5, ease: "power3.out" });
+  }, []);
+
+  // Shuffle hero order on mount
   useEffect(() => {
-    const shuffled = shuffleArray(reelImages);
-    // Offset the second copy so no identical image sits next to itself at the seam
-    const half = Math.floor(shuffled.length / 2);
-    const secondCopy = [...shuffled.slice(half), ...shuffled.slice(0, half)];
-    setShuffledReel([...shuffled, ...secondCopy]);
     setShuffledHero(shuffleArray(heroImages.map((src, i) => ({ src, pos: heroPositions[i] }))));
   }, []);
 
@@ -94,138 +87,6 @@ export default function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
-  // Reel drift + drag
-  useEffect(() => {
-    const reel = reelRef.current;
-    const track = trackRef.current;
-    if (!reel || !track) return;
-
-    let drifting = true;
-    let driftId: number;
-    let isDown = false;
-    let startX = 0;
-    let scrollStart = 0;
-    let velX = 0;
-    let lastX = 0;
-    let lastTime = 0;
-    let momentumId: number;
-
-    const r = reel;
-    const t = track;
-
-    function startDrift() {
-      drifting = true;
-      function step() {
-        if (!drifting) return;
-        r.scrollLeft += 0.4;
-        if (r.scrollLeft >= t.scrollWidth / 2) {
-          r.scrollLeft -= t.scrollWidth / 2;
-        }
-        driftId = requestAnimationFrame(step);
-      }
-      step();
-    }
-
-    function stopDrift() {
-      drifting = false;
-      cancelAnimationFrame(driftId);
-    }
-
-    startDrift();
-
-    const onMouseDown = (e: MouseEvent) => {
-      isDown = true;
-      stopDrift();
-      cancelAnimationFrame(momentumId);
-      startX = e.pageX;
-      scrollStart = r.scrollLeft;
-      lastX = e.pageX;
-      lastTime = Date.now();
-      velX = 0;
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDown) return;
-      e.preventDefault();
-      r.scrollLeft = scrollStart - (e.pageX - startX);
-      const now = Date.now();
-      const dt = now - lastTime;
-      if (dt > 0) velX = ((lastX - e.pageX) / dt) * 16;
-      lastX = e.pageX;
-      lastTime = now;
-    };
-
-    const onMouseUp = () => {
-      if (!isDown) return;
-      isDown = false;
-      applyMomentum();
-    };
-
-    const onTouchStart = (e: TouchEvent) => {
-      isDown = true;
-      stopDrift();
-      cancelAnimationFrame(momentumId);
-      startX = e.touches[0].pageX;
-      scrollStart = r.scrollLeft;
-      lastX = e.touches[0].pageX;
-      lastTime = Date.now();
-      velX = 0;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isDown) return;
-      const px = e.touches[0].pageX;
-      r.scrollLeft = scrollStart - (px - startX);
-      const now = Date.now();
-      const dt = now - lastTime;
-      if (dt > 0) velX = ((lastX - px) / dt) * 16;
-      lastX = px;
-      lastTime = now;
-    };
-
-    const onTouchEnd = () => {
-      if (!isDown) return;
-      isDown = false;
-      applyMomentum();
-    };
-
-    function applyMomentum() {
-      function step() {
-        velX *= 0.94;
-        r.scrollLeft += velX;
-        if (r.scrollLeft >= t.scrollWidth / 2) {
-          r.scrollLeft -= t.scrollWidth / 2;
-        } else if (r.scrollLeft <= 0) {
-          r.scrollLeft += t.scrollWidth / 2;
-        }
-        if (Math.abs(velX) > 0.3) {
-          momentumId = requestAnimationFrame(step);
-        } else {
-          startDrift();
-        }
-      }
-      step();
-    }
-
-    r.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    r.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
-    window.addEventListener("touchend", onTouchEnd);
-
-    return () => {
-      stopDrift();
-      cancelAnimationFrame(momentumId);
-      r.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-      r.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [shuffledReel]);
-
   const handleEasterEgg = useCallback(() => {
     if (!easterEggVisible) {
       setEasterEggVisible(true);
@@ -234,7 +95,7 @@ export default function LandingPage() {
   }, [easterEggVisible]);
 
   const titleLetters = "enrin".split("");
-  const subtitleText = "engineer / filmmaker / creative";
+  const subtitleText = "tech / film / art";
 
   return (
     <>
@@ -293,66 +154,56 @@ export default function LandingPage() {
               <img src="/assets/aboutme1.jpg" alt="Enrin" className="real-photo" />
             </div>
             <p className={`easter-egg ${easterEggVisible ? "show" : ""}`}>
-              matcha is overrated 
+              i know every brent & daniel caeser song word for word
             </p>
           </div>
           <div className="real-text-col">
             <p className="real-p real-big">
-              i&apos;m enrin. i write code for startups during the week and make short films on weekends.
+              intro
             </p>
             <p className="real-p">
-              right now i&apos;m a forward deployed engineer based in nyc — building products from zero to one. ai, product, agents, workflows, integrations the whole thing.
+              based in nyc, i work as a forward deployed engineer. naturally fell in the ai startup space and i seem to enjoy growing products from scratch
             </p>
             <p className="real-p">
-              before that i was a SWE lead, and also hacking at YC hackathons in SF, Stanford &amp; Columbia building AI tools. i graduated with a CS degree, an outstanding senior award and as an entrepreneur scholar.
+              things i enjoy building are consumer-focused apps, agentic systems & visuals that speak life.
             </p>
             <p className="real-p real-dim">
-              when i&apos;m not shipping code i&apos;m shooting film, playing guitar, hooping, or trying to catch golden hour before it disappears. i like r&amp;b, going out, and being outside. people say i&apos;m performative but i genuinely hate matcha.
+              i love film, fashion, sports, music. making sure to catch a sunset atleast once a week
             </p>
           </div>
         </div>
       </section>
 
       {/* WORK STRIP */}
-      <section
-        className="work-strip"
-        onMouseEnter={() => setWorkHover(true)}
-        onMouseLeave={() => setWorkHover(false)}
-      >
+      <section className="work-strip">
         <div className="work-banner-wrap">
-          <Link href="/career" className={`work-banner ${workHover ? "work-banner-hidden" : ""}`}>
-            <span className="work-banner-text">see what i&apos;ve been building →</span>
-            <span className="work-banner-sub">career · projects · experience</span>
+          <Link
+            href="/career"
+            className="work-banner"
+            onMouseEnter={handleBannerEnter}
+            onMouseLeave={handleBannerLeave}
+          >
+            <span className="work-banner-text">
+              recents <span ref={bannerArrowRef} className="work-banner-arrow">→</span>
+            </span>
+            <span className="work-banner-sub">what have i beeen upto?</span>
           </Link>
-          <div className={`work-projects ${workHover ? "work-projects-open" : ""}`}>
-            {[
-              { img: "/assets/career/curation.png", title: "aesthetic alchemist", tags: "multimodal ai · gcp", href: "https://aesthetic-alchemist-454548514001.us-west1.run.app" },
-              { img: "/assets/career/leaseIQ.png", title: "leaseiq", tags: "firecrawl · next.js", href: "https://lease-iq.vercel.app/" },
-              { img: "/assets/career/nextstep.png", title: "nextstep", tags: "react native · node", href: "https://nextstep4.com/" },
-              { img: "/assets/career/aspot2.jpg", title: "aspot", tags: "next.js · spring", href: "https://aspot-monolith.vercel.app" },
-            ].map((p, i) => (
-              <a key={p.title} href={p.href} target="_blank" rel="noopener noreferrer" className="work-card" style={{ transitionDelay: workHover ? `${i * 0.08}s` : "0s" }}>
-                <div className="work-card-img">
-                  <img src={p.img} alt={p.title} />
+        </div>
+        <div className="work-reel">
+          <div className="work-reel-track">
+            {projects.map((p) => (
+              <a key={p.title} href={p.href} target="_blank" rel="noopener noreferrer" className="work-card">
+                <div className="work-card-frame">
+                  <img src={p.img} alt={p.title} className="work-card-shot" />
                 </div>
                 <div className="work-card-info">
                   <span className="work-card-title">{p.title}</span>
                   <span className="work-card-tags">{p.tags}</span>
                 </div>
+                <p className="work-card-desc">{p.desc}</p>
               </a>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* PHOTO REEL */}
-      <section className="reel" ref={reelRef}>
-        <div className="reel-glow reel-glow-teal" />
-        <div className="reel-glow reel-glow-amber" />
-        <div className="reel-track" ref={trackRef}>
-          {shuffledReel.map((img, i) => (
-            <img key={`${img}-${i}`} src={`/assets/${img}`} alt="" loading="lazy" />
-          ))}
         </div>
       </section>
 
@@ -379,7 +230,7 @@ export default function LandingPage() {
             <a href="mailto:nrndbrma@gmail.com" aria-label="Email"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg></a>
           </div>
         </div>
-        <p className="end-copy">© 2025 enrinjr</p>
+        <p className="end-copy">© 2026 enrinjr</p>
       </section>
     </>
   );

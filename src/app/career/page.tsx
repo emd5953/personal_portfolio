@@ -154,8 +154,8 @@ const experiences = [
   },
   {
     company: "ALERVIO",
-    role: "Software Engineer",
-    period: "2025",
+    role: "Software Engineer Intern",
+    period: "25'",
     logo: "/assets/career/alervio_logo.jpeg",
     details: "Full Stack Lead for B2B/B2C product. Dealing with nutrition and restaurant data.",
     photos: [] as string[],
@@ -197,10 +197,8 @@ const educationRows = [
 ];
 
 const projectRows = [
-  { period: "2024", name: "AESTHETIC ALCHEMIST", detail: "Gemini 3.1 Pro · Veo 3.1", link: "https://aesthetic-alchemist-454548514001.us-west1.run.app", details: "Curation tool that transforms your everyday pictures into production-grade short form content.", photos: ["/assets/career/curation.png"] },
-  { period: "2024", name: "LEASEIQ", detail: "Firecrawl · ", link: "https://lease-iq.vercel.app/", details: "Smart lease analysis platform that crawls and breaks down rental agreements using AI.", photos: ["/assets/career/leaseIQ.png"] },
-  { period: "2024", name: "NEXTSTEP", detail: "React Native · Node", link: "https://nextstep4.com/", details: "Job matching platform w/ AI agent that applies to jobs for you.", photos: ["/assets/career/nextstep.png"] },
-  { period: "2024", name: "ASPOT", detail: "Next.js · Spring", link: "https://aspot-monolith.vercel.app", details: "AI Itinerary Generator giving you curated plans.", photos: ["/assets/career/aspot2.jpg"] },
+  { period: "2026", name: "aSpot", detail: "tavily . next.js . supabase . resend", link: "https://aspot-monolith.vercel.app", details: "AI itinerary platform giving you curated plans in minutes", photos: ["/assets/career/aspot.png"] },
+  { period: "2026", name: "LeaseIQ", detail: "firecrawl · reducto . open router. render", link: "https://lease-iq.vercel.app/", details: "Smart apartment hunting & lease analysis platform", photos: ["/assets/career/leaseIQ.png"] },
 ];
 
 function PhotoRow({ photos }: { photos: string[] }) {
@@ -264,7 +262,7 @@ function ProjectCards({ rows }: { rows: typeof projectRows }) {
               </div>
               <div style={{ padding: "12px 16px 16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: "var(--color-text)", margin: 0 }}>{row.name.charAt(0) + row.name.slice(1).toLowerCase()}</p>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: "var(--color-text)", margin: 0 }}>{row.name}</p>
                   <div style={{ display: "flex", gap: 6 }}>
                     {row.detail.split(" · ").map((tag) => (
                       <span key={tag} style={{ fontSize: 9, color: "var(--color-text-dim)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, padding: "1px 6px", textTransform: "uppercase", letterSpacing: 0.5 }}>{tag}</span>
