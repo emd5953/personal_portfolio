@@ -369,7 +369,7 @@ export default function StoryPage() {
 
       <section className="h-[42vh] relative flex items-end pb-12 px-6 md:px-16 max-md:h-[48vh] max-md:pb-14">
         <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-          <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">thoughts · sounds · music · timeline</p>
+          <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">sounds · music · thoughts . timeline</p>
           <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
         </div>
       </section>
