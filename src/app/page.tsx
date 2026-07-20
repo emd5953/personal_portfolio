@@ -148,13 +148,13 @@ export default function LandingPage() {
               intro
             </p>
             <p className="real-p">
-              based in nyc, i work as a forward deployed engineer. naturally fell in the ai startup space and i seem to enjoy growing products from scratch
+              based in nyc, im a product engineer. naturally fell in the ai startup space and i seem to enjoy growing products from scratch
             </p>
             <p className="real-p">
               things i enjoy building are consumer-focused apps, agentic systems & visuals that speak life.
             </p>
             <p className="real-p real-dim">
-              i love film, fashion, sports, music. making sure to catch a sunset atleast once a week
+              i love film, fashion, sports, music. a fein for views and sunsets, so youll most likely see me pondering often
             </p>
           </div>
         </div>

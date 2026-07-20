@@ -137,7 +137,7 @@ function ClickQuip({ x, y, text }: { x: number; y: number; text: string }) {
 const experiences = [
   {
     company: "Counter Labs, Inc",
-    role: "Forward Deployed Engineer",
+    role: "Product Engineer - Agents",
     period: "May 26' – Present",
     logo: "/assets/career/counterlogo.png",
     details: "AI agents for enterprises in NYC. Building ChefOS, the Operating System for Hospitality.",

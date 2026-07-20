@@ -45,7 +45,6 @@ const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: 3, textTransform: 
 // ---- entry loading animation ----
 function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: RefObject<HTMLAudioElement | null> }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
@@ -73,17 +72,36 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
     }
 
     const ctx = gsap.context(() => {
-      gsap.set([".ls-eyebrow", ".ls-title", ".ls-barwrap"], { opacity: 0, y: 20 });
-      gsap.set(barRef.current, { width: 0 });
+      const bars = gsap.utils.toArray<HTMLElement>(".ls-bar");
+      gsap.set(".ls-eq", { opacity: 0, scale: 0.7 });
+      gsap.set(".ls-ring", { opacity: 0, scale: 0.4 });
       gsap.set(rootRef.current, { yPercent: 0 });
 
-      const tl = gsap.timeline({ onComplete: () => onDoneRef.current() });
-      tl.to(".ls-eyebrow", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" })
-        .to(".ls-title", { y: 0, opacity: 1, duration: 1, ease: "power4.out" }, "-=0.35")
-        .to(".ls-barwrap", { y: 0, opacity: 1, duration: 0.5 }, "-=0.2")
-        .to(barRef.current, { width: "100%", duration: 3.2, ease: "power1.inOut" }, "-=0.2")
-        .to(".ls-content", { opacity: 0, y: -24, duration: 0.6, ease: "power2.in" }, "+=0.15")
-        .to(rootRef.current, { yPercent: -100, duration: 0.95, ease: "power4.inOut" }, "-=0.25");
+      // Infinite equalizer dance (music-reactive feel).
+      const dance = gsap.to(bars, {
+        scaleY: () => 0.28 + Math.random() * 1.5,
+        duration: 0.38,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        transformOrigin: "center bottom",
+        stagger: { each: 0.09, from: "center", repeat: -1, yoyo: true },
+      });
+
+      // Concentric rings pulsing outward.
+      const rings = gsap.fromTo(".ls-ring",
+        { scale: 0.4, opacity: 0.55 },
+        { scale: 1.7, opacity: 0, duration: 2, ease: "power1.out", repeat: -1, stagger: 0.5 }
+      );
+
+      const tl = gsap.timeline({
+        onComplete: () => { dance.kill(); rings.kill(); onDoneRef.current(); },
+      });
+      tl.to(".ls-eq", { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" })
+        .to({}, { duration: 3 }) // hold while the animation runs
+        .to(".ls-eq", { opacity: 0, scale: 0.8, duration: 0.5, ease: "power2.in" })
+        .to(".ls-ring", { opacity: 0, duration: 0.3 }, "<")
+        .to(rootRef.current, { yPercent: -100, duration: 0.95, ease: "power4.inOut" }, "-=0.1");
     }, rootRef);
 
     return () => {
@@ -97,11 +115,22 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
 
   return (
     <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: 100000, background: "#070809", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <div className="ls-content" style={{ width: "100%", maxWidth: 520, padding: "0 32px", textAlign: "left" }}>
-        <p className="ls-eyebrow" style={{ fontSize: 10, letterSpacing: 5, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 18, fontWeight: 600 }}>now playing</p>
-        <h1 className="ls-title font-display" style={{ fontSize: "clamp(2.4rem, 7vw, 4rem)", fontWeight: 700, letterSpacing: "-2px", lineHeight: 0.95, color: "#f2f2f0", margin: 0 }}>the story</h1>
-        <div className="ls-barwrap" style={{ marginTop: 34, height: 2, width: "100%", background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
-          <div ref={barRef} style={{ width: 0, height: "100%", background: "rgba(255,255,255,0.85)" }} />
+      <div style={{ position: "relative", width: 220, height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="ls-ring"
+            style={{ position: "absolute", width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.5)" }}
+          />
+        ))}
+        <div className="ls-eq" style={{ display: "flex", alignItems: "flex-end", gap: 7, height: 64 }}>
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className="ls-bar"
+              style={{ width: 6, height: 42, background: "#f2f2f0", borderRadius: 3 }}
+            />
+          ))}
         </div>
       </div>
     </div>
