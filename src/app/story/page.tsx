@@ -45,6 +45,7 @@ const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: 3, textTransform: 
 // ---- entry loading animation ----
 function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: RefObject<HTMLAudioElement | null> }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
@@ -71,32 +72,72 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
       window.addEventListener("keydown", start);
     }
 
+    // ---- waveform in a ring: a soft sine that breathes in amplitude ----
+    let raf = 0;
+    const canvas = canvasRef.current;
+    const cctx = canvas?.getContext("2d");
+
+    if (canvas && cctx) {
+      const dpr = window.devicePixelRatio || 1;
+      const S = 240;                 // square stage
+      const cx = S / 2, cy = S / 2;  // center
+      const R = S / 2 - 4;           // ring radius
+      const inset = 28;              // keep the wave clear of the ring
+      const x0 = cx - (R - inset), x1 = cx + (R - inset);
+      const span = x1 - x0;
+
+      canvas.width = S * dpr;
+      canvas.height = S * dpr;
+      canvas.style.width = `${S}px`;
+      canvas.style.height = `${S}px`;
+      cctx.scale(dpr, dpr);
+
+      let t = 0;
+      const render = () => {
+        cctx.clearRect(0, 0, S, S);
+
+        // enclosing ring
+        cctx.beginPath();
+        cctx.arc(cx, cy, R, 0, Math.PI * 2);
+        cctx.strokeStyle = "rgba(255,255,255,0.14)";
+        cctx.lineWidth = 1;
+        cctx.stroke();
+
+        // waveform: windowed sine, tapering to the centerline at both ends
+        const amp = 14 + Math.sin(t * 0.9) * 12;
+        cctx.beginPath();
+        for (let x = x0; x <= x1; x++) {
+          const p = (x - x0) / span;
+          const y = cy + Math.sin((x - x0) * 0.06 + t * 2.2) * amp * Math.sin(p * Math.PI);
+          x === x0 ? cctx.moveTo(x, y) : cctx.lineTo(x, y);
+        }
+        cctx.strokeStyle = "#f2f2f0";
+        cctx.lineWidth = 1.5;
+        cctx.stroke();
+
+        t += 0.016;
+        raf = requestAnimationFrame(render);
+      };
+      render();
+    }
+
     const ctx = gsap.context(() => {
-      gsap.set(".ls-dot", { opacity: 0, scale: 0.6 });
+      gsap.set(".ls-wave", { opacity: 0, scale: 0.94 });
       gsap.set(".ls-corner", { opacity: 0, y: 8 });
       gsap.set(rootRef.current, { yPercent: 0 });
 
-      // A single dot, gently breathing.
-      const breathe = gsap.to(".ls-dot", {
-        scale: 1.35,
-        opacity: 0.35,
-        duration: 0.9,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-      });
-
       const tl = gsap.timeline({
-        onComplete: () => { breathe.kill(); onDoneRef.current(); },
+        onComplete: () => { onDoneRef.current(); },
       });
-      tl.to(".ls-dot", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" })
-        .to(".ls-corner", { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.3")
+      tl.to(".ls-wave", { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" })
+        .to(".ls-corner", { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.4")
         .to({}, { duration: 2.6 }) // hold while it breathes
-        .to([".ls-dot", ".ls-corner"], { opacity: 0, duration: 0.4, ease: "power2.in" })
+        .to([".ls-wave", ".ls-corner"], { opacity: 0, duration: 0.4, ease: "power2.in" })
         .to(rootRef.current, { yPercent: -100, duration: 0.95, ease: "power4.inOut" }, "-=0.1");
     }, rootRef);
 
     return () => {
+      cancelAnimationFrame(raf);
       ctx.revert();
       if (audio) audio.removeEventListener("canplay", start);
       window.removeEventListener("pointerdown", start);
@@ -107,7 +148,7 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
 
   return (
     <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: 100000, background: "#070809", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <div className="ls-dot" style={{ width: 10, height: 10, borderRadius: "50%", background: "#f2f2f0" }} />
+      <canvas ref={canvasRef} className="ls-wave" style={{ display: "block" }} />
 
       <div className="ls-corner" style={{ position: "absolute", left: 40, bottom: 34, fontSize: 13, lineHeight: 1.6, color: "rgba(255,255,255,0.6)" }}>
         <div>brooklyn, ny</div>
