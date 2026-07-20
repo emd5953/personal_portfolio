@@ -72,35 +72,27 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
     }
 
     const ctx = gsap.context(() => {
-      const bars = gsap.utils.toArray<HTMLElement>(".ls-bar");
-      gsap.set(".ls-eq", { opacity: 0, scale: 0.7 });
-      gsap.set(".ls-ring", { opacity: 0, scale: 0.4 });
+      gsap.set(".ls-dot", { opacity: 0, scale: 0.6 });
+      gsap.set(".ls-corner", { opacity: 0, y: 8 });
       gsap.set(rootRef.current, { yPercent: 0 });
 
-      // Infinite equalizer dance (music-reactive feel).
-      const dance = gsap.to(bars, {
-        scaleY: () => 0.28 + Math.random() * 1.5,
-        duration: 0.38,
+      // A single dot, gently breathing.
+      const breathe = gsap.to(".ls-dot", {
+        scale: 1.35,
+        opacity: 0.35,
+        duration: 0.9,
         ease: "sine.inOut",
         repeat: -1,
         yoyo: true,
-        transformOrigin: "center bottom",
-        stagger: { each: 0.09, from: "center", repeat: -1, yoyo: true },
       });
-
-      // Concentric rings pulsing outward.
-      const rings = gsap.fromTo(".ls-ring",
-        { scale: 0.4, opacity: 0.55 },
-        { scale: 1.7, opacity: 0, duration: 2, ease: "power1.out", repeat: -1, stagger: 0.5 }
-      );
 
       const tl = gsap.timeline({
-        onComplete: () => { dance.kill(); rings.kill(); onDoneRef.current(); },
+        onComplete: () => { breathe.kill(); onDoneRef.current(); },
       });
-      tl.to(".ls-eq", { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" })
-        .to({}, { duration: 3 }) // hold while the animation runs
-        .to(".ls-eq", { opacity: 0, scale: 0.8, duration: 0.5, ease: "power2.in" })
-        .to(".ls-ring", { opacity: 0, duration: 0.3 }, "<")
+      tl.to(".ls-dot", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" })
+        .to(".ls-corner", { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.3")
+        .to({}, { duration: 2.6 }) // hold while it breathes
+        .to([".ls-dot", ".ls-corner"], { opacity: 0, duration: 0.4, ease: "power2.in" })
         .to(rootRef.current, { yPercent: -100, duration: 0.95, ease: "power4.inOut" }, "-=0.1");
     }, rootRef);
 
@@ -115,23 +107,13 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
 
   return (
     <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: 100000, background: "#070809", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <div style={{ position: "relative", width: 220, height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="ls-ring"
-            style={{ position: "absolute", width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.5)" }}
-          />
-        ))}
-        <div className="ls-eq" style={{ display: "flex", alignItems: "flex-end", gap: 7, height: 64 }}>
-          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="ls-bar"
-              style={{ width: 6, height: 42, background: "#f2f2f0", borderRadius: 3 }}
-            />
-          ))}
-        </div>
+      <div className="ls-dot" style={{ width: 10, height: 10, borderRadius: "50%", background: "#f2f2f0" }} />
+
+      <div className="ls-corner" style={{ position: "absolute", left: 40, bottom: 34, fontSize: 13, lineHeight: 1.6, color: "rgba(255,255,255,0.6)" }}>
+        <div>brooklyn, ny</div>
+      </div>
+      <div className="ls-corner" style={{ position: "absolute", right: 40, bottom: 34, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
+        [untitled]
       </div>
     </div>
   );
@@ -399,7 +381,7 @@ export default function StoryPage() {
       <section className="h-[42vh] relative flex items-end pb-12 px-6 md:px-16 max-md:h-[48vh] max-md:pb-14">
         <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">sounds · music · thoughts . timeline</p>
-          <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">the story</h1>
+          <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">story</h1>
         </div>
       </section>
 

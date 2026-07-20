@@ -1,7 +1,16 @@
 import { NextRequest } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { supabase } from "@/lib/supabase";
 
-const EDIT_PASSWORD = process.env.EDIT_PASSWORD || "enrin2025";
+const EDIT_PASSWORD = process.env.EDIT_PASSWORD;
+
+// Constant-time string compare so we never leak match length via timing.
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const LOCKOUT_MS = LOCKOUT_MINUTES * 60 * 1000;
@@ -40,8 +49,11 @@ function verifyPassword(request: NextRequest): { ok: boolean; error?: string; st
   const blocked = checkRateLimit(ip);
   if (blocked) return { ok: false, error: blocked, status: 429 };
 
-  const password = request.headers.get("authorization")?.replace("Bearer ", "") || null;
-  if (password !== EDIT_PASSWORD) {
+  // Fail closed if the server has no password configured.
+  if (!EDIT_PASSWORD) return { ok: false, error: "Editing is not configured.", status: 503 };
+
+  const password = request.headers.get("authorization")?.replace("Bearer ", "") || "";
+  if (!safeEqual(password, EDIT_PASSWORD)) {
     recordFailure(ip);
     const record = attempts.get(ip);
     const remaining = MAX_ATTEMPTS - (record?.count || 0);

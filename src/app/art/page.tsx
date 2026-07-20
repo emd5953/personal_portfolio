@@ -1,39 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type RefObject } from "react";
 import Link from "next/link";
 
+const BG_TRACK = "/assets/art/Brent Faiyaz - Came Right Back.mp3";
+
 const bgVideos = [
-  "/assets/videos/bg1.mp4",
-  "/assets/videos/bg2.mp4",
   "/assets/videos/bg3.mp4",
   "/assets/videos/bg4.mp4",
   "/assets/videos/bg5.mp4",
-  "/assets/videos/bg6.mp4",
+  "/assets/videos/bg2.mp4",
   "/assets/videos/bg7.mp4",
-  "/assets/videos/bg8.mp4",
 ];
 
 const films = [
   "/assets/videos/58d06fabc773491297f61d8d0cfe9204.mp4",
-  "/assets/videos/6c30d6c75ad443588c4b1f36987ebc0b.mp4",
-  "/assets/videos/6d17cf98e38047d092c98b07fe9cc8c8.mp4",
-  "/assets/videos/7107492014e14bcab8c6313d1307c97c.mp4",
   "/assets/videos/7c061707a4344326ab7762342310a400.mp4",
   "/assets/videos/850812c039434f97b74b340a741aecae.mp4",
   "/assets/videos/8f4b7b6364e34dd098ca2437a85761b8.mp4",
   "/assets/videos/aa0b829d83114f2cbc0b24b52213cd75.mp4",
-  "/assets/videos/c032cb96261947b9b9e4d5a58c50ebb6.mp4",
-  "/assets/videos/cd64ac014c84439ca6dceb61651b2557.mp4",
-  "/assets/videos/d636659e9c75487b9070cd85f32387ca.mp4",
-  "/assets/videos/d636659e9c75487b9070cd85f32387ca_2.mp4",
   "/assets/videos/f7e7f0990fbb4c3c8e470cc757c6681d.mp4",
   "/assets/videos/bg1.mp4",
   "/assets/videos/bg2.mp4",
   "/assets/videos/bg3.mp4",
   "/assets/videos/bg4.mp4",
   "/assets/videos/bg5.mp4",
-  "/assets/videos/bg6.mp4",
   "/assets/videos/bg7.mp4",
   "/assets/videos/bg8.mp4",
 ];
@@ -212,9 +203,106 @@ function FullPlayer({ src, onClose }: { src: string; onClose: () => void }) {
   );
 }
 
+// Art track is ~8.3 LU louder than the story track (-13.1 vs -21.4 LUFS),
+// so default lower to match the story page's perceived loudness at 0.55.
+function MusicPlayer({ audioRef }: { audioRef: RefObject<HTMLAudioElement | null> }) {
+  const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.21);
+
+  // Try to autoplay; if blocked, start on the first user interaction.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      audio.volume = volume;
+      audio.play().catch(() => { started = false; });
+    };
+    start();
+    window.addEventListener("pointerdown", start);
+    window.addEventListener("keydown", start);
+    return () => {
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioRef]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => setPlaying(false);
+    const onVol = () => setVolume(audio.volume);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("volumechange", onVol);
+    setPlaying(!audio.paused);
+    setVolume(audio.volume);
+    return () => {
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("volumechange", onVol);
+    };
+  }, [audioRef]);
+
+  const toggle = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
+  };
+  const setVol = (v: number) => { const a = audioRef.current; if (a) a.volume = v; setVolume(v); };
+
+  return (
+    <div style={{
+      position: "fixed", top: 56, right: 20, zIndex: 9000,
+      display: "flex", alignItems: "center", gap: 12, textShadow: "none",
+    }}>
+      <button onClick={toggle} aria-label={playing ? "pause" : "play"} style={{
+        width: 40, height: 40, flexShrink: 0, borderRadius: "50%",
+        background: "transparent", border: "none", cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", color: "#f2f2f0",
+      }}>
+        {playing ? (
+          <svg width="16" height="16" viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1" width="3" height="10" rx="1" /><rect x="7.5" y="1" width="3" height="10" rx="1" /></svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 12 12" fill="currentColor"><path d="M2.5 1.2 L10.5 6 L2.5 10.8 Z" /></svg>
+        )}
+      </button>
+      <style>{`
+        .vol-range::-webkit-slider-thumb {
+          -webkit-appearance: none; appearance: none;
+          width: 11px; height: 11px; border-radius: 50%;
+          background: #f2f2f0; border: none; cursor: pointer;
+        }
+        .vol-range::-moz-range-thumb {
+          width: 11px; height: 11px; border-radius: 50%;
+          background: #f2f2f0; border: none; cursor: pointer;
+        }
+      `}</style>
+      <input className="vol-range" type="range" min={0} max={1} step={0.01} value={volume} aria-label="volume"
+        onChange={(e) => setVol(Number(e.target.value))}
+        style={{
+          width: 80, height: 3, appearance: "none", WebkitAppearance: "none", borderRadius: 2,
+          background: `linear-gradient(to right, rgba(255,255,255,0.85) ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
+          cursor: "pointer", outline: "none",
+        }} />
+    </div>
+  );
+}
+
 export default function ArtPage() {
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [bgVideo, setBgVideo] = useState("");
-  const playedRef = useRef<Set<number>>(new Set());
+  const bgIndexRef = useRef(0);
+  const switchingRef = useRef(false);
+  const startedRef = useRef(false);
   const [shuffledFilms, setShuffledFilms] = useState<string[]>([]);
   const [playerSrc, setPlayerSrc] = useState<string | null>(null);
 
@@ -228,14 +316,23 @@ export default function ArtPage() {
   }, []);
 
   const pickNext = useCallback(() => {
-    if (playedRef.current.size >= bgVideos.length) playedRef.current.clear();
-    let idx: number;
-    do { idx = Math.floor(Math.random() * bgVideos.length); } while (playedRef.current.has(idx));
-    playedRef.current.add(idx);
-    setBgVideo(bgVideos[idx]);
+    switchingRef.current = false; // new video is now the current one
+    setBgVideo(bgVideos[bgIndexRef.current]);
+    bgIndexRef.current = (bgIndexRef.current + 1) % bgVideos.length;
   }, []);
 
-  useEffect(() => { pickNext(); }, [pickNext]);
+  // Guard against the flood of timeupdate/ended events advancing more than once per video.
+  const advanceBg = useCallback(() => {
+    if (switchingRef.current) return;
+    switchingRef.current = true;
+    pickNext();
+  }, [pickNext]);
+
+  useEffect(() => {
+    if (startedRef.current) return; // survive StrictMode's double-invoke in dev
+    startedRef.current = true;
+    pickNext();
+  }, [pickNext]);
 
   return (
     <>
@@ -243,6 +340,8 @@ export default function ArtPage() {
         @keyframes float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-6px); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
+      <audio ref={audioRef} src={BG_TRACK} loop preload="auto" />
+      <MusicPlayer audioRef={audioRef} />
       <div className="grain" />
       <div style={{ position: "fixed", inset: 0, zIndex: -1, overflow: "hidden", background: "#000" }}>
         {bgVideo && (
@@ -251,8 +350,8 @@ export default function ArtPage() {
             autoPlay
             muted
             playsInline
-            onTimeUpdate={(e) => { if ((e.target as HTMLVideoElement).currentTime >= 10) pickNext(); }}
-            onEnded={pickNext}
+            onTimeUpdate={(e) => { if ((e.target as HTMLVideoElement).currentTime >= 30) advanceBg(); }}
+            onEnded={advanceBg}
             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.3 }}
           >
             <source src={bgVideo} type="video/mp4" />
@@ -271,7 +370,7 @@ export default function ArtPage() {
 
       <div style={{ maxWidth: 1100, padding: "0 clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}>
         <section style={{ paddingTop: "clamp(120px, 20vw, 240px)", paddingBottom: 20 }}>
-          <h1 className="font-display" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", fontWeight: 700, letterSpacing: -4, lineHeight: 0.9, color: "var(--color-text)" }}>the art</h1>
+          <h1 className="font-display" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", fontWeight: 700, letterSpacing: -4, lineHeight: 0.9, color: "var(--color-text)" }}>art</h1>
           <p style={{ fontSize: 13, color: "var(--color-text-dim)", marginTop: 16 }}>films · frames · moments</p>
         </section>
         <section style={{ padding: "30px 0 0", borderTop: "1px solid rgba(255,255,255,0.06)" }}>

@@ -12,7 +12,7 @@ const heroPositions = [
 ];
 
 const projects = [
-  { img: "/assets/career/aspot.png", title: "aSpot", tags: "tavily . next.js . supabase . resend ", desc: "AI itinerary platform giving you curated plans in minutes", href: "https://aspot-monolith.vercel.app" },
+  { img: "/assets/career/aspot.png", title: "aSpot", tags: "tavily . next.js . supabase . resend ", desc: "AI itinerary platform giving you curated plans in minutes", href: "https://aspot.enrinjr.com" },
   { img: "/assets/career/leaseIQ.png", title: "LeaseIQ", tags: "firecrawl · reducto . open router. render", desc: "Smart apartment hunting & lease analysis platform", href: "https://lease-iq.vercel.app/" },
 ];
 

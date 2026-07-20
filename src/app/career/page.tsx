@@ -157,7 +157,7 @@ const experiences = [
     role: "Software Engineer Intern",
     period: "25'",
     logo: "/assets/career/alervio_logo.jpeg",
-    details: "Full Stack Lead for B2B/B2C product. Dealing with nutrition and restaurant data.",
+    details: "Full Stack Lead for B2B/B2C product. Building the intelligence layer for nutrition and restaurant data.",
     photos: [] as string[],
   },
   {
@@ -197,7 +197,7 @@ const educationRows = [
 ];
 
 const projectRows = [
-  { period: "2026", name: "aSpot", detail: "tavily . next.js . supabase . resend", link: "https://aspot-monolith.vercel.app", details: "AI itinerary platform giving you curated plans in minutes", photos: ["/assets/career/aspot.png"] },
+  { period: "2026", name: "aSpot", detail: "tavily . next.js . supabase . resend", link: "https://aspot.enrinjr.com", details: "AI itinerary platform giving you curated plans in minutes", photos: ["/assets/career/aspot.png"] },
   { period: "2026", name: "LeaseIQ", detail: "firecrawl · reducto . open router. render", link: "https://lease-iq.vercel.app/", details: "Smart apartment hunting & lease analysis platform", photos: ["/assets/career/leaseIQ.png"] },
 ];
 
