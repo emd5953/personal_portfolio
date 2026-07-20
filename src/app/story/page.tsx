@@ -46,6 +46,8 @@ const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: 3, textTransform: 
 function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: RefObject<HTMLAudioElement | null> }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -71,15 +73,14 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
     }
 
     const ctx = gsap.context(() => {
-      gsap.set([".ls-eyebrow", ".ls-title", ".ls-song", ".ls-barwrap"], { opacity: 0, y: 20 });
+      gsap.set([".ls-eyebrow", ".ls-title", ".ls-barwrap"], { opacity: 0, y: 20 });
       gsap.set(barRef.current, { width: 0 });
       gsap.set(rootRef.current, { yPercent: 0 });
 
-      const tl = gsap.timeline({ onComplete: onDone });
+      const tl = gsap.timeline({ onComplete: () => onDoneRef.current() });
       tl.to(".ls-eyebrow", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" })
         .to(".ls-title", { y: 0, opacity: 1, duration: 1, ease: "power4.out" }, "-=0.35")
-        .to(".ls-song", { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.55")
-        .to(".ls-barwrap", { y: 0, opacity: 1, duration: 0.5 }, "-=0.4")
+        .to(".ls-barwrap", { y: 0, opacity: 1, duration: 0.5 }, "-=0.2")
         .to(barRef.current, { width: "100%", duration: 3.2, ease: "power1.inOut" }, "-=0.2")
         .to(".ls-content", { opacity: 0, y: -24, duration: 0.6, ease: "power2.in" }, "+=0.15")
         .to(rootRef.current, { yPercent: -100, duration: 0.95, ease: "power4.inOut" }, "-=0.25");
@@ -91,16 +92,14 @@ function LoadingScreen({ onDone, audioRef }: { onDone: () => void; audioRef: Ref
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
     };
-  }, [onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: 100000, background: "#070809", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
       <div className="ls-content" style={{ width: "100%", maxWidth: 520, padding: "0 32px", textAlign: "left" }}>
         <p className="ls-eyebrow" style={{ fontSize: 10, letterSpacing: 5, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 18, fontWeight: 600 }}>now playing</p>
         <h1 className="ls-title font-display" style={{ fontSize: "clamp(2.4rem, 7vw, 4rem)", fontWeight: 700, letterSpacing: "-2px", lineHeight: 0.95, color: "#f2f2f0", margin: 0 }}>the story</h1>
-        <p className="ls-song" style={{ marginTop: 20, fontSize: 14, color: "rgba(255,255,255,0.6)" }}>
-          bria&apos;s interlude
-        </p>
         <div className="ls-barwrap" style={{ marginTop: 34, height: 2, width: "100%", background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
           <div ref={barRef} style={{ width: 0, height: "100%", background: "rgba(255,255,255,0.85)" }} />
         </div>
@@ -149,23 +148,31 @@ function MusicPlayer({ audioRef }: { audioRef: RefObject<HTMLAudioElement | null
   return (
     <div style={{
       position: "fixed", top: 56, right: 20, zIndex: 9000,
-      display: "flex", alignItems: "center", gap: 12,
-      background: "rgba(12,15,18,0.72)", border: "1px solid rgba(255,255,255,0.1)",
-      borderRadius: 24, padding: "6px 14px 6px 6px", backdropFilter: "blur(20px)",
-      boxShadow: "0 8px 30px rgba(0,0,0,0.45)", textShadow: "none",
+      display: "flex", alignItems: "center", gap: 12, textShadow: "none",
     }}>
       <button onClick={toggle} aria-label={playing ? "pause" : "play"} style={{
         width: 40, height: 40, flexShrink: 0, borderRadius: "50%",
-        background: "rgba(255,255,255,0.9)", border: "none", cursor: "pointer",
-        display: "flex", alignItems: "center", justifyContent: "center", color: "#0c0f12",
+        background: "transparent", border: "none", cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", color: "#f2f2f0",
       }}>
         {playing ? (
-          <svg width="14" height="14" viewBox="0 0 12 12"><rect x="1.5" y="1" width="3" height="10" rx="1" /><rect x="7.5" y="1" width="3" height="10" rx="1" /></svg>
+          <svg width="16" height="16" viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1" width="3" height="10" rx="1" /><rect x="7.5" y="1" width="3" height="10" rx="1" /></svg>
         ) : (
-          <svg width="14" height="14" viewBox="0 0 12 12"><path d="M2.5 1.2 L10.5 6 L2.5 10.8 Z" /></svg>
+          <svg width="16" height="16" viewBox="0 0 12 12" fill="currentColor"><path d="M2.5 1.2 L10.5 6 L2.5 10.8 Z" /></svg>
         )}
       </button>
-      <input type="range" min={0} max={1} step={0.01} value={volume} aria-label="volume"
+      <style>{`
+        .vol-range::-webkit-slider-thumb {
+          -webkit-appearance: none; appearance: none;
+          width: 11px; height: 11px; border-radius: 50%;
+          background: #f2f2f0; border: none; cursor: pointer;
+        }
+        .vol-range::-moz-range-thumb {
+          width: 11px; height: 11px; border-radius: 50%;
+          background: #f2f2f0; border: none; cursor: pointer;
+        }
+      `}</style>
+      <input className="vol-range" type="range" min={0} max={1} step={0.01} value={volume} aria-label="volume"
         onChange={(e) => setVol(Number(e.target.value))}
         style={{
           width: 80, height: 3, appearance: "none", WebkitAppearance: "none", borderRadius: 2,

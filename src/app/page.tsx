@@ -16,15 +16,6 @@ const projects = [
   { img: "/assets/career/leaseIQ.png", title: "LeaseIQ", tags: "firecrawl · reducto . open router. render", desc: "Smart apartment hunting & lease analysis platform", href: "https://lease-iq.vercel.app/" },
 ];
 
-function shuffleArray<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [timeStr, setTimeStr] = useState("");
@@ -42,11 +33,6 @@ export default function LandingPage() {
 
   const handleBannerLeave = useCallback(() => {
     gsap.to(bannerArrowRef.current, { x: 0, duration: 0.5, ease: "power3.out" });
-  }, []);
-
-  // Shuffle hero order on mount
-  useEffect(() => {
-    setShuffledHero(shuffleArray(heroImages.map((src, i) => ({ src, pos: heroPositions[i] }))));
   }, []);
 
   // Hero slideshow
