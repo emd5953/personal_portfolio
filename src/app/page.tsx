@@ -44,12 +44,12 @@ export default function LandingPage() {
   const careerBodyRef = useRef<HTMLElement>(null);
   const projectsRef = useRef<HTMLElement>(null);
   const eduRef = useRef<HTMLElement>(null);
-  const eduTitleRef = useRef<HTMLHeadingElement>(null);
   const kickerRef = useRef<SVGSVGElement>(null);
   const kickerBodyRef = useRef<SVGGElement>(null);
   const kickLegRef = useRef<SVGGElement>(null);
   const standLegRef = useRef<SVGGElement>(null);
   const armRef = useRef<SVGGElement>(null);
+  const headRef = useRef<SVGGElement>(null);
 
   const handleEasterEgg = useCallback(() => {
     if (!easterEggVisible) {
@@ -169,9 +169,9 @@ export default function LandingPage() {
          the top. Both phases are scrubbed, so scroll drives the whole thing.
          The hidden state is applied with gsap.set rather than a from() tween:
          a from() gets its start state re-applied by a pin refresh and sticks. */
-      const headSplit = SplitText.create(".about-big", { type: "chars", charsClass: "dance-char" });
+      const headSplit = SplitText.create(".about-big", { type: "words,chars", charsClass: "dance-char" });
       const bodySplit = SplitText.create(".about-text-col .about-p:not(.about-big)", {
-        type: "chars",
+        type: "words,chars",
         charsClass: "dance-char",
         aggregate: true, // one continuous run across the paragraphs
       });
@@ -348,7 +348,7 @@ export default function LandingPage() {
         })
         // experience slides from the right column into the middle and stays put —
         // there is room for both once it moves over
-        .to(".career-body .panel-inner", {
+        .to(".career-body", {
           x: () => -window.innerWidth * 0.16,
           ease: "power2.inOut",
           duration: 1,
@@ -362,16 +362,22 @@ export default function LandingPage() {
           stagger: 0.12,
         }, 0.1);
 
-      /* 6. A little figure walks in from the right, winds up, and boots the
-         docked "career" off the page. Everything is keyed off CONTACT — the
-         frame its foot actually reaches the word — so the hit reads as causal
-         rather than as two animations that happen to overlap. */
-      const CONTACT = 0.6;
+      /* 6. A small figure walks in from OFF-SCREEN LEFT, crosses the word,
+         stops just right of the final "r", turns to face it, and boots it off
+         to the left. Everything downstream is keyed off CONTACT so the hit
+         reads as the cause. */
+      const CONTACT = 0.8;
+      const ARRIVE = 0.62;
 
-      gsap.set(kickerRef.current, { x: () => window.innerWidth * 0.8, opacity: 0 });
+      // facing right (scaleX -1) for the walk across, since the figure is drawn
+      // facing left. The head sits inside this group, so the face always looks
+      // the way the figure is walking.
+      gsap.set(kickerRef.current, { x: () => -window.innerWidth * 0.3, opacity: 0 });
+      gsap.set(kickerBodyRef.current, { scaleX: -1 });
       gsap.set([kickLegRef.current, standLegRef.current, armRef.current], { rotation: 0 });
-      gsap.set(eduTitleRef.current, { z: -1400, opacity: 0, filter: "blur(16px)", transformOrigin: "left center" });
       gsap.set(".edu-rise", { x: () => window.innerWidth * 0.25, opacity: 0, filter: "blur(8px)" });
+
+      const walk = (n: number) => Array.from({ length: n * 2 + 1 }, (_, i) => (i === n * 2 ? 0 : (i % 2 ? 22 : -22)));
 
       gsap
         .timeline({
@@ -384,59 +390,89 @@ export default function LandingPage() {
             invalidateOnRefresh: true,
           },
         })
-        // --- walks in ---
-        .to(kickerRef.current, { opacity: 1, duration: 0.05 }, 0)
-        .to(kickerRef.current, { x: 0, duration: 0.45, ease: "power1.out" }, 0)
-        // a four-step walk cycle on the way in
-        .to(kickLegRef.current, { keyframes: { rotation: [0, 26, -26, 26, -26, 0] }, duration: 0.45 }, 0)
-        .to(standLegRef.current, { keyframes: { rotation: [0, -26, 26, -26, 26, 0] }, duration: 0.45 }, 0)
-        .to(armRef.current, { keyframes: { rotation: [0, -22, 22, -22, 22, 0] }, duration: 0.45 }, 0)
-        // body bob, so the walk has weight
-        .to(kickerBodyRef.current, { keyframes: { y: [0, -5, 0, -5, 0, -5, 0] }, duration: 0.45 }, 0)
+        // --- the long slow walk in from the left ---
+        .to(kickerRef.current, { opacity: 1, duration: 0.04 }, 0)
+        .to(kickerRef.current, { x: 0, duration: ARRIVE, ease: "none" }, 0)
+        .to(kickLegRef.current, { keyframes: { rotation: walk(5) }, duration: ARRIVE }, 0)
+        .to(standLegRef.current, { keyframes: { rotation: walk(5).map((v) => -v) }, duration: ARRIVE }, 0)
+        .to(armRef.current, { keyframes: { rotation: walk(5).map((v) => v * 0.8) }, duration: ARRIVE }, 0)
+        .to(kickerBodyRef.current, { keyframes: { y: [0, -3, 0, -3, 0, -3, 0, -3, 0, -3, 0] }, duration: ARRIVE }, 0)
+        .to(headRef.current, { keyframes: { rotation: [0, 7, -7, 7, -7, 7, -7, 7, -7, 7, 0] }, duration: ARRIVE }, 0)
+        // --- turns around to face the word ---
+        .to(kickerBodyRef.current, { scaleX: 1, duration: 0.06, ease: "power2.inOut" }, ARRIVE)
         // --- winds up ---
-        .to(kickLegRef.current, { rotation: -38, duration: 0.12, ease: "power2.out" }, 0.45)
-        .to(armRef.current, { rotation: 30, duration: 0.12, ease: "power2.out" }, 0.45)
-        .to(kickerBodyRef.current, { rotation: 6, duration: 0.12, ease: "power2.out" }, 0.45)
+        .to(kickLegRef.current, { rotation: -42, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
+        .to(armRef.current, { rotation: 34, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
+        .to(kickerBodyRef.current, { rotation: 7, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
         // --- swings through ---
-        .to(kickLegRef.current, { rotation: 96, duration: 0.09, ease: "power3.in" }, CONTACT - 0.09)
-        .to(armRef.current, { rotation: -34, duration: 0.09, ease: "power3.in" }, CONTACT - 0.09)
-        .to(kickerBodyRef.current, { rotation: -8, duration: 0.09, ease: "power3.in" }, CONTACT - 0.09)
-        // --- contact: career is launched ---
+        .to(kickLegRef.current, { rotation: 98, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+        .to(armRef.current, { rotation: -36, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+        .to(kickerBodyRef.current, { rotation: -9, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+        // the head keeps going after the body stops — that is the bobble
+        .to(headRef.current, { rotation: -26, duration: 0.1, ease: "power2.out" }, CONTACT - 0.04)
+        .to(headRef.current, { rotation: 0, duration: 0.3, ease: "elastic.out(1, 0.32)" }, CONTACT + 0.06)
+        // --- contact: career is launched off the left edge ---
         .to(careerWrapRef.current, {
           x: () => -window.innerWidth * 0.85,
-          y: -140,
-          rotation: -38,
+          y: -150,
+          rotation: -40,
           opacity: 0,
-          duration: 0.28,
+          duration: 0.26,
           ease: "power3.in",
         }, CONTACT)
-        .to([".career-body .panel-inner", ".projects-inner"], {
-          x: () => -window.innerWidth * 0.6,
-          opacity: 0,
-          filter: "blur(8px)",
-          duration: 0.32,
-          ease: "power3.in",
+        // the columns shuffle left and shrink into their new slots
+        // three equal columns: 40 / 500 / 960 at 1440, expressed against the
+        // viewport so the thirds hold at any width
+        .to(".career-body .panel-inner", {
+          x: () => 40 - window.innerWidth * 0.3,
+          duration: 0.45,
+          ease: "power2.inOut",
         }, CONTACT)
-        // --- recovers, then strolls off the way it came ---
+        .to(".projects-inner", {
+          x: () => -window.innerWidth * 0.333,
+          duration: 0.45,
+          ease: "power2.inOut",
+        }, CONTACT)
+        // --- recovers, then strolls off after it ---
         .to([kickLegRef.current, armRef.current, kickerBodyRef.current], {
-          rotation: 0, duration: 0.14, ease: "power2.out",
-        }, CONTACT + 0.1)
-        .to(kickerRef.current, { x: () => window.innerWidth * 0.8, duration: 0.26, ease: "power1.in" }, CONTACT + 0.14)
-        .to(kickLegRef.current, { keyframes: { rotation: [0, 22, -22, 0] }, duration: 0.26 }, CONTACT + 0.14)
-        .to(standLegRef.current, { keyframes: { rotation: [0, -22, 22, 0] }, duration: 0.26 }, CONTACT + 0.14)
-        // --- education takes the vacated spot ---
-        .to(eduTitleRef.current, {
-          z: 0, opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power2.out",
+          rotation: 0, duration: 0.12, ease: "power2.out",
         }, CONTACT + 0.08)
+        .to(kickerRef.current, { x: () => -window.innerWidth * 0.3, duration: 0.34, ease: "none" }, CONTACT + 0.12)
+        .to(kickLegRef.current, { keyframes: { rotation: walk(3) }, duration: 0.34 }, CONTACT + 0.12)
+        .to(standLegRef.current, { keyframes: { rotation: walk(3).map((v) => -v) }, duration: 0.34 }, CONTACT + 0.12)
+        // --- education rows take the third column ---
         .to(".edu-rise", {
           x: 0, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power3.out", stagger: 0.05,
-        }, CONTACT + 0.16);
+        }, CONTACT + 0.14);
 
       /* Hover a letter and it kicks — its neighbours follow at half amplitude,
          so the word ripples rather than a single glyph twitching. The dance runs
          on yPercent/scale/skew, which the entrances never touch (those use
          y/rotate/opacity), so letters can dance mid-transition without the two
          overwriting each other. */
+      // the sheet drifts on its own before you ever touch it
+      gsap.to(".resume-btn", {
+        y: -5,
+        duration: 2.4,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+      });
+
+      // ...and only drifts into view after a further stretch of scrolling
+      gsap.set(".resume-rise", { opacity: 0, y: 34 });
+      gsap.to(".resume-rise", {
+        opacity: 1,
+        y: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: eduRef.current,
+          start: "top -55%",
+          end: "top -95%",
+          scrub: 1,
+        },
+      });
+
       const danceGroups: HTMLElement[][] = [
         [...headSplit.chars, ...bodySplit.chars] as HTMLElement[],
       ];
@@ -550,7 +586,7 @@ export default function LandingPage() {
         {/* the mark the hero title lands on */}
         <Link href="/" ref={markRef} className="brand-mark">enrin</Link>
         <div className="nav-links">
-          <Link href="/career" ref={navCareerRef}>career</Link>
+          <a href="#career" ref={navCareerRef}>career</a>
           <Link href="/story">story</Link>
           <Link href="/art">art</Link>
         </div>
@@ -597,7 +633,7 @@ export default function LandingPage() {
           <div className="about-text-col">
             <p className="about-p about-big">intro</p>
             <p className="about-p">
-              based in nyc, im a forward deployed engineer and have been an early member at 2 startups doing $2.5M+ ARR
+              based in nyc, im a forward deployed engineer and have been an early member at 2 startups doing $2.5M+ ARR. find my resume for more details
             </p>
             <p className="about-p">
               things i enjoy building are agentic systems, consumer apps &amp; visuals that speak life
@@ -611,7 +647,7 @@ export default function LandingPage() {
       </section>
 
       {/* CAREER — title travels from the nav down to the middle */}
-      <section ref={careerLeadRef} className="career-lead">
+      <section id="career" ref={careerLeadRef} className="career-lead">
         <div className="career-lead-inner">
           <div ref={careerWrapRef} className="career-title-wrap">
             <h2 ref={careerTitleRef} className="career-title">career</h2>
@@ -646,40 +682,69 @@ export default function LandingPage() {
 
       {/* EDUCATION — flies in from depth, knocks career off, rows follow */}
       <section ref={eduRef} className="education">
-        <div className="education-stage">
-          <h2 ref={eduTitleRef} className="education-title">education</h2>
-        </div>
-
         {/* the little guy who walks in and boots "career" off the page */}
         <div className="kicker-stage" aria-hidden="true">
-          <svg ref={kickerRef} className="kicker" viewBox="0 0 140 230" width="132" height="217">
-            <g ref={kickerBodyRef} fill="var(--color-text)" stroke="var(--color-text)" strokeLinecap="round" strokeLinejoin="round">
-              {/* head, with a swept anime fringe */}
-              <circle cx="70" cy="36" r="21" stroke="none" />
-              <path d="M49 30 C50 12, 62 4, 74 6 C88 8, 94 18, 92 32 C88 22, 80 18, 70 20 C62 22, 55 26, 49 38 Z" stroke="none" />
-              <path d="M92 30 C100 20, 104 12, 100 6 C98 16, 94 22, 88 26 Z" stroke="none" />
-              {/* torso */}
-              <path d="M70 56 L67 124" strokeWidth="17" />
-              {/* far arm, then near arm */}
-              <g ref={armRef} style={{ transformOrigin: "70px 70px" }}>
-                <path d="M70 70 L44 92" strokeWidth="11" />
-                <path d="M44 92 L38 104" strokeWidth="9" />
+          <svg ref={kickerRef} className="kicker" viewBox="0 0 120 172" width="42" height="60">
+            <defs>
+              <clipPath id="kickerHead">
+                <circle cx="60" cy="36" r="35" />
+              </clipPath>
+            </defs>
+            <g ref={kickerBodyRef} fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round"
+               style={{ transformOrigin: "60px 108px" }}>
+              {/* torso — tapered, so it has shoulders */}
+              <path d="M44 66 L76 66 L72 112 L48 112 Z" stroke="none" />
+              <g ref={armRef} style={{ transformOrigin: "48px 78px" }}>
+                <path d="M48 78 L30 94" strokeWidth="11" />
               </g>
-              {/* planted leg */}
-              <g ref={standLegRef} style={{ transformOrigin: "67px 124px" }}>
-                <path d="M67 124 L71 196" strokeWidth="14" />
-                <path d="M71 196 L53 202" strokeWidth="10" />
+              <g ref={standLegRef} style={{ transformOrigin: "60px 110px" }}>
+                <path d="M64 110 L67 146" strokeWidth="13" />
+                <path d="M67 146 L53 151" strokeWidth="10" />
               </g>
-              {/* kicking leg */}
-              <g ref={kickLegRef} style={{ transformOrigin: "67px 124px" }}>
-                <path d="M67 124 L63 196" strokeWidth="14" />
-                <path d="M63 196 L45 202" strokeWidth="10" />
+              <g ref={kickLegRef} style={{ transformOrigin: "60px 110px" }}>
+                <path d="M56 110 L53 146" strokeWidth="13" />
+                <path d="M53 146 L39 151" strokeWidth="10" />
+              </g>
+              {/* the bobblehead itself, wobbling on the neck */}
+              <g ref={headRef} style={{ transformOrigin: "60px 68px" }}>
+                <circle cx="60" cy="36" r="36" fill="#fff" stroke="none" />
+                {/* mirrored about the head's centre line (x=60) */}
+                <image
+                  href="/assets/bobbly_head.png"
+                  x="25" y="1" width="70" height="70"
+                  preserveAspectRatio="xMidYMid slice"
+                  clipPath="url(#kickerHead)"
+                  transform="translate(120,0) scale(-1,1)"
+                />
               </g>
             </g>
           </svg>
         </div>
         <div className="education-inner">
           <EducationList rowClassName="edu-rise" bare />
+          <div className="resume-wrap resume-rise">
+            <a
+              href="/assets/ResumeEnrinDebbarma.pdf"
+              download="ResumeEnrinDebbarma.pdf"
+              className="resume-btn"
+              aria-label="Download resume"
+            >
+              <span className="resume-sheet">
+                <svg viewBox="0 0 72 92" aria-hidden="true">
+                  {/* sheet with a folded corner */}
+                  <path className="resume-page" d="M6 4 h44 l16 16 v68 a4 4 0 0 1 -4 4 h-52 a4 4 0 0 1 -4 -4 v-80 a4 4 0 0 1 4 -4 z" />
+                  <path className="resume-fold" d="M50 4 l16 16 h-16 z" />
+                  <g className="resume-lines">
+                    <path d="M18 38 h36" />
+                    <path d="M18 50 h36" />
+                    <path d="M18 62 h22" />
+                  </g>
+                </svg>
+                <span className="resume-arrow">↓</span>
+              </span>
+              <span className="resume-label">resume</span>
+            </a>
+          </div>
         </div>
       </section>
     </div>

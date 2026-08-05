@@ -362,7 +362,6 @@ export default function ArtPage() {
       <nav className="site-nav">
         <Link href="/" className="font-display text-[16px] font-semibold text-white no-underline tracking-tight">enrin</Link>
         <div className="flex gap-7">
-          <Link href="/career" className="text-white/45 no-underline text-[13px] font-normal tracking-wide hover:text-white transition-colors duration-400">career</Link>
           <Link href="/story" className="text-white/45 no-underline text-[13px] font-normal tracking-wide hover:text-white transition-colors duration-400">story</Link>
           <Link href="/art" className="text-white/80 no-underline text-[13px] font-normal tracking-wide">art</Link>
         </div>
@@ -390,7 +389,7 @@ export default function ArtPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
           <div style={{ display: "flex", gap: 24 }}>
-            {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/story", label: "story" }].map((l) => (
+            {[{ href: "/", label: "home" }, { href: "/story", label: "story" }].map((l) => (
               <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
             ))}
           </div>

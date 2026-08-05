@@ -372,7 +372,6 @@ export default function StoryPage() {
       <nav className="site-nav">
         <Link href="/" className="font-display text-[16px] font-semibold text-white no-underline tracking-tight">enrin</Link>
         <div className="flex gap-7">
-          <Link href="/career" className="text-white/45 no-underline text-[13px] font-normal tracking-wide hover:text-white transition-colors duration-400">career</Link>
           <Link href="/story" className="text-white/80 no-underline text-[13px] font-normal tracking-wide">story</Link>
           <Link href="/art" className="text-white/45 no-underline text-[13px] font-normal tracking-wide hover:text-white transition-colors duration-400">art</Link>
         </div>
@@ -635,7 +634,7 @@ export default function StoryPage() {
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
           <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
             <button onClick={() => { if (isAuthed) { setEditMode(!editMode); } else { setShowLogin(true); } }} style={{ fontSize: 12, color: editMode ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.4)", background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 16, padding: "4px 14px", cursor: "pointer", transition: "color 0.3s, border-color 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.85)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = editMode ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.4)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}>{editMode ? "exit edit" : "✎ edit"}</button>
-            {[{ href: "/", label: "home" }, { href: "/career", label: "career" }, { href: "/art", label: "art" }].map((l) => (
+            {[{ href: "/", label: "home" }, { href: "/art", label: "art" }].map((l) => (
               <Link key={l.label} href={l.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{l.label}</Link>
             ))}
           </div>
