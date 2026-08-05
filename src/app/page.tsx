@@ -277,8 +277,9 @@ export default function LandingPage() {
           0
         )
         .fromTo(careerTitle, { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power2.out" }, 0)
-        .fromTo(navCareer, { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "power2.in" }, 0)
-        .to(navCareer, { opacity: 1, duration: 0.15, ease: "power2.out" }, 0.85);
+        // the nav copy stays gone for the rest of the beat — bringing it back
+        // would put a second "career" on screen alongside the big one
+        .fromTo(navCareer, { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "power2.in" }, 0);
 
       /* The career backdrop and its leaves wash in over the slideshow as the
          career beat arrives, and stay for the work below it. */
