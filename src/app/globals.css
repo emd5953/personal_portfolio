@@ -25,6 +25,13 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable; /* reserve the gutter so locking scroll doesn't shift layout */
+}
+
+/* the landing holds still until the intro finishes writing itself */
+html.scroll-locked,
+body.scroll-locked {
+  overflow: hidden;
 }
 
 body {

@@ -18,54 +18,15 @@
   --border: var(--color-border);
 }
 
-/* ---- NAV ---- */
-.nav {
+/* ---- PERSISTENT BACKDROP ---- */
+.bg {
   position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 22px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 100;
-  mix-blend-mode: difference;
-}
-
-.nav-name {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  text-decoration: none;
-  letter-spacing: -0.5px;
-}
-
-.nav-links { display: flex; gap: 28px; }
-
-.nav-links a {
-  color: rgba(255,255,255,0.45);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 0.5px;
-  transition: color 0.4s;
-}
-
-.nav-links a:hover { color: #fff; }
-
-/* ---- HERO — CROSSFADE SLIDESHOW ---- */
-.hero {
-  height: 100vh;
-  position: relative;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
 }
 
-.hero-slides {
-  position: absolute;
-  inset: 0;
-}
-
-.hero-slide {
+.bg-slide {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -77,38 +38,115 @@
   transition: opacity 2s ease, transform 8s ease;
 }
 
-.hero-slide.active {
+.bg-slide.active {
   opacity: 1;
   transform: scale(1.02);
 }
 
-.hero-wash {
+.bg-dim {
+  position: absolute;
+  inset: 0;
+  background: #06080a;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.bg-wash {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(160deg, rgba(15, 32, 39, 0.6) 0%, transparent 50%, rgba(160, 80, 40, 0.15) 100%),
-    linear-gradient(to bottom, transparent 40%, var(--bg) 100%);
-  z-index: 1;
+    radial-gradient(120% 80% at 50% 100%, rgba(10, 13, 15, 0.85) 0%, transparent 65%);
 }
 
+/* the career page's backdrop, washed in for the career beat */
+.bg-career {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bg-career-shot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 70%;
+  filter: brightness(0.15) saturate(0.15) contrast(1.1);
+}
+
+.leaf-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---- NAV ---- */
+.nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 22px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+}
+
+/* ---- TOP-LEFT MARK — where the hero title lands ---- */
+.brand-mark {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.03125em;
+  line-height: 0.9;
+  color: var(--text);
+  text-decoration: none;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.nav-links { display: flex; gap: 28px; }
+
+.nav-links a {
+  color: rgba(224, 213, 200, 0.5);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  transition: color 0.4s;
+}
+
+.nav-links a:hover { color: var(--text); }
+
+/* ---- HERO ---- */
+.hero {
+  height: 100vh;
+  position: relative;
+}
+
+/* fixed so the title can travel to the mark while the hero scrolls away */
 .hero-content {
-  position: absolute;
+  position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 2;
+  pointer-events: none;
 }
 
 .title {
   font-family: var(--font-display);
   font-size: clamp(4.5rem, 14vw, 10rem);
   font-weight: 700;
-  letter-spacing: -5px;
+  letter-spacing: -0.03125em;
   line-height: 0.9;
   color: var(--text);
   text-shadow: 0 0 100px rgba(212, 148, 74, 0.12);
+  will-change: transform, opacity, filter;
 }
 
 .t-letter {
@@ -173,14 +211,15 @@
 .s-letter:nth-child(30) { animation-delay: 2.87s; }
 
 .hero-bottom {
-  position: absolute;
+  position: fixed;
   bottom: 36px;
   left: 40px;
   right: 40px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  z-index: 2;
+  z-index: 100;
+  pointer-events: none;
 }
 
 .hero-loc {
@@ -200,21 +239,66 @@
   animation: heroFade 2s ease 1.3s forwards;
 }
 
-/* ---- REAL SECTION — YOUR VOICE ---- */
-.real {
-  padding: 120px 40px;
-  border-top: 1px solid var(--border);
-}
-
-.real-inner {
+/* ---- SHARED GLASS PANEL ---- */
+/* no box, no card — content sits straight on the backdrop */
+.panel-inner {
   max-width: 960px;
   margin: 0 auto;
-  display: flex;
-  gap: 60px;
-  align-items: flex-start;
+  padding: 44px 0 36px;
 }
 
-.real-left {
+.career-body .panel-inner {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* stacked, since the right column is narrower than the old full width */
+.career-body .work-reel-track {
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* ---- ABOUT ---- */
+/* pure scroll runway — the stage itself is fixed to the viewport.
+   Height sets how long about holds before career starts arriving. */
+.about {
+  position: relative;
+  z-index: 3;
+  height: 99vh;
+}
+
+.about-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  perspective: 1200px; /* the stage flies out of the backdrop toward the viewer */
+  pointer-events: none;
+}
+
+/* The stage is fixed and overlaps the hero while still invisible, so it must
+   not take hover until it has actually arrived — the about timeline flips this
+   back to auto partway through the emergence. */
+.about-inner {
+  pointer-events: none;
+}
+
+.about-inner {
+  width: 100%;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+  display: flex;
+  gap: 64px;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-left {
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -223,14 +307,15 @@
   cursor: pointer;
 }
 
-.real-photo-col {
-  width: 300px;
-  height: 300px;
+.about-photo-col {
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
   overflow: hidden;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
 }
 
-.real-photo {
+.about-photo {
   width: 100%;
   height: 100%;
   max-width: none;
@@ -242,10 +327,9 @@
   transition: filter 2.5s ease, transform 2.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.real-left:hover .real-photo {
+.about-left:hover .about-photo {
   filter: brightness(0.95) saturate(1);
   transform: scale(2.8);
-  transform-origin: 56% 65%;
 }
 
 .easter-egg {
@@ -258,22 +342,31 @@
   pointer-events: none;
 }
 
-.easter-egg.show {
-  opacity: 1;
+.easter-egg.show { opacity: 1; }
+
+.dance-char {
+  display: inline-block;
+  will-change: transform;
+  cursor: default;
 }
 
-.real-text-col {
+.about-text-col {
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
   flex: 1;
+  max-width: 560px;
 }
 
-.real-p {
+.about-p {
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.85);
   font-size: 15px;
   color: var(--text-mid);
   line-height: 1.85;
   margin-bottom: 20px;
 }
 
-.real-big {
+.about-big {
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.85);
   font-size: 22px;
   color: var(--text);
   font-weight: 400;
@@ -281,37 +374,157 @@
   margin-bottom: 28px;
 }
 
-.real-dim {
+.about-dim {
   color: var(--text-dim);
   font-size: 14px;
 }
 
-/* scroll reveal */
-.real-inner {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 1s ease, transform 1s ease;
+/* ---- CAREER LEAD — the nav link travels here ---- */
+.career-lead {
+  position: relative;
+  z-index: 5; /* the docked title sits above the work that scrolls past it */
+  height: 100vh;
 }
 
-.real-inner.visible {
-  opacity: 1;
-  transform: translateY(0);
+.career-lead-inner {
+  position: fixed;
+  inset: 0;
+  will-change: transform, opacity, filter;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
+
+.career-title-wrap {
+  will-change: transform;
+}
+
+.career-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 10vw, 7rem);
+  font-weight: 700;
+  letter-spacing: -0.03125em;
+  line-height: 0.9;
+  color: var(--text);
+  text-shadow: 0 0 100px rgba(212, 148, 74, 0.12);
+  will-change: transform, opacity;
+}
+
+/* ---- CAREER BODY ---- */
+/* the docked title holds the left gutter, so the work lives on the right.
+   Sticky so experience is still on screen while projects slide in over it. */
+.career-body {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 60px 40px 60px 46vw;
+  overflow: hidden;
+}
+
+.career-body .panel-inner {
+  max-width: 520px; /* leaves the right column free for projects */
+  will-change: transform, opacity, filter;
+}
+
+/* ---- PROJECTS ---- */
+.projects {
+  position: relative;
+  z-index: 4;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 60px 40px 60px 68vw;
+  overflow: hidden;
+  /* the section spans the full width and sits above the sticky experience
+     column, so only the cards themselves may take the pointer */
+  pointer-events: none;
+}
+
+.projects-inner {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.project-rise {
+  will-change: transform, opacity, filter;
+}
+
+/* ---- EDUCATION ---- */
+.education {
+  position: relative;
+  z-index: 6;
+  min-height: 140vh;
+  padding: 0 40px 80px;
+  /* NB: no perspective here — a perspective on an ancestor becomes the
+     containing block for position:fixed children, which would un-fix the
+     stage. It lives on .education-stage instead. */
+}
+
+/* mirrors the career stage, so the title lands exactly where career sits */
+.education-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: max(40px, 5.5vw);
+  perspective: 1000px;
+  pointer-events: none;
+}
+
+.education-title {
+  will-change: transform, opacity, filter;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.2vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03125em;
+  line-height: 0.9;
+  color: var(--text);
+  text-shadow: 0 0 100px rgba(212, 148, 74, 0.12);
+}
+
+/* the kicker stands just past the docked title, at the word's height */
+.kicker-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: calc(max(40px, 5.5vw) + 150px);
+  pointer-events: none;
+  z-index: 7;
+}
+
+.kicker {
+  margin-top: 26px; /* line the kick up with the word's centre line */
+  overflow: visible;
+  will-change: transform, opacity;
+}
+
+.education-inner {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: 0;
+  padding-top: 22vh;
+}
+
+.edu-rise {
+  will-change: transform, opacity, filter;
+}
+
+.career-rise { will-change: transform, opacity, filter; }
 
 /* ---- WORK BANNER ---- */
-.work-strip {
-  padding: 0 40px;
-  border-top: 1px solid var(--border);
-}
-
-.work-banner-wrap {
-  max-width: 960px;
-  margin: 0 auto;
-}
-
 .work-banner {
   display: block;
-  padding: 48px 0;
+  padding: 32px 0 0;
   text-decoration: none;
   color: inherit;
   transition: opacity 0.3s ease, padding 0.4s ease;
@@ -350,13 +563,7 @@
 }
 
 /* static project row */
-.work-reel {
-  padding: 8px 0 48px;
-}
-
 .work-reel-track {
-  max-width: 960px;
-  margin: 0 auto;
   display: flex;
   gap: 20px;
   align-items: stretch;
@@ -372,17 +579,11 @@
 
 /* raised panel with inset screenshot */
 .work-card-frame {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 32px;
   aspect-ratio: 16 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-              border-color 0.4s ease,
-              box-shadow 0.5s ease;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .work-card-shot {
@@ -397,10 +598,7 @@
 }
 
 .work-card:hover .work-card-frame {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35),
-              0 0 30px rgba(255, 255, 255, 0.04);
+  transform: translateY(-6px);
 }
 
 .work-card:hover .work-card-shot {
@@ -444,112 +642,51 @@
   color: var(--text-mid);
 }
 
-/* ---- END SECTION ---- */
-.end {
-  padding: 80px 40px 40px;
-}
-
-.end-inner {
-  max-width: 700px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-}
-
-.end-links {
-  display: flex;
-  gap: 32px;
-}
-
-.end-link {
-  text-decoration: none;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  transition: transform 0.3s;
-}
-
-.end-link:hover { transform: translateY(-4px); }
-
-.end-num {
-  font-size: 10px;
-  color: var(--text-faint);
-  letter-spacing: 1px;
-}
-
-.end-label {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  transition: color 0.3s;
-}
-
-.end-link:hover .end-label { color: var(--amber); }
-
-.end-contact {
-  display: flex;
-  gap: 20px;
-}
-
-.end-contact a {
-  color: var(--text-dim);
-  text-decoration: none;
-  font-size: 12px;
-  transition: color 0.3s;
-}
-
-.end-contact a:hover { color: var(--amber-dim); }
-
-.end-copy {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-top: 60px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
 /* ---- RESPONSIVE ---- */
 @media (max-width: 768px) {
   .nav { padding: 18px 20px; }
   .nav-links { gap: 18px; }
 
-  .title { letter-spacing: -3px; }
   .hero-bottom { left: 20px; right: 20px; bottom: 24px; }
 
-  .real { padding: 60px 20px; }
-  .real-inner {
-    flex-direction: column;
-    gap: 28px;
-    align-items: center;
-    text-align: center;
-  }
-  .real-photo-col { width: 200px; height: 200px; }
-  .easter-egg { text-align: center; }
+  .career-body { position: relative; height: auto; padding: 80px 16px 48px; }
+  .projects { padding: 40px 16px 60px; min-height: 0; }
+  .education { padding: 40px 16px 60px; min-height: 0; }
+  .education-stage { position: relative; inset: auto; padding-left: 0; }
+  .kicker-stage { display: none; }
+  /* the kicker stands just past the docked title, at the word's height */
+.kicker-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: calc(max(40px, 5.5vw) + 150px);
+  pointer-events: none;
+  z-index: 7;
+}
 
-  .work-strip { padding: 0 20px; }
+.kicker {
+  margin-top: 26px; /* line the kick up with the word's centre line */
+  overflow: visible;
+  will-change: transform, opacity;
+}
+
+.education-inner { padding-top: 24px; }
+  .panel-inner { padding: 28px 0 24px; }
+
+  .about-inner { flex-direction: column; align-items: center; text-align: center; gap: 28px; }
+  .about-photo-col { width: 200px; height: 200px; }
+  .easter-egg { text-align: center; white-space: normal; }
+
+
   .work-reel-track { flex-direction: column; }
-  .work-card-frame { padding: 24px 20px; }
-
-  .end { padding: 40px 20px 30px; }
-  .end-inner { flex-direction: column; align-items: center; text-align: center; gap: 24px; }
-  .end-links { gap: 20px; }
 }
 
 @media (max-width: 480px) {
   .nav { padding: 14px 16px; }
   .nav-links a { font-size: 12px; }
+  .brand-mark { font-size: 12px; }
   .nav-links { gap: 12px; }
   .subtitle { letter-spacing: 2px; font-size: 10px; }
-  .title { letter-spacing: -2px; }
-  .real-big { font-size: 18px; }
-  .real { padding: 40px 16px; }
-  .work-strip { padding: 0 16px; }
   .work-banner-text { font-size: 18px; }
-  .end { padding: 30px 16px 24px; }
-  .end-contact { flex-wrap: wrap; justify-content: center; gap: 14px; }
 }
