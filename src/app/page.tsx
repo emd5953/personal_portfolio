@@ -468,8 +468,8 @@ export default function LandingPage() {
         ease: "none",
         scrollTrigger: {
           trigger: eduRef.current,
-          start: "top -55%",
-          end: "top -95%",
+          start: "top -60%",
+          end: "top -100%",
           scrub: 1,
         },
       });
