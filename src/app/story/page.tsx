@@ -4,6 +4,11 @@ import { useEffect, useState, useRef, type CSSProperties, type ReactNode, type R
 import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 interface Thought {
   id: string; date: string; tag: string; title: string; preview: string;
@@ -240,8 +245,10 @@ export default function StoryPage() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const rootRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const timelineTrackRef = useRef<HTMLDivElement>(null);
+  const timelineLineRef = useRef<HTMLDivElement>(null);
   const [spotifyData, setSpotifyData] = useState<{ trackName?: string; artist?: string; album?: string; trackId?: string; playedAt?: string; playlists?: { id: string; name: string; tracks: number }[] } | null>(null);
 
   // Edit mode state
@@ -349,22 +356,119 @@ export default function StoryPage() {
     return () => clearTimeout(t);
   }, [heroBgIndex, heroBgMedia.length]);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) setVisibleSections((prev) => new Set(prev).add(e.target.id)); }),
-      { threshold: 0.1, rootMargin: "0px 0px -60px 0px" }
-    );
-    sectionRefs.current.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+  /* Scroll choreography. Re-runs once the loader lifts and again whenever the
+     async content lands, so late-arriving cards get their own reveal. */
+  useGSAP(
+    () => {
+      if (loading) return;
 
-  const ref = (id: string) => (el: HTMLElement | null) => { if (el) sectionRefs.current.set(id, el); };
-  const vis = (id: string) => visibleSections.has(id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8";
+      const heroTargets = ".story-hero-title, .story-hero-eyebrow";
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set([heroTargets, ".s-rise", ".sec-heading", ".sec-rule"], { opacity: 1, y: 0, x: 0, scaleX: 1, filter: "none" });
+        return;
+      }
+
+      // --- hero: the word writes itself in, letter by letter ---
+      const heroSplit = SplitText.create(".story-hero-title", { type: "chars", charsClass: "story-char" });
+      gsap.set(heroTargets, { opacity: 1 });
+      gsap.from(".story-hero-eyebrow", { opacity: 0, y: 12, duration: 1.1, ease: "power2.out" });
+      gsap.from(heroSplit.chars, {
+        yPercent: 115, opacity: 0, rotate: 7, duration: 1, ease: "expo.out", stagger: 0.055, delay: 0.15,
+      });
+
+      // the fixed backdrop drifts in a touch as the page scrolls past it
+      gsap.to(bgRef.current, {
+        scale: 1.1,
+        ease: "none",
+        scrollTrigger: { trigger: rootRef.current, start: "top top", end: "bottom bottom", scrub: 1 },
+      });
+
+      // --- section headings: chars rise as each section arrives ---
+      const headingSplits = gsap.utils.toArray<HTMLElement>(".sec-heading").map((h) => {
+        const split = SplitText.create(h, { type: "chars", charsClass: "story-char" });
+        gsap.set(h, { opacity: 1 });
+        gsap.from(split.chars, {
+          scrollTrigger: { trigger: h, start: "top 88%" },
+          yPercent: 110, opacity: 0, duration: 0.8, ease: "expo.out", stagger: 0.04,
+        });
+        return split;
+      });
+
+      // --- the rule above each section draws itself left to right ---
+      gsap.utils.toArray<HTMLElement>(".sec-rule").forEach((rule) => {
+        gsap.fromTo(rule,
+          { scaleX: 0 },
+          {
+            scaleX: 1, transformOrigin: "left center", duration: 1.4, ease: "expo.out",
+            scrollTrigger: { trigger: rule, start: "top 95%" },
+          });
+      });
+
+      // --- everything else rises out of a soft blur, in reading order ---
+      gsap.set(".s-rise", { opacity: 0, y: 44, filter: "blur(8px)" });
+      const riseBatch = ScrollTrigger.batch(".s-rise", {
+        start: "top 92%",
+        onEnter: (batch) => gsap.to(batch, {
+          opacity: 1, y: 0, filter: "blur(0px)", duration: 1.1, ease: "expo.out", stagger: 0.11, overwrite: true,
+        }),
+      });
+
+      // --- timeline: the spine draws down as you scroll its rows ---
+      if (timelineTrackRef.current && displayTimeline.length) {
+        gsap.fromTo(timelineLineRef.current,
+          { scaleY: 0 },
+          {
+            scaleY: 1, transformOrigin: "top center", ease: "none",
+            scrollTrigger: { trigger: timelineTrackRef.current, start: "top 78%", end: "bottom 72%", scrub: 0.6 },
+          });
+
+        gsap.utils.toArray<HTMLElement>(".tl-row").forEach((row) => {
+          gsap.from(row.querySelector(".tl-dot"), {
+            scrollTrigger: { trigger: row, start: "top 88%" },
+            scale: 0, opacity: 0, duration: 0.6, ease: "back.out(3)",
+          });
+          gsap.from(row.querySelector(".tl-card"), {
+            scrollTrigger: { trigger: row, start: "top 88%" },
+            x: -34, opacity: 0, filter: "blur(6px)", duration: 0.9, ease: "expo.out", delay: 0.08,
+          });
+        });
+      }
+
+      /* GSAP owns these cards' transforms, so an inline hover transform would
+         never win — the lift/slide has to be tweened too. */
+      const hovers: [HTMLElement, () => void, () => void][] = [];
+      const bindHover = (sel: string, over: gsap.TweenVars, out: gsap.TweenVars) => {
+        gsap.utils.toArray<HTMLElement>(sel).forEach((el) => {
+          const enter = () => gsap.to(el, { ...over, duration: 0.35, ease: "power3.out", overwrite: "auto" });
+          const leave = () => gsap.to(el, { ...out, duration: 0.45, ease: "power3.out", overwrite: "auto" });
+          el.addEventListener("mouseenter", enter);
+          el.addEventListener("mouseleave", leave);
+          hovers.push([el, enter, leave]);
+        });
+      };
+      bindHover(".hover-lift", { y: -6 }, { y: 0 });
+      bindHover(".hover-slide", { x: 8 }, { x: 0 });
+
+      document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
+
+      return () => {
+        riseBatch.forEach((st) => st.kill());
+        heroSplit.revert();
+        headingSplits.forEach((s) => s.revert());
+        hovers.forEach(([el, enter, leave]) => {
+          el.removeEventListener("mouseenter", enter);
+          el.removeEventListener("mouseleave", leave);
+        });
+      };
+    },
+    { scope: rootRef, dependencies: [loading, thoughts, timeline, spotifyData], revertOnUpdate: true }
+  );
+
   const displayThoughts = thoughts;
   const displayTimeline = timeline;
 
   return (
-    <>
+    <div ref={rootRef}>
       <audio ref={audioRef} src={INTRO_TRACK.src} preload="auto" />
       {loading && <LoadingScreen onDone={() => setLoading(false)} audioRef={audioRef} />}
       {!loading && <MusicPlayer audioRef={audioRef} />}
@@ -379,7 +483,7 @@ export default function StoryPage() {
 
       {/* HERO */}
       {/* Fixed full-page background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: -1 }}>
+      <div ref={bgRef} style={{ position: "fixed", inset: 0, zIndex: -1, willChange: "transform" }}>
         {heroBgMedia.map((src, i) => {
           const isVideo = src.endsWith(".mp4");
           return isVideo ? (
@@ -420,18 +524,19 @@ export default function StoryPage() {
 
       <section className="h-[42vh] relative flex items-end pb-12 px-6 md:px-16 max-md:h-[48vh] max-md:pb-14">
         <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-          <p className="text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0 animate-[heroFade_2s_ease_0.3s_forwards]">sounds · music · thoughts . timeline</p>
-          <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0 animate-[heroFade_2s_ease_0.5s_forwards]">story</h1>
+          <p className="story-hero-eyebrow text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0">sounds · music · thoughts . timeline</p>
+          <h1 className="story-hero-title font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0">story</h1>
         </div>
       </section>
 
       {/* SOUNDS */}
-      <section id="sounds" ref={ref("sounds")} style={{ paddingTop: 56, paddingBottom: 40 }} className={`relative px-6 md:px-16 mt-10 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("sounds")}`}>
+      <section id="sounds" style={{ paddingTop: 56, paddingBottom: 40 }} className="relative px-6 md:px-16 mt-10 border-t border-border max-md:py-14 max-md:px-8">
+        <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10">sounds</h2>
+          <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10 opacity-0">sounds</h2>
 
           {/* Current track */}
-          <div className="border border-border rounded-lg p-4 md:p-6 max-w-full md:max-w-[550px] mb-24">
+          <div className="s-rise border border-border rounded-lg p-4 md:p-6 max-w-full md:max-w-[550px] mb-24">
             <p className="text-[10px] tracking-[2px] text-text-mid uppercase font-medium mb-3">
               {spotifyData?.playedAt ? <>last played <span className="text-text-mid font-normal">({new Date(spotifyData.playedAt).toLocaleTimeString()})</span></> : "today's most played"}
             </p>
@@ -449,10 +554,10 @@ export default function StoryPage() {
           {spotifyData?.playlists && spotifyData.playlists.length > 0 && (
             <>
               <div style={{ height: 36 }} />
-              <p className="text-text-mid text-xs tracking-[2px] uppercase font-medium mb-14">featured playlists today</p>
+              <p className="s-rise text-text-mid text-xs tracking-[2px] uppercase font-medium mb-14">featured playlists today</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8 max-w-[900px]">
                 {spotifyData.playlists.map((p) => (
-                  <div key={p.id} className="rounded-xl overflow-hidden">
+                  <div key={p.id} className="s-rise rounded-xl overflow-hidden">
                     <iframe style={{ borderRadius: 12, display: "block" }} src={`https://open.spotify.com/embed/playlist/${p.id}?utm_source=generator&theme=0`} width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
                   </div>
                 ))}
@@ -463,12 +568,13 @@ export default function StoryPage() {
       </section>
 
       {/* ART */}
-      <section id="art" ref={ref("art")} style={{ paddingTop: 40, paddingBottom: 48 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("art")}`}>
+      <section id="art" style={{ paddingTop: 40, paddingBottom: 48 }} className="relative px-6 md:px-16 border-t border-border max-md:py-14 max-md:px-8">
+        <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10">music</h2>
+          <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10 opacity-0">music</h2>
 
           {/* Song covers */}
-          <div className="relative w-full max-w-full md:max-w-[610px] rounded-2xl overflow-hidden" style={{ marginBottom: 56 }}>
+          <div className="s-rise relative w-full max-w-full md:max-w-[610px] rounded-2xl overflow-hidden" style={{ marginBottom: 56 }}>
             <img src="/assets/songCover.jpg" alt="Main song cover" className="w-full block rounded-2xl" />
             <div className="absolute inset-0 flex justify-between items-start p-8 max-md:hidden">
               <div className="max-w-[175px] self-end text-center">
@@ -483,23 +589,24 @@ export default function StoryPage() {
           {/* Additional images */}
           <div className="grid grid-cols-2 max-w-[620px] max-md:grid-cols-1 max-md:max-w-[280px]" style={{ gap: 56, marginBottom: 56 }}>
             {[{ src: "topAlbums.PNG", cap: "top albums" }, { src: "topSongs.PNG", cap: "top songs" }].map((item) => (
-              <div key={item.src} className="text-center">
+              <div key={item.src} className="s-rise text-center">
                 <img src={`/assets/${item.src}`} alt={item.cap} className="w-full rounded-xl shadow-lg hover:scale-105 transition-transform duration-300" />
               </div>
             ))}
           </div>
 
           {/* Video */}
-          <div className="relative pb-[56.25%] md:pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-full md:max-w-[600px] max-md:pb-[56.25%]">
+          <div className="s-rise relative pb-[56.25%] md:pb-[45%] h-0 overflow-hidden rounded-2xl shadow-2xl max-w-full md:max-w-[600px] max-md:pb-[56.25%]">
             <iframe className="absolute inset-0 w-full h-full rounded-2xl" src="https://www.youtube.com/embed/iuqZl8EFd4s" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
           </div>
         </div>
       </section>
 
       {/* THOUGHTS */}
-      <section id="thoughts" ref={ref("thoughts")} style={{ paddingTop: 56, paddingBottom: 56 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("thoughts")}`}>
+      <section id="thoughts" style={{ paddingTop: 56, paddingBottom: 56 }} className="relative px-6 md:px-16 border-t border-border max-md:py-14 max-md:px-8">
+        <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">thoughts</h2>
+          <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14 opacity-0">thoughts</h2>
 
           {editMode && (
             <div className="max-w-[560px]" style={{ ...panelStyle, marginTop: 28, marginBottom: 56 }}>
@@ -516,7 +623,7 @@ export default function StoryPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ columnGap: 48, rowGap: 56 }}>
             {displayThoughts.map((t) => (
-              <article key={t.id} className="border border-border rounded-lg p-7 hover:border-text-dim/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative group">
+              <article key={t.id} className="s-rise hover-lift border border-border rounded-lg p-7 hover:border-text-dim/30 transition-colors duration-300 cursor-pointer relative group">
                 {editMode && (
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ textShadow: "none" }}>
                     <button onClick={() => setEditingThought(t)} className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-text text-[10px] rounded">edit</button>
@@ -536,9 +643,10 @@ export default function StoryPage() {
       </section>
 
       {/* TIMELINE */}
-      <section id="timeline" ref={ref("timeline")} style={{ paddingTop: 56, paddingBottom: 56 }} className={`relative px-6 md:px-16 border-t border-border transition-all duration-1000 ease-out max-md:py-14 max-md:px-8 ${vis("timeline")}`}>
+      <section id="timeline" style={{ paddingTop: 56, paddingBottom: 56 }} className="relative px-6 md:px-16 border-t border-border max-md:py-14 max-md:px-8">
+        <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
         <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14">timeline</h2>
+          <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14 opacity-0">timeline</h2>
 
           {editMode && (
             <div className="max-w-[560px] mx-auto" style={{ ...panelStyle, marginTop: 28, marginBottom: 56 }}>
@@ -553,12 +661,12 @@ export default function StoryPage() {
             </div>
           )}
 
-          <div className="max-w-[800px] mx-auto relative">
-            <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-border" />
+          <div ref={timelineTrackRef} className="max-w-[800px] mx-auto relative">
+            <div ref={timelineLineRef} className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-text-dim/40" />
             {displayTimeline.map((entry) => (
-              <div key={entry.id} className="flex gap-8 relative max-md:gap-5" style={{ marginBottom: 48 }}>
-                <div className="w-3 h-3 bg-text-dim border-[3px] border-bg rounded-full shrink-0 mt-2 z-10 relative" />
-                <div className="flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 hover:translate-x-2 transition-all duration-300 cursor-pointer relative group">
+              <div key={entry.id} className="tl-row flex gap-8 relative max-md:gap-5" style={{ marginBottom: 48 }}>
+                <div className="tl-dot w-3 h-3 bg-text-dim border-[3px] border-bg rounded-full shrink-0 mt-2 z-10 relative" />
+                <div className="tl-card hover-slide flex-1 border border-border rounded-lg p-7 hover:border-text-dim/30 transition-colors duration-300 cursor-pointer relative group">
                   {editMode && (
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ textShadow: "none" }}>
                       <button onClick={() => setEditingTimeline(entry)} className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-text text-[10px] rounded">edit</button>
@@ -629,7 +737,7 @@ export default function StoryPage() {
       )}
 
       {/* FOOTER */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px clamp(16px, 4vw, 40px)", maxWidth: 960, margin: "0 auto", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+      <footer className="s-rise" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "40px clamp(16px, 4vw, 40px)", maxWidth: 960, margin: "0 auto", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 enrinjr</p>
           <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
@@ -640,6 +748,6 @@ export default function StoryPage() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
