@@ -19,6 +19,11 @@ const projects = [
   { img: "/assets/career/leaseIQ.png", title: "LeaseIQ", tags: "firecrawl · reducto . open router . render", desc: "Smart apartment hunting & lease analysis platform", href: "https://lease-iq.vercel.app/" },
 ];
 
+/* The width at which the three-column stage is worth running. Below it the
+   sections stack — landing.css switches layout at the same number, so the CSS
+   and the timelines are never in disagreement about which mode is live. */
+const STAGE_MIN = 1100;
+
 const heroImages = Array.from({ length: 10 }, (_, i) => `/assets/landing/${i + 1}.${i + 1 === 6 ? "png" : "jpg"}`);
 const heroPositions = [
   "center 20%", "center 20%", "center 20%", "20% 69%", "65% 55%",
@@ -64,6 +69,9 @@ export default function LandingPage() {
     if (typeof history !== "undefined" && "scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
+    // nothing is writing itself in under reduced motion, so there is nothing
+    // to hold the page still for — locking scroll would just be a dead 2.3s
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     window.scrollTo(0, 0);
     // both elements — html is the scrolling element, so body alone does nothing
     document.documentElement.classList.add("scroll-locked");
@@ -125,50 +133,24 @@ export default function LandingPage() {
       const navCareer = navCareerRef.current;
       if (!title || !mark || !careerTitle || !navCareer) return;
 
-      /* 1. Center "enrin" shrinks onto the top-left mark and dissolves into it.
-         Flip.fit measures both elements, so the landing is pixel-exact at any size. */
-      const heroTl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1, // scroll leads, the title eases after
-          invalidateOnRefresh: true,
-        },
-      });
+      /* The three-column geometry lives in landing.css as custom properties.
+         A hidden probe lets the browser resolve them to pixels for us, so the
+         timelines below never carry their own copy of a viewport fraction —
+         move a slot in CSS and the animation follows. */
+      const probe = document.createElement("div");
+      probe.style.cssText =
+        "position:absolute;top:0;left:0;height:0;visibility:hidden;pointer-events:none";
+      document.body.appendChild(probe);
+      const slot = (name: string) => {
+        probe.style.width = `var(${name})`;
+        return probe.getBoundingClientRect().width;
+      };
 
-      heroTl
-        .to(title, {
-          duration: 1,
-          ease: "power1.inOut",
-          ...(Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars),
-        }, 0)
-        .to(subtitleRef.current, { opacity: 0, y: -14, duration: 0.28, ease: "power2.in" }, 0)
-        // no crossfade: the travelling title IS the mark right up to the last
-        // frame, then they swap in place, where the two are pixel-identical
-        .set(title, { opacity: 0 }, 0.995)
-        .set(mark, { opacity: 1 }, 0.995);
-
-      /* The backdrop stays vivid in the hero, then settles back so the copy reads
-         without needing a card behind it. */
-      gsap.to(".bg-dim", {
-        opacity: 0.55,
-        ease: "none",
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
-
-      /* 2. The about beat overlaps the hero: the stage is fixed to the viewport,
-         so it can start emerging from the backdrop while "enrin" is still
-         travelling to the corner, rather than waiting for its section to reach
-         the top. Both phases are scrubbed, so scroll drives the whole thing.
-         The hidden state is applied with gsap.set rather than a from() tween:
-         a from() gets its start state re-applied by a pin refresh and sticks. */
+      /* SplitText and the hover dance are viewport-independent, and they are
+         the only motion that outlives `prefers-reduced-motion`: nothing here
+         moves on its own, it only answers a pointer. Built once, outside the
+         matchMedia branches, so a resize across the breakpoint does not
+         re-split the copy underneath the reader. */
       const headSplit = SplitText.create(".about-big", { type: "words,chars", charsClass: "dance-char" });
       const bodySplit = SplitText.create(".about-text-col .about-p:not(.about-big)", {
         type: "words,chars",
@@ -176,304 +158,13 @@ export default function LandingPage() {
         aggregate: true, // one continuous run across the paragraphs
       });
 
-      gsap.set(".about-left", { z: -1100, opacity: 0, filter: "blur(16px)" });
-      gsap.set(".about-text-col", { z: -1100, opacity: 0, filter: "blur(16px)" });
-      gsap.set(headSplit.chars, { opacity: 0, y: 22, rotate: 10 });
-      gsap.set(bodySplit.chars, { opacity: 0, y: 12, rotate: 6 });
-
       const settle = { opacity: 1, y: 0, rotate: 0 };
-
-      gsap
-        .timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            trigger: aboutRef.current,
-            // ~18% into the hero — right as "tech / film / art" finishes fading
-            start: "top 82%",
-            end: "top top", // fully arrived once the hero has scrolled away
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        })
-        .to(".about-left", {
-          z: 0,
-          opacity: 1,
-          filter: "blur(0px)",
-          duration: 0.8,
-          ease: "power2.out",
-        }, 0)
-        .to(".about-text-col", {
-          z: 0,
-          opacity: 1,
-          filter: "blur(0px)",
-          duration: 0.8,
-          ease: "power2.out",
-        }, 0.12) // copy trails the photo slightly
-        .to(headSplit.chars, {
-          ...settle,
-          duration: 0.12,
-          ease: "back.out(2)",
-          stagger: 0.045,
-        }, 0.3)
-        .to(bodySplit.chars, {
-          ...settle,
-          duration: 0.1,
-          ease: "power2.out",
-          stagger: 0.0035,
-        }, 0.45)
-        // only catches hover once it is actually on screen
-        .set(".about-inner", { pointerEvents: "auto" }, 0.5);
-
-      // ...and recedes past the camera as the career beat comes up
-      gsap.to(".about-inner", {
-        scale: 1.18,
-        opacity: 0,
-        filter: "blur(10px)",
-        ease: "power2.in",
-        scrollTrigger: {
-          trigger: careerLeadRef.current,
-          start: "top bottom",
-          end: "top top",
-          scrub: 1,
-        },
-      });
-
-      /* The career stage is fixed to the viewport too, so the title can start
-         leaving the nav while the about beat is still receding. Being fixed,
-         its live rect is already its on-screen rect — no pin offset to correct. */
-      function careerFitVars(): gsap.TweenVars {
-        gsap.set(careerTitle!, { clearProps: "transform" });
-        const t = careerTitle!.getBoundingClientRect();
-        const n = navCareer!.getBoundingClientRect();
-        const scale = n.width / t.width;
-        return {
-          x: n.left - t.left,
-          y: n.top - t.top,
-          scaleX: scale,
-          scaleY: scale,
-          transformOrigin: "0px 0px",
-        };
-      }
-
-      /* 3. The reverse move: "career" leaves the nav, travels down to the middle
-            and grows. */
-      const careerTl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: careerLeadRef.current,
-          // the moment the section enters the viewport, while about is still leaving
-          start: "top bottom",
-          end: "top top",
-          scrub: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      careerTl
-        .fromTo(
-          careerTitle,
-          careerFitVars(),
-          { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 1, ease: "power2.inOut" },
-          0
-        )
-        .fromTo(careerTitle, { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power2.out" }, 0)
-        // the nav copy stays gone for the rest of the beat — bringing it back
-        // would put a second "career" on screen alongside the big one
-        .fromTo(navCareer, { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "power2.in" }, 0);
-
-      /* The career backdrop and its leaves wash in over the slideshow as the
-         career beat arrives, and stay for the work below it. */
-      gsap.set([".bg-career", ".leaf-layer"], { opacity: 0 });
-      gsap.to([".bg-career", ".leaf-layer"], {
-        opacity: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: careerLeadRef.current,
-          start: "top bottom",
-          end: "top 25%",
-          scrub: 1,
-        },
-      });
-
-      /* Once it has landed, career docks to the left edge and shrinks, clearing
-         the right half of the viewport for the experience content. Measured at
-         refresh so the dock lands on the same gutter at any width. */
-      function dockVars(): gsap.TweenVars {
-        const wrap = careerWrapRef.current!;
-        gsap.set(wrap, { clearProps: "transform" });
-        const r = wrap.getBoundingClientRect();
-        const gutter = Math.max(40, window.innerWidth * 0.055);
-        return {
-          x: gutter - r.left,
-          scale: 0.46,
-          transformOrigin: "left center", // left edge pins to the gutter as it shrinks
-        };
-      }
-
-      const dockTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: careerBodyRef.current,
-          start: "top 92%",
-          end: "top 32%",
-          scrub: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-      dockTl.to(careerWrapRef.current, { ...dockVars(), ease: "power2.inOut", duration: 1 }, 0);
-
-      /* 4. The rest of career fades up underneath */
-      gsap.set(".career-rise", { y: 60, opacity: 0, filter: "blur(6px)" });
-      gsap.to(".career-rise", {
-        scrollTrigger: { trigger: careerBodyRef.current, start: "top 70%" },
-        y: 0,
-        opacity: 1,
-        filter: "blur(0px)",
-        duration: 1.1,
-        stagger: 0.12,
-        ease: "expo.out",
-      });
-
-      /* 5. Keep scrolling and experience slides off to the left while the
-         projects arrive from the right — the two cross over in one viewport. */
-      gsap.set(".project-rise", { x: () => window.innerWidth * 0.22, opacity: 0, filter: "blur(10px)" });
-
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: projectsRef.current,
-            start: "top bottom",
-            end: "top top",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        })
-        // experience slides from the right column into the middle and stays put —
-        // there is room for both once it moves over
-        .to(".career-body", {
-          x: () => -window.innerWidth * 0.16,
-          ease: "power2.inOut",
-          duration: 1,
-        }, 0)
-        .to(".project-rise", {
-          x: 0,
-          opacity: 1,
-          filter: "blur(0px)",
-          ease: "power3.out",
-          duration: 1,
-          stagger: 0.12,
-        }, 0.1);
-
-      /* 6. A small figure walks in from OFF-SCREEN LEFT, crosses the word,
-         stops just right of the final "r", turns to face it, and boots it off
-         to the left. Everything downstream is keyed off CONTACT so the hit
-         reads as the cause. */
-      const CONTACT = 0.8;
-      const ARRIVE = 0.62;
-
-      // facing right (scaleX -1) for the walk across, since the figure is drawn
-      // facing left. The head sits inside this group, so the face always looks
-      // the way the figure is walking.
-      gsap.set(kickerRef.current, { x: () => -window.innerWidth * 0.3, opacity: 0 });
-      gsap.set(kickerBodyRef.current, { scaleX: -1 });
-      gsap.set([kickLegRef.current, standLegRef.current, armRef.current], { rotation: 0 });
-      gsap.set(".edu-rise", { x: () => window.innerWidth * 0.25, opacity: 0, filter: "blur(8px)" });
-
-      const walk = (n: number) => Array.from({ length: n * 2 + 1 }, (_, i) => (i === n * 2 ? 0 : (i % 2 ? 22 : -22)));
-
-      gsap
-        .timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            trigger: eduRef.current,
-            start: "top bottom",
-            end: "top top",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        })
-        // --- the long slow walk in from the left ---
-        .to(kickerRef.current, { opacity: 1, duration: 0.04 }, 0)
-        .to(kickerRef.current, { x: 0, duration: ARRIVE, ease: "none" }, 0)
-        .to(kickLegRef.current, { keyframes: { rotation: walk(5) }, duration: ARRIVE }, 0)
-        .to(standLegRef.current, { keyframes: { rotation: walk(5).map((v) => -v) }, duration: ARRIVE }, 0)
-        .to(armRef.current, { keyframes: { rotation: walk(5).map((v) => v * 0.8) }, duration: ARRIVE }, 0)
-        .to(kickerBodyRef.current, { keyframes: { y: [0, -3, 0, -3, 0, -3, 0, -3, 0, -3, 0] }, duration: ARRIVE }, 0)
-        .to(headRef.current, { keyframes: { rotation: [0, 7, -7, 7, -7, 7, -7, 7, -7, 7, 0] }, duration: ARRIVE }, 0)
-        // --- turns around to face the word ---
-        .to(kickerBodyRef.current, { scaleX: 1, duration: 0.06, ease: "power2.inOut" }, ARRIVE)
-        // --- winds up ---
-        .to(kickLegRef.current, { rotation: -42, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
-        .to(armRef.current, { rotation: 34, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
-        .to(kickerBodyRef.current, { rotation: 7, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
-        // --- swings through ---
-        .to(kickLegRef.current, { rotation: 98, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
-        .to(armRef.current, { rotation: -36, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
-        .to(kickerBodyRef.current, { rotation: -9, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
-        // the head keeps going after the body stops — that is the bobble
-        .to(headRef.current, { rotation: -26, duration: 0.1, ease: "power2.out" }, CONTACT - 0.04)
-        .to(headRef.current, { rotation: 0, duration: 0.3, ease: "elastic.out(1, 0.32)" }, CONTACT + 0.06)
-        // --- contact: career is launched off the left edge ---
-        .to(careerWrapRef.current, {
-          x: () => -window.innerWidth * 0.85,
-          y: -150,
-          rotation: -40,
-          opacity: 0,
-          duration: 0.26,
-          ease: "power3.in",
-        }, CONTACT)
-        // the columns shuffle left and shrink into their new slots
-        // three equal columns: 40 / 500 / 960 at 1440, expressed against the
-        // viewport so the thirds hold at any width
-        .to(".career-body .panel-inner", {
-          x: () => 40 - window.innerWidth * 0.3,
-          duration: 0.45,
-          ease: "power2.inOut",
-        }, CONTACT)
-        .to(".projects-inner", {
-          x: () => -window.innerWidth * 0.333,
-          duration: 0.45,
-          ease: "power2.inOut",
-        }, CONTACT)
-        // --- recovers, then strolls off after it ---
-        .to([kickLegRef.current, armRef.current, kickerBodyRef.current], {
-          rotation: 0, duration: 0.12, ease: "power2.out",
-        }, CONTACT + 0.08)
-        .to(kickerRef.current, { x: () => -window.innerWidth * 0.3, duration: 0.34, ease: "none" }, CONTACT + 0.12)
-        .to(kickLegRef.current, { keyframes: { rotation: walk(3) }, duration: 0.34 }, CONTACT + 0.12)
-        .to(standLegRef.current, { keyframes: { rotation: walk(3).map((v) => -v) }, duration: 0.34 }, CONTACT + 0.12)
-        // --- education rows take the third column ---
-        .to(".edu-rise", {
-          x: 0, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power3.out", stagger: 0.05,
-        }, CONTACT + 0.14);
 
       /* Hover a letter and it kicks — its neighbours follow at half amplitude,
          so the word ripples rather than a single glyph twitching. The dance runs
          on yPercent/scale/skew, which the entrances never touch (those use
          y/rotate/opacity), so letters can dance mid-transition without the two
          overwriting each other. */
-      // the sheet drifts on its own before you ever touch it
-      gsap.to(".resume-btn", {
-        y: -5,
-        duration: 2.4,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-      });
-
-      // ...and only drifts into view after a further stretch of scrolling
-      gsap.set(".resume-rise", { opacity: 0, y: 34 });
-      gsap.to(".resume-rise", {
-        opacity: 1,
-        y: 0,
-        ease: "none",
-        scrollTrigger: {
-          trigger: eduRef.current,
-          start: "top -60%",
-          end: "top -100%",
-          scrub: 1,
-        },
-      });
-
       const danceGroups: HTMLElement[][] = [
         [...headSplit.chars, ...bodySplit.chars] as HTMLElement[],
       ];
@@ -514,40 +205,442 @@ export default function LandingPage() {
       const rootEl = rootRef.current;
       rootEl?.addEventListener("mouseover", onOver);
 
-      // Keep both Flip fits exact across resizes and late font loads
-      function refit() {
-        if (!title || !mark || !careerTitle || !navCareer) return;
-        const heroFit = Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars;
-        const heroTween = heroTl.getChildren(false)[0] as gsap.core.Tween | undefined;
-        if (heroTween) {
-          Object.assign(heroTween.vars, {
-            x: heroFit.x, y: heroFit.y,
-            scaleX: heroFit.scaleX, scaleY: heroFit.scaleY,
-            transformOrigin: heroFit.transformOrigin,
+      /* Two modes, not three. The scrubbed three-column choreography is a
+         desktop stage; below STAGE_MIN the sections stack in normal flow (see
+         landing.css, same breakpoint) and get plain entrance fades. Under
+         reduced motion neither branch is built, so every element simply
+         renders in its final state — the hidden states are all applied by
+         these timelines, never by CSS. */
+      const mm = gsap.matchMedia();
+
+      mm.add(
+        {
+          isDesktop: `(min-width: ${STAGE_MIN}px) and (prefers-reduced-motion: no-preference)`,
+          isStacked: `(max-width: ${STAGE_MIN - 1}px) and (prefers-reduced-motion: no-preference)`,
+        },
+        (ctx) => {
+          const { isDesktop, isStacked } = ctx.conditions as Record<string, boolean>;
+
+          /* ---- shared by both modes ---------------------------------- */
+
+          /* 1. Center "enrin" shrinks onto the top-left mark and dissolves into it.
+             Flip.fit measures both elements, so the landing is pixel-exact at any
+             size — which is why this one runs in both modes unchanged. */
+          const heroTl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 1, // scroll leads, the title eases after
+              invalidateOnRefresh: true,
+            },
           });
-          heroTween.invalidate();
-        }
 
-        const careerTween = careerTl.getChildren(false)[0] as gsap.core.Tween | undefined;
-        if (careerTween?.vars.startAt) {
-          // a fromTo — the fit lives in the `startAt` vars
-          Object.assign(careerTween.vars.startAt, careerFitVars());
-          careerTween.invalidate();
-        }
+          heroTl
+            .to(title, {
+              duration: 1,
+              ease: "power1.inOut",
+              ...(Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars),
+            }, 0)
+            .to(subtitleRef.current, { opacity: 0, y: -14, duration: 0.28, ease: "power2.in" }, 0)
+            // no crossfade: the travelling title IS the mark right up to the last
+            // frame, then they swap in place, where the two are pixel-identical
+            .set(title, { opacity: 0 }, 0.995)
+            .set(mark, { opacity: 1 }, 0.995);
 
-        const dockTween = dockTl.getChildren(false)[0] as gsap.core.Tween | undefined;
-        if (dockTween) {
-          Object.assign(dockTween.vars, dockVars());
-          dockTween.invalidate();
+          /* The backdrop stays vivid in the hero, then settles back so the copy reads
+             without needing a card behind it. */
+          gsap.to(".bg-dim", {
+            opacity: 0.55,
+            ease: "none",
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 1,
+            },
+          });
+
+          /* ---- stacked: no stage, so nothing travels ------------------ */
+          if (isStacked) {
+            const rise = (targets: gsap.TweenTarget, trigger: Element | null, stagger = 0) => {
+              gsap.set(targets, { opacity: 0, y: 34 });
+              gsap.to(targets, {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger,
+                ease: "power3.out",
+                scrollTrigger: { trigger: trigger ?? undefined, start: "top 85%" },
+              });
+            };
+
+            rise(".about-left", aboutRef.current);
+            rise(".about-text-col", aboutRef.current);
+            rise(careerTitle, careerLeadRef.current);
+            rise(".career-rise", careerBodyRef.current, 0.08);
+            rise(".project-rise", projectsRef.current, 0.1);
+            rise(".edu-rise", eduRef.current, 0.06);
+            rise(".resume-rise", eduRef.current);
+
+            // the career backdrop still washes in — it is an opacity fade, not
+            // a stage move, so it costs nothing to keep on a phone
+            gsap.to([".bg-career", ".leaf-layer"], {
+              opacity: 1,
+              duration: 1.2,
+              ease: "none",
+              scrollTrigger: { trigger: careerLeadRef.current, start: "top 80%" },
+            });
+
+            // the split chars are only hidden by the desktop beat, so leave them be
+            gsap.set([...headSplit.chars, ...bodySplit.chars], settle);
+            gsap.set(".about-inner", { pointerEvents: "auto" });
+            return;
+          }
+
+          if (!isDesktop) return;
+
+          /* ---- desktop: the full three-column stage ------------------- */
+
+          /* 2. The about beat overlaps the hero: the stage is fixed to the viewport,
+             so it can start emerging from the backdrop while "enrin" is still
+             travelling to the corner, rather than waiting for its section to reach
+             the top. Both phases are scrubbed, so scroll drives the whole thing.
+             The hidden state is applied with gsap.set rather than a from() tween:
+             a from() gets its start state re-applied by a pin refresh and sticks. */
+          gsap.set(".about-left", { z: -1100, opacity: 0, filter: "blur(16px)" });
+          gsap.set(".about-text-col", { z: -1100, opacity: 0, filter: "blur(16px)" });
+          gsap.set(headSplit.chars, { opacity: 0, y: 22, rotate: 10 });
+          gsap.set(bodySplit.chars, { opacity: 0, y: 12, rotate: 6 });
+
+          gsap
+            .timeline({
+              defaults: { ease: "none" },
+              scrollTrigger: {
+                trigger: aboutRef.current,
+                // ~18% into the hero — right as "tech / film / art" finishes fading
+                start: "top 82%",
+                end: "top top", // fully arrived once the hero has scrolled away
+                scrub: 1,
+                invalidateOnRefresh: true,
+              },
+            })
+            .to(".about-left", {
+              z: 0,
+              opacity: 1,
+              filter: "blur(0px)",
+              duration: 0.8,
+              ease: "power2.out",
+            }, 0)
+            .to(".about-text-col", {
+              z: 0,
+              opacity: 1,
+              filter: "blur(0px)",
+              duration: 0.8,
+              ease: "power2.out",
+            }, 0.12) // copy trails the photo slightly
+            .to(headSplit.chars, {
+              ...settle,
+              duration: 0.12,
+              ease: "back.out(2)",
+              stagger: 0.045,
+            }, 0.3)
+            .to(bodySplit.chars, {
+              ...settle,
+              duration: 0.1,
+              ease: "power2.out",
+              stagger: 0.0035,
+            }, 0.45)
+            // only catches hover once it is actually on screen
+            .set(".about-inner", { pointerEvents: "auto" }, 0.5);
+
+          // ...and recedes past the camera as the career beat comes up
+          gsap.to(".about-inner", {
+            scale: 1.18,
+            opacity: 0,
+            filter: "blur(10px)",
+            ease: "power2.in",
+            scrollTrigger: {
+              trigger: careerLeadRef.current,
+              start: "top bottom",
+              end: "top top",
+              scrub: 1,
+            },
+          });
+
+          /* The career stage is fixed to the viewport too, so the title can start
+             leaving the nav while the about beat is still receding. Being fixed,
+             its live rect is already its on-screen rect — no pin offset to correct. */
+          function careerFitVars(): gsap.TweenVars {
+            gsap.set(careerTitle!, { clearProps: "transform" });
+            const t = careerTitle!.getBoundingClientRect();
+            const n = navCareer!.getBoundingClientRect();
+            const scale = n.width / t.width;
+            return {
+              x: n.left - t.left,
+              y: n.top - t.top,
+              scaleX: scale,
+              scaleY: scale,
+              transformOrigin: "0px 0px",
+            };
+          }
+
+          /* 3. The reverse move: "career" leaves the nav, travels down to the middle
+                and grows. */
+          const careerTl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: careerLeadRef.current,
+              // the moment the section enters the viewport, while about is still leaving
+              start: "top bottom",
+              end: "top top",
+              scrub: 1,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          careerTl
+            .fromTo(
+              careerTitle,
+              careerFitVars(),
+              { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 1, ease: "power2.inOut" },
+              0
+            )
+            .fromTo(careerTitle, { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power2.out" }, 0)
+            // the nav copy stays gone for the rest of the beat — bringing it back
+            // would put a second "career" on screen alongside the big one
+            .fromTo(navCareer, { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "power2.in" }, 0);
+
+          /* The career backdrop and its leaves wash in over the slideshow as the
+             career beat arrives, and stay for the work below it. */
+          gsap.set([".bg-career", ".leaf-layer"], { opacity: 0 });
+          gsap.to([".bg-career", ".leaf-layer"], {
+            opacity: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: careerLeadRef.current,
+              start: "top bottom",
+              end: "top 25%",
+              scrub: 1,
+            },
+          });
+
+          /* Once it has landed, career docks to the left edge and shrinks, clearing
+             the right half of the viewport for the experience content. Measured at
+             refresh so the dock lands on the same gutter at any width. */
+          function dockVars(): gsap.TweenVars {
+            const wrap = careerWrapRef.current!;
+            gsap.set(wrap, { clearProps: "transform" });
+            const r = wrap.getBoundingClientRect();
+            return {
+              x: slot("--stage-gutter") - r.left,
+              scale: 0.46,
+              transformOrigin: "left center", // left edge pins to the gutter as it shrinks
+            };
+          }
+
+          const dockTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: careerBodyRef.current,
+              start: "top 92%",
+              end: "top 32%",
+              scrub: 1,
+              invalidateOnRefresh: true,
+            },
+          });
+          dockTl.to(careerWrapRef.current, { ...dockVars(), ease: "power2.inOut", duration: 1 }, 0);
+
+          /* 4. The rest of career fades up underneath */
+          gsap.set(".career-rise", { y: 60, opacity: 0, filter: "blur(6px)" });
+          gsap.to(".career-rise", {
+            scrollTrigger: { trigger: careerBodyRef.current, start: "top 70%" },
+            y: 0,
+            opacity: 1,
+            filter: "blur(0px)",
+            duration: 1.1,
+            stagger: 0.12,
+            ease: "expo.out",
+          });
+
+          /* 5. Keep scrolling and experience slides off to the left while the
+             projects arrive from the right — the two cross over in one viewport.
+
+             Both moves are stated as "travel from where CSS put you to the slot
+             you belong in", so the numbers live in landing.css and this code
+             only does the subtraction. */
+          gsap.set(".project-rise", { x: () => window.innerWidth * 0.22, opacity: 0, filter: "blur(10px)" });
+
+          gsap
+            .timeline({
+              scrollTrigger: {
+                trigger: projectsRef.current,
+                start: "top bottom",
+                end: "top top",
+                scrub: 1,
+                invalidateOnRefresh: true,
+              },
+            })
+            // experience slides from the right column into the middle and stays put —
+            // there is room for both once it moves over
+            .to(".career-body", {
+              x: () => slot("--slot-mid") - slot("--stage-pad-1"),
+              ease: "power2.inOut",
+              duration: 1,
+            }, 0)
+            .to(".project-rise", {
+              x: 0,
+              opacity: 1,
+              filter: "blur(0px)",
+              ease: "power3.out",
+              duration: 1,
+              stagger: 0.12,
+            }, 0.1);
+
+          /* 6. A small figure walks in from OFF-SCREEN LEFT, crosses the word,
+             stops just right of the final "r", turns to face it, and boots it off
+             to the left. Everything downstream is keyed off CONTACT so the hit
+             reads as the cause. */
+          const CONTACT = 0.8;
+          const ARRIVE = 0.62;
+
+          // facing right (scaleX -1) for the walk across, since the figure is drawn
+          // facing left. The head sits inside this group, so the face always looks
+          // the way the figure is walking.
+          gsap.set(kickerRef.current, { x: () => -window.innerWidth * 0.3, opacity: 0 });
+          gsap.set(kickerBodyRef.current, { scaleX: -1 });
+          gsap.set([kickLegRef.current, standLegRef.current, armRef.current], { rotation: 0 });
+          gsap.set(".edu-rise", { x: () => window.innerWidth * 0.25, opacity: 0, filter: "blur(8px)" });
+
+          const walk = (n: number) => Array.from({ length: n * 2 + 1 }, (_, i) => (i === n * 2 ? 0 : (i % 2 ? 22 : -22)));
+
+          gsap
+            .timeline({
+              defaults: { ease: "none" },
+              scrollTrigger: {
+                trigger: eduRef.current,
+                start: "top bottom",
+                end: "top top",
+                scrub: 1,
+                invalidateOnRefresh: true,
+              },
+            })
+            // --- the long slow walk in from the left ---
+            .to(kickerRef.current, { opacity: 1, duration: 0.04 }, 0)
+            .to(kickerRef.current, { x: 0, duration: ARRIVE, ease: "none" }, 0)
+            .to(kickLegRef.current, { keyframes: { rotation: walk(5) }, duration: ARRIVE }, 0)
+            .to(standLegRef.current, { keyframes: { rotation: walk(5).map((v) => -v) }, duration: ARRIVE }, 0)
+            .to(armRef.current, { keyframes: { rotation: walk(5).map((v) => v * 0.8) }, duration: ARRIVE }, 0)
+            .to(kickerBodyRef.current, { keyframes: { y: [0, -3, 0, -3, 0, -3, 0, -3, 0, -3, 0] }, duration: ARRIVE }, 0)
+            .to(headRef.current, { keyframes: { rotation: [0, 7, -7, 7, -7, 7, -7, 7, -7, 7, 0] }, duration: ARRIVE }, 0)
+            // --- turns around to face the word ---
+            .to(kickerBodyRef.current, { scaleX: 1, duration: 0.06, ease: "power2.inOut" }, ARRIVE)
+            // --- winds up ---
+            .to(kickLegRef.current, { rotation: -42, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
+            .to(armRef.current, { rotation: 34, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
+            .to(kickerBodyRef.current, { rotation: 7, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
+            // --- swings through ---
+            .to(kickLegRef.current, { rotation: 98, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+            .to(armRef.current, { rotation: -36, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+            .to(kickerBodyRef.current, { rotation: -9, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+            // the head keeps going after the body stops — that is the bobble
+            .to(headRef.current, { rotation: -26, duration: 0.1, ease: "power2.out" }, CONTACT - 0.04)
+            .to(headRef.current, { rotation: 0, duration: 0.3, ease: "elastic.out(1, 0.32)" }, CONTACT + 0.06)
+            // --- contact: career is launched off the left edge ---
+            .to(careerWrapRef.current, {
+              x: () => -window.innerWidth * 0.85,
+              y: -150,
+              rotation: -40,
+              opacity: 0,
+              duration: 0.26,
+              ease: "power3.in",
+            }, CONTACT)
+            // the columns shuffle left into their slots — the experience panel
+            // ends at --slot-1, the projects at --slot-2, and education is
+            // already sitting at --slot-3, so the three read as equal columns
+            .to(".career-body .panel-inner", {
+              x: () => slot("--slot-1") - slot("--slot-mid"),
+              duration: 0.45,
+              ease: "power2.inOut",
+            }, CONTACT)
+            .to(".projects-inner", {
+              x: () => slot("--slot-2") - slot("--stage-pad-2"),
+              duration: 0.45,
+              ease: "power2.inOut",
+            }, CONTACT)
+            // --- recovers, then strolls off after it ---
+            .to([kickLegRef.current, armRef.current, kickerBodyRef.current], {
+              rotation: 0, duration: 0.12, ease: "power2.out",
+            }, CONTACT + 0.08)
+            .to(kickerRef.current, { x: () => -window.innerWidth * 0.3, duration: 0.34, ease: "none" }, CONTACT + 0.12)
+            .to(kickLegRef.current, { keyframes: { rotation: walk(3) }, duration: 0.34 }, CONTACT + 0.12)
+            .to(standLegRef.current, { keyframes: { rotation: walk(3).map((v) => -v) }, duration: 0.34 }, CONTACT + 0.12)
+            // --- education rows take the third column ---
+            .to(".edu-rise", {
+              x: 0, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power3.out", stagger: 0.05,
+            }, CONTACT + 0.14);
+
+          // the sheet drifts on its own before you ever touch it
+          gsap.to(".resume-btn", {
+            y: -5,
+            duration: 2.4,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+          });
+
+          // ...and only drifts into view after a further stretch of scrolling
+          gsap.set(".resume-rise", { opacity: 0, y: 34 });
+          gsap.to(".resume-rise", {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: eduRef.current,
+              start: "top -60%",
+              end: "top -100%",
+              scrub: 1,
+            },
+          });
+
+          // Keep both Flip fits exact across resizes and late font loads
+          function refit() {
+            if (!title || !mark || !careerTitle || !navCareer) return;
+            const heroFit = Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars;
+            const heroTween = heroTl.getChildren(false)[0] as gsap.core.Tween | undefined;
+            if (heroTween) {
+              Object.assign(heroTween.vars, {
+                x: heroFit.x, y: heroFit.y,
+                scaleX: heroFit.scaleX, scaleY: heroFit.scaleY,
+                transformOrigin: heroFit.transformOrigin,
+              });
+              heroTween.invalidate();
+            }
+
+            const careerTween = careerTl.getChildren(false)[0] as gsap.core.Tween | undefined;
+            if (careerTween?.vars.startAt) {
+              // a fromTo — the fit lives in the `startAt` vars
+              Object.assign(careerTween.vars.startAt, careerFitVars());
+              careerTween.invalidate();
+            }
+
+            const dockTween = dockTl.getChildren(false)[0] as gsap.core.Tween | undefined;
+            if (dockTween) {
+              Object.assign(dockTween.vars, dockVars());
+              dockTween.invalidate();
+            }
+          }
+          ScrollTrigger.addEventListener("refreshInit", refit);
+          ctx.add(() => ScrollTrigger.removeEventListener("refreshInit", refit));
         }
-      }
-      ScrollTrigger.addEventListener("refreshInit", refit);
+      );
 
       document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
 
       return () => {
-        ScrollTrigger.removeEventListener("refreshInit", refit);
+        mm.revert();
         rootEl?.removeEventListener("mouseover", onOver);
+        probe.remove();
       };
     },
     { scope: rootRef }
