@@ -742,6 +742,40 @@ export default function LandingPage() {
               dockTween.invalidate();
             }
           }
+          /* The experience column is its own scroll container (overflow-y: auto,
+             height 100dvh — see .career-body), so a wheel with the pointer over
+             it scrolled THE COLUMN while the other two columns moved with the
+             page. The three then sat out of alignment by exactly however far it
+             had been scrolled, which is why the gap looked arbitrary rather
+             than like a layout bug.
+
+             With no row expanded the column is meant to sit flush on the shared
+             top line, so there the wheel is handed back to the page and any
+             stray offset is snapped away. Expanding a row can genuinely
+             overflow the column on a short window, and there it keeps its own
+             scroll so the detail and photos stay reachable — which is what
+             overflow-y: auto is for. */
+          const expCol = careerBodyRef.current;
+          if (expCol) {
+            const hasExpandedRow = () => !!expCol.querySelector('[data-expanded="true"]');
+
+            const onColWheel = (e: WheelEvent) => {
+              if (hasExpandedRow()) return;
+              e.preventDefault();
+              window.scrollBy(0, e.deltaY);
+            };
+            const onColScroll = () => {
+              if (!hasExpandedRow() && expCol.scrollTop !== 0) expCol.scrollTop = 0;
+            };
+
+            expCol.addEventListener("wheel", onColWheel, { passive: false });
+            expCol.addEventListener("scroll", onColScroll);
+            ctx.add(() => {
+              expCol.removeEventListener("wheel", onColWheel);
+              expCol.removeEventListener("scroll", onColScroll);
+            });
+          }
+
           ScrollTrigger.addEventListener("refreshInit", refit);
           ctx.add(() => ScrollTrigger.removeEventListener("refreshInit", refit));
         }

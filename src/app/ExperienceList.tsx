@@ -62,8 +62,10 @@ export default function ExperienceList({ rowClassName = "" }: { rowClassName?: s
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+      {/* data-expanded: the landing reads it to tell a column that needs its own
+          scroll from one that should stay flush on the stage's shared top line */}
       {experiences.map((exp, i) => (
-        <div key={i} className={`exp-row ${rowClassName}`}>
+        <div key={i} className={`exp-row ${rowClassName}`} data-expanded={expandedIndex === i}>
           <button className="exp-row-btn" onClick={() => toggle(i)}>
             {/* the tilt is expand state, so it stays here rather than in the class */}
             <span className="exp-logo" style={{ transform: expandedIndex === i ? "rotate(-8deg) scale(1.05)" : "rotate(0) scale(1)" }}>
