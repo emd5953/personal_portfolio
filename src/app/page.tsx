@@ -319,36 +319,6 @@ export default function LandingPage() {
 
           /* ---- shared by both modes ---------------------------------- */
 
-          /* 1. Center "enrin" shrinks onto the top-left mark and dissolves into it.
-             Flip.fit measures both elements, so the landing is pixel-exact at any
-             size — which is why this one runs in both modes unchanged. */
-          const heroTl = gsap.timeline({
-            defaults: { ease: "none" },
-            scrollTrigger: {
-              trigger: heroRef.current,
-              start: "top top",
-              end: "bottom top",
-              scrub: 1, // scroll leads, the title eases after
-              invalidateOnRefresh: true,
-            },
-          });
-
-          heroTl
-            .to(title, {
-              duration: 1,
-              ease: "power1.inOut",
-              ...(Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars),
-            }, 0)
-            .to(subtitleRef.current, { opacity: 0, y: -14, duration: 0.28, ease: "power2.in" }, 0)
-            /* the location/time strip is pinned to the viewport, so once the
-               hero is gone it would otherwise float over every section below —
-               on a short phone screen it sits right on top of the rows */
-            .to(".hero-bottom", { opacity: 0, duration: 0.3, ease: "power2.in" }, 0.6)
-            // no crossfade: the travelling title IS the mark right up to the last
-            // frame, then they swap in place, where the two are pixel-identical
-            .set(title, { opacity: 0 }, 0.995)
-            .set(mark, { opacity: 1 }, 0.995);
-
           /* The backdrop stays vivid in the hero, then settles back so the copy reads
              without needing a card behind it. */
           gsap.to(".bg-dim", {
@@ -382,7 +352,11 @@ export default function LandingPage() {
             rise(".career-rise", careerBodyRef.current, 0.08);
             rise(".project-rise", projectsRef.current, 0.1);
             rise(".edu-rise", eduRef.current, 0.06);
-            rise(".resume-rise", eduRef.current);
+            /* triggered on itself, not on the section: education is the tallest
+               block on the stacked page, so "top 85%" of the SECTION fires while
+               the resume is still far below the fold — the fade was over before
+               it was ever on screen. */
+            rise(".resume-rise", document.querySelector(".resume-wrap"));
 
             // the career backdrop still washes in — it is an opacity fade, not
             // a stage move, so it costs nothing to keep on a phone
@@ -396,12 +370,47 @@ export default function LandingPage() {
             // the split chars are only hidden by the desktop beat, so leave them be
             gsap.set([...headSplit.chars, ...bodySplit.chars], settle);
             gsap.set(".about-inner", { pointerEvents: "auto" });
+
+            /* No title travel here — see the .hero-content note in landing.css.
+               The mark is the title's destination, so with nothing flying to it
+               it is simply on from the start. */
+            gsap.set(mark, { opacity: 1 });
             return;
           }
 
           if (!isDesktop) return;
 
           /* ---- desktop: the full three-column stage ------------------- */
+
+          /* 1. Center "enrin" shrinks onto the top-left mark and dissolves into
+             it. Desktop only: the travel needs .hero-content fixed to carry the
+             title across the viewport, and on the stacked layout a fixed title
+             hangs over the about section as that scrolls up under it. */
+          const heroTl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 1, // scroll leads, the title eases after
+              invalidateOnRefresh: true,
+            },
+          });
+
+          heroTl
+            .to(title, {
+              duration: 1,
+              ease: "power1.inOut",
+              ...(Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars),
+            }, 0)
+            .to(subtitleRef.current, { opacity: 0, y: -14, duration: 0.28, ease: "power2.in" }, 0)
+            /* the location/time strip is pinned to the viewport, so once the
+               hero is gone it would otherwise float over every section below */
+            .to(".hero-bottom", { opacity: 0, duration: 0.3, ease: "power2.in" }, 0.6)
+            // no crossfade: the travelling title IS the mark right up to the last
+            // frame, then they swap in place, where the two are pixel-identical
+            .set(title, { opacity: 0 }, 0.995)
+            .set(mark, { opacity: 1 }, 0.995);
 
           /* 2. The about beat overlaps the hero: the stage is fixed to the viewport,
              so it can start emerging from the backdrop while "enrin" is still

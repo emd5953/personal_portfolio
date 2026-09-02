@@ -921,7 +921,22 @@
   .nav { padding: 18px 20px; }
   .nav-links { gap: 18px; }
 
-  .hero-bottom { left: 20px; right: 20px; bottom: 24px; }
+  /* Same reasoning as the reduced-motion block below. The title is fixed so it
+     can travel to the nav mark, but that travel is desktop-only (see page.tsx):
+     the stacked sections are in normal flow, so a fixed title just hangs in the
+     middle of the viewport while about scrolls up underneath it. Here the hero
+     scrolls away with its own section and the mark is on from the start. */
+  .hero-content { position: absolute; }
+
+  /* the strip is faded out by the hero timeline, which no longer runs here —
+     so it rides the hero off the screen instead of staying pinned */
+  .hero-bottom {
+    position: absolute;
+    top: calc(100dvh - 60px);
+    bottom: auto;
+    left: 20px;
+    right: 20px;
+  }
 
   .about { height: auto; }
   .about-stage {
@@ -975,6 +990,10 @@
     pointer-events: auto;
   }
   .education-inner { position: static; max-width: none; padding-top: 8px; }
+
+  /* centred under a 420px column on the stage, but stacked it spans the whole
+     screen — so it drifts far from the left-aligned rows it belongs to */
+  .resume-wrap { justify-content: flex-start; }
   .career-body .panel-inner,
   .projects-inner { max-width: none; }
 
@@ -1004,7 +1023,6 @@
   .hero-bottom {
     left: 16px;
     right: 16px;
-    bottom: 20px;
   }
 
   .hero-loc,
