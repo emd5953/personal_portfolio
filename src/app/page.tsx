@@ -14,9 +14,17 @@ import "./landing.css";
 
 gsap.registerPlugin(ScrollTrigger, Flip, SplitText, useGSAP);
 
-const projects = [
+/* A card with `video` set shows the clip on desktop and the still everywhere
+   else — see .work-card-video in landing.css. `img` is the poster either way,
+   so it is never optional. */
+const projects: { img: string; video?: string; title: string; tags: string; desc: string; href: string }[] = [
   { img: "/assets/career/aspot.png", title: "aSpot", tags: "tavily . next.js . supabase . resend", desc: "AI itinerary platform giving you curated plans in minutes", href: "https://aspot.enrinjr.com" },
+  { img: "/assets/career/cursor2discord.png", video: "/assets/ProjDemos/Cursor2Disc_Demo_Portfolio.mp4", title: "Cursor2Discord", tags: "cursor ext . claude code hooks . rich presence", desc: "1.2k+ downloads. Discord Rich Presence for Cursor that knows what your agents are doing", href: "https://github.com/emd5953/cursor2discord" },
   { img: "/assets/career/leaseIQ.png", title: "LeaseIQ", tags: "firecrawl · reducto . open router . render", desc: "Smart apartment hunting & lease analysis platform", href: "https://lease-iq.vercel.app/" },
+  { img: "/assets/career/lotivity.png", title: "Lotivity", tags: "swift . swiftui . ranked feed", desc: "Native iOS app for local activity discovery — real experiences over artificial exchanges", href: "https://github.com/emd5953/lotivity" },
+  { img: "/assets/career/nextstep.png", title: "NextStep", tags: "semantic search . embeddings . react native", desc: "AI job-matching platform with a swipe-based interface and intelligent recommendations", href: "https://github.com/emd5953/NextStep4" },
+  { img: "/assets/career/travel-backoffice.png", title: "Travel Agency OS", tags: "agents . rag . quote normalization", desc: "AI back office for travel agencies — agents draft client replies and normalize supplier quotes, traceable to source", href: "https://github.com/emd5953/AI_BackOffice_LuxuryTravelAgencies" },
+  { img: "/assets/career/wavelength.png", title: "Wavelength", tags: "spotify api . postgis . supabase", desc: "Proximity-based music discovery — see what people around you are playing, anonymously", href: "https://github.com/emd5953/wavelength" },
 ];
 
 /* The width at which the three-column stage is worth running. Below it the
@@ -30,6 +38,20 @@ const heroPositions = [
   "50% 70%", "52% 43%", "center 20%", "center 20%", "center 20%",
 ];
 
+
+/* The demo clip only runs while its card is hovered — see the note at the
+   card, and .work-card-video in landing.css for where it is allowed to. */
+function playDemo(e: React.MouseEvent<HTMLAnchorElement>) {
+  const v = e.currentTarget.querySelector("video");
+  if (v && getComputedStyle(v).display !== "none") void v.play().catch(() => {});
+}
+
+function pauseDemo(e: React.MouseEvent<HTMLAnchorElement>) {
+  const v = e.currentTarget.querySelector("video");
+  if (!v) return;
+  v.pause();
+  v.currentTime = 0; // back to the frame the card rests on
+}
 
 export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -72,6 +94,10 @@ export default function LandingPage() {
     // nothing is writing itself in under reduced motion, so there is nothing
     // to hold the page still for — locking scroll would just be a dead 2.3s
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    /* Only a real page load gets held. A hot reload re-runs this effect long
+       after navigation, and re-arming the lock there freezes the page mid-read
+       — repeatedly, once per save — for an intro that is not replaying. */
+    if (performance.now() > 1500) return;
     window.scrollTo(0, 0);
     // both elements — html is the scrolling element, so body alone does nothing
     document.documentElement.classList.add("scroll-locked");
@@ -501,8 +527,8 @@ export default function LandingPage() {
              stops just right of the final "r", turns to face it, and boots it off
              to the left. Everything downstream is keyed off CONTACT so the hit
              reads as the cause. */
-          const CONTACT = 0.8;
-          const ARRIVE = 0.62;
+          const CONTACT = 1.6;
+          const ARRIVE = 1.24;
 
           // facing right (scaleX -1) for the walk across, since the figure is drawn
           // facing left. The head sits inside this group, so the face always looks
@@ -513,6 +539,8 @@ export default function LandingPage() {
           gsap.set(".edu-rise", { x: () => window.innerWidth * 0.25, opacity: 0, filter: "blur(8px)" });
 
           const walk = (n: number) => Array.from({ length: n * 2 + 1 }, (_, i) => (i === n * 2 ? 0 : (i % 2 ? 22 : -22)));
+          const bob = (n: number) => Array.from({ length: n * 2 + 1 }, (_, i) => (i % 2 ? -3 : 0));
+          const nod = (n: number) => Array.from({ length: n * 2 + 1 }, (_, i) => (i === 0 || i === n * 2 ? 0 : (i % 2 ? 7 : -7)));
 
           gsap
             .timeline({
@@ -520,32 +548,38 @@ export default function LandingPage() {
               scrollTrigger: {
                 trigger: eduRef.current,
                 start: "top bottom",
-                end: "top top",
+                /* The range is sized so a timeline unit still costs the same
+                   scroll as it did over the original 100dvh — the kicker's own
+                   tweens are what got twice as long, so only the walk-in, the
+                   kick and the walk-off slowed down. The launch, the column
+                   shuffle and the education rows still play at their old speed.
+                   Ends before .resume-rise begins. */
+                end: "top -75%",
                 scrub: 1,
                 invalidateOnRefresh: true,
               },
             })
             // --- the long slow walk in from the left ---
-            .to(kickerRef.current, { opacity: 1, duration: 0.04 }, 0)
+            .to(kickerRef.current, { opacity: 1, duration: 0.08 }, 0)
             .to(kickerRef.current, { x: 0, duration: ARRIVE, ease: "none" }, 0)
-            .to(kickLegRef.current, { keyframes: { rotation: walk(5) }, duration: ARRIVE }, 0)
-            .to(standLegRef.current, { keyframes: { rotation: walk(5).map((v) => -v) }, duration: ARRIVE }, 0)
-            .to(armRef.current, { keyframes: { rotation: walk(5).map((v) => v * 0.8) }, duration: ARRIVE }, 0)
-            .to(kickerBodyRef.current, { keyframes: { y: [0, -3, 0, -3, 0, -3, 0, -3, 0, -3, 0] }, duration: ARRIVE }, 0)
-            .to(headRef.current, { keyframes: { rotation: [0, 7, -7, 7, -7, 7, -7, 7, -7, 7, 0] }, duration: ARRIVE }, 0)
+            .to(kickLegRef.current, { keyframes: { rotation: walk(10) }, duration: ARRIVE }, 0)
+            .to(standLegRef.current, { keyframes: { rotation: walk(10).map((v) => -v) }, duration: ARRIVE }, 0)
+            .to(armRef.current, { keyframes: { rotation: walk(10).map((v) => v * 0.8) }, duration: ARRIVE }, 0)
+            .to(kickerBodyRef.current, { keyframes: { y: bob(10) }, duration: ARRIVE }, 0)
+            .to(headRef.current, { keyframes: { rotation: nod(10) }, duration: ARRIVE }, 0)
             // --- turns around to face the word ---
-            .to(kickerBodyRef.current, { scaleX: 1, duration: 0.06, ease: "power2.inOut" }, ARRIVE)
+            .to(kickerBodyRef.current, { scaleX: 1, duration: 0.12, ease: "power2.inOut" }, ARRIVE)
             // --- winds up ---
-            .to(kickLegRef.current, { rotation: -42, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
-            .to(armRef.current, { rotation: 34, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
-            .to(kickerBodyRef.current, { rotation: 7, duration: 0.1, ease: "power2.out" }, ARRIVE + 0.06)
+            .to(kickLegRef.current, { rotation: -42, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
+            .to(armRef.current, { rotation: 34, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
+            .to(kickerBodyRef.current, { rotation: 7, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
             // --- swings through ---
-            .to(kickLegRef.current, { rotation: 98, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
-            .to(armRef.current, { rotation: -36, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
-            .to(kickerBodyRef.current, { rotation: -9, duration: 0.08, ease: "power3.in" }, CONTACT - 0.08)
+            .to(kickLegRef.current, { rotation: 98, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
+            .to(armRef.current, { rotation: -36, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
+            .to(kickerBodyRef.current, { rotation: -9, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
             // the head keeps going after the body stops — that is the bobble
-            .to(headRef.current, { rotation: -26, duration: 0.1, ease: "power2.out" }, CONTACT - 0.04)
-            .to(headRef.current, { rotation: 0, duration: 0.3, ease: "elastic.out(1, 0.32)" }, CONTACT + 0.06)
+            .to(headRef.current, { rotation: -26, duration: 0.2, ease: "power2.out" }, CONTACT - 0.08)
+            .to(headRef.current, { rotation: 0, duration: 0.6, ease: "elastic.out(1, 0.32)" }, CONTACT + 0.12)
             // --- contact: career is launched off the left edge ---
             .to(careerWrapRef.current, {
               x: () => -window.innerWidth * 0.85,
@@ -570,11 +604,11 @@ export default function LandingPage() {
             }, CONTACT)
             // --- recovers, then strolls off after it ---
             .to([kickLegRef.current, armRef.current, kickerBodyRef.current], {
-              rotation: 0, duration: 0.12, ease: "power2.out",
-            }, CONTACT + 0.08)
-            .to(kickerRef.current, { x: () => -window.innerWidth * 0.3, duration: 0.34, ease: "none" }, CONTACT + 0.12)
-            .to(kickLegRef.current, { keyframes: { rotation: walk(3) }, duration: 0.34 }, CONTACT + 0.12)
-            .to(standLegRef.current, { keyframes: { rotation: walk(3).map((v) => -v) }, duration: 0.34 }, CONTACT + 0.12)
+              rotation: 0, duration: 0.24, ease: "power2.out",
+            }, CONTACT + 0.16)
+            .to(kickerRef.current, { x: () => -window.innerWidth * 0.3, duration: 0.68, ease: "none" }, CONTACT + 0.24)
+            .to(kickLegRef.current, { keyframes: { rotation: walk(6) }, duration: 0.68 }, CONTACT + 0.24)
+            .to(standLegRef.current, { keyframes: { rotation: walk(6).map((v) => -v) }, duration: 0.68 }, CONTACT + 0.24)
             // --- education rows take the third column ---
             .to(".edu-rise", {
               x: 0, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power3.out", stagger: 0.05,
@@ -597,8 +631,8 @@ export default function LandingPage() {
             ease: "none",
             scrollTrigger: {
               trigger: eduRef.current,
-              start: "top -60%",
-              end: "top -100%",
+              start: "top -80%",
+              end: "top -120%",
               scrub: 1,
             },
           });
@@ -760,9 +794,22 @@ export default function LandingPage() {
       <section ref={projectsRef} className="projects">
         <div className="projects-inner">
           {projects.map((p) => (
-            <a key={p.title} href={p.href} target="_blank" rel="noopener noreferrer" className="work-card project-rise">
+            <a key={p.title} href={p.href} target="_blank" rel="noopener noreferrer"
+               className="work-card project-rise"
+               onMouseEnter={playDemo} onMouseLeave={pauseDemo}>
               <div className="work-card-frame">
-                <img src={p.img} alt={p.title} className="work-card-shot" />
+                {/* the clip is desktop-only (see .work-card-video) and loads
+                    nothing until the pointer arrives, so a phone never pulls
+                    the demo down — the still carries the card there. */}
+                {/* #t=0.1 makes the first frame the card's resting image, so
+                    the clip reads as a still until it is hovered — metadata is
+                    all that loads, not the file. */}
+                {p.video && (
+                  <video src={`${p.video}#t=0.1`} className="work-card-shot work-card-video"
+                         loop muted playsInline preload="metadata" />
+                )}
+                <img src={p.img} alt={p.title}
+                     className={`work-card-shot${p.video ? " work-card-still" : ""}`} />
               </div>
               <div className="work-card-info">
                 <span className="work-card-title">{p.title}</span>

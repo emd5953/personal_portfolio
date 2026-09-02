@@ -122,10 +122,12 @@
 /* ---- TOP-LEFT MARK — where the hero title lands ---- */
 .brand-mark {
   font-family: var(--font-display);
-  font-size: 13px;
+  /* the display face runs a larger cap height than the nav face, so it needs
+     a point less to read the same size as "career / story / art" beside it */
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: -0.03125em;
-  line-height: 0.9;
+  line-height: 1;
   color: var(--text);
   text-decoration: none;
   opacity: 0;
@@ -428,7 +430,11 @@
 
 .career-title {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 10vw, 7rem);
+  /* Space Mono sets every glyph on a 0.6em advance, so "career" is a flat
+     3.6em wide — about a third wider than the proportional face this was
+     sized for. The scale comes down to match, or the word runs under the
+     experience column before the kicker ever reaches it. */
+  font-size: clamp(2.4rem, 7.6vw, 5.3rem);
   font-weight: 700;
   letter-spacing: -0.03125em;
   line-height: 0.9;
@@ -475,6 +481,27 @@
   padding: var(--stage-top) 40px 60px var(--stage-pad-2);
   overflow-x: hidden;
   overflow-y: auto;
+  /* The column scrolls its own overflow, and the mask is painted on the
+     scroller rather than the content — so it stays put while the cards move
+     under it. A card leaving the top dissolves at the column's top line
+     instead of sliding up over the rest of the stage, and the same happens
+     at the bottom edge. The opaque stop lands on the first card's top edge
+     (--stage-top plus the 23px the column is padded down by), so nothing is
+     dimmed while the column sits at rest. */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent calc(var(--stage-top) - 26px),
+    #000 calc(var(--stage-top) + 22px),
+    #000 calc(100% - 90px),
+    transparent calc(100% - 20px)
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent calc(var(--stage-top) - 26px),
+    #000 calc(var(--stage-top) + 22px),
+    #000 calc(100% - 90px),
+    transparent calc(100% - 20px)
+  );
   /* the section spans the full width and sits above the sticky experience
      column, so only the cards themselves may take the pointer */
   pointer-events: none;
@@ -482,6 +509,11 @@
 
 .projects-inner {
   pointer-events: auto;
+  /* The three columns share a top line, but the neighbours start with a row
+     whose logo sits 23px below its box while a project card starts with the
+     screenshot at the very top. This is that difference, so the first shot's
+     top edge lines up with the first logo tile's. */
+  padding-top: 23px;
   display: flex;
   flex-direction: column;
   gap: 25px;
@@ -497,7 +529,11 @@
 .education {
   position: relative;
   z-index: 6;
-  min-height: 210dvh;
+  /* runway for the scrubbed kicker sequence (ends at "top -75%") plus the
+     resume reveal (ends at "top -120%"), measured from the moment education
+     docks at the top — so the section needs 100dvh + 120dvh, with a little
+     spare so the last tween is not still running at the page bottom. */
+  min-height: 235dvh;
   padding: 0 40px 80px var(--slot-3); /* the third column, right of the shifted others */
   /* full-width section stacked above the other two columns — only its own
      rows may take the pointer, or it swallows their clicks */
@@ -513,7 +549,11 @@
   inset: 0;
   display: flex;
   align-items: center;
-  padding-left: calc(var(--stage-gutter) + 138px); /* pulls up to the final "r" */
+  /* He stops just clear of the final "r". The docked word is a fixed width —
+     6 monospaced glyphs at the clamped display size, scaled 0.46 by the dock —
+     so this offset holds at every width the stage runs at. Retune it if the
+     display face or the docked scale changes. */
+  padding-left: calc(var(--stage-gutter) + 145px);
   pointer-events: none;
   z-index: 7;
 }
@@ -700,6 +740,19 @@
   transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+.work-card:hover .work-card-frame {
+  transform: translateY(-6px);
+}
+
+/* the clip is a desktop hover affordance — a phone gets the still instead,
+   and never downloads the video (preload="none", play only on hover) */
+.work-card-video { display: none; }
+
+@media (hover: hover) and (min-width: 1100px) {
+  .work-card-video { display: block; }
+  .work-card-video + .work-card-still { display: none; }
+}
+
 .work-card-shot {
   width: 100%;
   height: 100%;
@@ -709,10 +762,6 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   filter: brightness(0.9) saturate(0.9);
   transition: filter 0.5s ease;
-}
-
-.work-card:hover .work-card-frame {
-  transform: translateY(-6px);
 }
 
 .work-card:hover .work-card-shot {
@@ -729,7 +778,7 @@
 
 .work-card-title {
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--text);
@@ -741,19 +790,95 @@
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
 }
 
+/* mono runs every glyph at 0.6em, so this line is ~45 characters of fixed
+   width — at 11px it overshot the card and broke the right edge */
 .work-card-tags {
-  font-size: 11px;
+  font-size: 9.5px;
   color: var(--text-dim);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .work-card-desc {
   margin-top: 8px;
   padding: 0 2px;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 11.5px;
+  line-height: 1.65;
   color: var(--text-mid);
+}
+
+/* ---- PHOTO STRIP ----
+   A horizontally scrollable row of small stills. Hovering one pushes it
+   forward and pulls the rest back, so the strip reads as a stack of photos
+   rather than a filmstrip of equals. The strip scrolls on x, which forces a
+   y clip too — the vertical padding is the room the scaled-up photo grows
+   into, so it is never cut off at the top and bottom. */
+.photo-row {
+  position: relative;
+  margin-top: 2px;
+}
+
+.photo-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 26px 0;
+}
+
+.photo-strip::-webkit-scrollbar { display: none; }
+
+.photo-shot {
+  position: relative;
+  height: 132px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  filter: saturate(0.85) brightness(0.86);
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+              filter 0.45s ease,
+              box-shadow 0.45s ease;
+  will-change: transform;
+}
+
+/* the rest of the row recedes the moment the pointer is anywhere in it */
+.photo-strip:hover .photo-shot {
+  filter: saturate(0.6) brightness(0.5);
+}
+
+.photo-strip .photo-shot:hover {
+  transform: scale(1.38);
+  filter: saturate(1.05) brightness(1.06);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+
+.photo-hint {
+  position: absolute;
+  right: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 60px;
+  background: linear-gradient(to left, rgba(10, 13, 15, 0.8), transparent);
+  pointer-events: none;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-hint span {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 18px;
+  animation: scrollHint 1.5s ease-in-out infinite;
+}
+
+@keyframes scrollHint {
+  0%, 100% { transform: translateX(0); opacity: 0.5; }
+  50% { transform: translateX(5px); opacity: 1; }
 }
 
 /* ---- RESPONSIVE ----
@@ -855,6 +980,8 @@
 
   /* it animates itself on a rAF loop — opacity:0 would keep it running */
   .leaf-layer { display: none; }
+
+  .photo-shot { transition: none; }
 
   /* The hero is fixed so the title can travel to the nav mark. With no
      timeline to carry it there and fade it out, it would hang over every

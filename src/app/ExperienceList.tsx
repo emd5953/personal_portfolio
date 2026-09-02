@@ -6,16 +6,16 @@ import PhotoRow from "./PhotoRow";
 const experiences = [
   {
     company: "Counter Labs, Inc",
-    role: "Founding Forward Deployed Engineer",
+    role: "Forward Deployed Engineer",
     period: "May 26' – Present",
     logo: "/assets/career/counterlogo.png",
-    details: "AI agents for enterprises in NYC. Building ChefOS, the Operating System for Hospitality.",
+    details: "Building ChefOS, the Operating System for Modern Restaurants.",
     photos: [] as string[],
   },
   {
     company: "BENMORE TECHNOLOGIES",
     role: "Forward Deployed Engineer",
-    period: "Jan 26' – May 26'",
+    period: "Feb 26' – May 26'",
     href: "https://benmore.tech",
     logo: "/assets/career/benmore.png",
     details: "Working with startups & SMBs. Industries involved: PE (M&A), Voice Agents in Healthcare, Home Services, Legal AI. Bootstrapped to 2M ARR.",
@@ -63,7 +63,7 @@ export default function ExperienceList({ rowClassName = "" }: { rowClassName?: s
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
       {experiences.map((exp, i) => (
-        <div key={i} className={rowClassName} style={{ padding: "18px 0" }}>
+        <div key={i} className={rowClassName} style={{ padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <button
             onClick={() => toggle(i)}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 20, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}
@@ -72,12 +72,14 @@ export default function ExperienceList({ rowClassName = "" }: { rowClassName?: s
               <img src={exp.logo} alt={exp.company} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 13, color: "var(--color-text)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{exp.company}</span>
+              {/* fixed company column, so the divider and the role line up down
+                  the list instead of stepping in and out with the name length */}
+              <div style={{ display: "grid", gridTemplateColumns: "128px auto 1fr", alignItems: "baseline", gap: 10 }}>
+                <span style={{ fontSize: 12, color: "var(--color-text)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>{exp.company}</span>
                 <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>|</span>
-                <span style={{ fontSize: 13, color: "var(--color-text-dim)" }}>{exp.role}</span>
+                <span style={{ fontSize: 12, color: "var(--color-text-dim)" }}>{exp.role}</span>
               </div>
-              <p style={{ fontSize: 13, color: "var(--color-text-dim)", margin: "4px 0 0" }}>{exp.period}</p>
+              <p style={{ fontSize: 12, color: "var(--color-text-dim)", margin: "4px 0 0" }}>{exp.period}</p>
             </div>
             <svg
               style={{ width: 18, height: 18, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expandedIndex === i ? "rotate(180deg)" : "rotate(0)" }}

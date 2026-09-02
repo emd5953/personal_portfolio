@@ -27,14 +27,17 @@ export default function EducationList({ rowClassName = "", bare = false }: { row
           <div key={i} className={rowClassName}>
             <div
               onClick={hasContent ? () => toggle(i) : undefined}
-              style={{ display: "flex", alignItems: "baseline", gap: 32, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: hasContent ? "pointer" : "default" }}
+              /* a grid, not a flex row: the chevron column is reserved whether or
+                 not this row has one, so the detail text starts on the same line
+                 down the list instead of shifting by the chevron's width */
+              style={{ display: "grid", gridTemplateColumns: "52px 1fr auto 16px", alignItems: "baseline", gap: 24, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: hasContent ? "pointer" : "default" }}
             >
-              <span style={{ fontSize: 13, color: "var(--color-text-dim)", width: 60, flexShrink: 0 }}>{row.period}</span>
-              <span style={{ flex: 1, fontSize: 14, color: "var(--color-text)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{row.name}</span>
-              <span style={{ fontSize: 13, color: "var(--color-text-dim)", flexShrink: 0 }}>{row.detail}</span>
+              <span style={{ fontSize: 12, color: "var(--color-text-dim)" }}>{row.period}</span>
+              <span style={{ fontSize: 12, color: "var(--color-text)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>{row.name}</span>
+              <span style={{ fontSize: 12, color: "var(--color-text-dim)" }}>{row.detail}</span>
               {hasContent && (
                 <svg
-                  style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expanded === i ? "rotate(180deg)" : "rotate(0)", marginLeft: 8 }}
+                  style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expanded === i ? "rotate(180deg)" : "rotate(0)" }}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
