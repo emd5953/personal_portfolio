@@ -786,6 +786,12 @@
    on screen (see playDemo / the observer in page.tsx). */
 .work-card-video + .work-card-shot.work-card-still { display: none; }
 
+/* The clip is 1660x1080 (~1.54:1) in a 16/9 frame, so `cover` trims ~13.5% of
+   its height. Centred, that clips the terminal's status line off the bottom
+   around 0:12, so the crop is taken entirely off the top — which is empty
+   chrome for the whole clip — and the bottom edge is kept intact. */
+.work-card-video { object-position: 50% 100%; }
+
 .work-card:hover .work-card-shot {
   filter: brightness(1) saturate(1);
 }
