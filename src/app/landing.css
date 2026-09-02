@@ -37,6 +37,29 @@
   --stage-top: clamp(72px, 15dvh, 160px);
 }
 
+/* ---- ASSET GATE ----
+   Held over the page until the backdrop has decoded (see the preload effect in
+   page.tsx). `.assets-pending` parks every CSS animation at frame 0, so the
+   intro is waiting rather than playing out unseen behind the cover. The gate
+   stays mounted and fades out, and is never clickable in either state. */
+.assets-pending *,
+.assets-pending *::before,
+.assets-pending *::after {
+  animation-play-state: paused !important;
+}
+
+.asset-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #06080a;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.assets-pending .asset-gate { opacity: 1; }
+
 /* ---- PERSISTENT BACKDROP ---- */
 .bg {
   position: fixed;
@@ -733,6 +756,8 @@
 
 /* raised panel with inset screenshot */
 .work-card-frame {
+  /* the still is a `fill` next/image, which positions itself against this */
+  position: relative;
   aspect-ratio: 16 / 9;
   display: flex;
   align-items: center;
@@ -742,15 +767,6 @@
 
 .work-card:hover .work-card-frame {
   transform: translateY(-6px);
-}
-
-/* the clip is a desktop hover affordance — a phone gets the still instead,
-   and never downloads the video (preload="none", play only on hover) */
-.work-card-video { display: none; }
-
-@media (hover: hover) and (min-width: 1100px) {
-  .work-card-video { display: block; }
-  .work-card-video + .work-card-still { display: none; }
 }
 
 .work-card-shot {
@@ -763,6 +779,12 @@
   filter: brightness(0.9) saturate(0.9);
   transition: filter 0.5s ease;
 }
+
+/* A card with a clip shows the clip everywhere — the still behind it is only
+   the poster for browsers that refuse to paint a video frame. On a pointer
+   device the clip runs on hover; on a touch device it runs while the card is
+   on screen (see playDemo / the observer in page.tsx). */
+.work-card-video + .work-card-shot.work-card-still { display: none; }
 
 .work-card:hover .work-card-shot {
   filter: brightness(1) saturate(1);
@@ -912,7 +934,7 @@
   .about-photo-col { width: 200px; height: 200px; }
   .easter-egg { text-align: center; white-space: normal; }
 
-  .career-lead { height: auto; z-index: auto; }
+  .career-lead { height: auto; }
   .career-lead-inner {
     position: relative;
     padding: 72px 20px 8px;
@@ -924,21 +946,24 @@
   .career-body {
     position: relative;
     height: auto;
-    z-index: auto;
+    /* keeps its z-index — .bg-career (1) and .leaf-layer (2) are fixed and
+       full-screen, so a section dropped to auto is painted straight over */
     padding: 24px 20px 48px;
     overflow: visible;
   }
   .projects {
     position: relative;
     height: auto;
-    z-index: auto;
     padding: 8px 20px 60px;
     overflow: visible;
     pointer-events: auto;
+    /* the fade is a scroller affordance for the sticky column — in normal
+       flow it would just dim the first and last card */
+    mask-image: none;
+    -webkit-mask-image: none;
   }
   .education {
     position: relative;
-    z-index: auto;
     min-height: 0;
     padding: 8px 20px 72px;
     pointer-events: auto;
@@ -1009,7 +1034,7 @@
   }
   .about-inner { pointer-events: auto; }
 
-  .career-lead { height: auto; z-index: auto; }
+  .career-lead { height: auto; }
   .career-lead-inner {
     position: relative;
     padding: 72px 40px 8px;
@@ -1023,21 +1048,24 @@
   .career-body {
     position: relative;
     height: auto;
-    z-index: auto;
+    /* keeps its z-index — .bg-career (1) and .leaf-layer (2) are fixed and
+       full-screen, so a section dropped to auto is painted straight over */
     padding: 24px 40px 48px;
     overflow: visible;
   }
   .projects {
     position: relative;
     height: auto;
-    z-index: auto;
     padding: 8px 40px 60px;
     overflow: visible;
     pointer-events: auto;
+    /* the fade is a scroller affordance for the sticky column — in normal
+       flow it would just dim the first and last card */
+    mask-image: none;
+    -webkit-mask-image: none;
   }
   .education {
     position: relative;
-    z-index: auto;
     min-height: 0;
     padding: 8px 40px 72px;
     pointer-events: auto;

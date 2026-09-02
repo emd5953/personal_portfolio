@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Flip } from "gsap/Flip";
@@ -19,7 +20,7 @@ gsap.registerPlugin(ScrollTrigger, Flip, SplitText, useGSAP);
    so it is never optional. */
 const projects: { img: string; video?: string; title: string; tags: string; desc: string; href: string }[] = [
   { img: "/assets/career/aspot.png", title: "aSpot", tags: "tavily . next.js . supabase . resend", desc: "AI itinerary platform giving you curated plans in minutes", href: "https://aspot.enrinjr.com" },
-  { img: "/assets/career/cursor2discord.png", video: "/assets/ProjDemos/Cursor2Disc_Demo_Portfolio.mp4", title: "Cursor2Discord", tags: "cursor ext . claude code hooks . rich presence", desc: "1.2k+ downloads. Discord Rich Presence for Cursor that knows what your agents are doing", href: "https://github.com/emd5953/cursor2discord" },
+  { img: "/assets/career/cursor2discord.png", video: "/assets/ProjDemos/cursor2discord-demo.mp4", title: "Cursor2Discord", tags: "cursor ext . claude code hooks . rich presence", desc: "1.2k+ downloads. Discord Rich Presence for Cursor that knows what your agents are doing", href: "https://github.com/emd5953/cursor2discord" },
   { img: "/assets/career/leaseIQ.png", title: "LeaseIQ", tags: "firecrawl · reducto . open router . render", desc: "Smart apartment hunting & lease analysis platform", href: "https://lease-iq.vercel.app/" },
   { img: "/assets/career/lotivity.png", title: "Lotivity", tags: "swift . swiftui . ranked feed", desc: "Native iOS app for local activity discovery — real experiences over artificial exchanges", href: "https://github.com/emd5953/lotivity" },
   { img: "/assets/career/nextstep.png", title: "NextStep", tags: "semantic search . embeddings . react native", desc: "AI job-matching platform with a swipe-based interface and intelligent recommendations", href: "https://github.com/emd5953/NextStep4" },
@@ -39,8 +40,17 @@ const heroPositions = [
 ];
 
 
-/* The demo clip only runs while its card is hovered — see the note at the
-   card, and .work-card-video in landing.css for where it is allowed to. */
+/* Survives a hot reload (same document), not a real one — see the intro hold. */
+declare global {
+  interface Window { __introHeld?: boolean }
+}
+
+const introHeld = () => Boolean(window.__introHeld);
+const markIntroHeld = () => { window.__introHeld = true; };
+
+/* On a pointer device the clip runs while its card is hovered. Touch devices
+   have no hover, so there they run while the card is on screen instead — see
+   the observer in the component. */
 function playDemo(e: React.MouseEvent<HTMLAnchorElement>) {
   const v = e.currentTarget.querySelector("video");
   if (v && getComputedStyle(v).display !== "none") void v.play().catch(() => {});
@@ -55,6 +65,7 @@ function pauseDemo(e: React.MouseEvent<HTMLAnchorElement>) {
 
 export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [assetsReady, setAssetsReady] = useState(false);
   const [timeStr, setTimeStr] = useState("");
   const [easterEggVisible, setEasterEggVisible] = useState(false);
 
@@ -85,20 +96,46 @@ export default function LandingPage() {
     }
   }, [easterEggVisible]);
 
+  /* The intro is CSS-timed and plays over the backdrop, so letting it start
+     before the backdrop has decoded means "enrin" writes itself against a blank
+     page. The gate is released by the first slide's own onLoad — hand-rolling a
+     preload here would fetch the raw file, which next/image never serves — and
+     the timeout means a slow connection delays the page rather than stalling it.
+     Nothing else is waited on: the other slides are 5s apart and the career shot
+     fades in later, so both stream in behind the intro. */
+  useEffect(() => {
+    const timer = setTimeout(() => setAssetsReady(true), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   /* Hold the page still until "enrin" has finished writing itself in — the last
      letter starts at 1.1s and runs 1.2s (see .t-letter in landing.css). */
   useEffect(() => {
     if (typeof history !== "undefined" && "scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
+    /* the hold measures out the intro, and the intro does not start until the
+       backdrop is up — so neither does the timer that ends it */
+    if (!assetsReady) return;
     // nothing is writing itself in under reduced motion, so there is nothing
     // to hold the page still for — locking scroll would just be a dead 2.3s
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    /* Only a real page load gets held. A hot reload re-runs this effect long
-       after navigation, and re-arming the lock there freezes the page mid-read
-       — repeatedly, once per save — for an intro that is not replaying. */
-    if (performance.now() > 1500) return;
+    /* Only a real page load gets held. A hot reload re-runs this effect in the
+       same document long after the intro finished, and re-arming the lock there
+       freezes the page mid-read — once per save. The flag lives on `window`
+       rather than in module scope because Fast Refresh re-executes the module
+       but never replaces the document, and it is only set once the intro has
+       actually run to the end, so React's double-invoke in StrictMode still
+       gets a real hold. */
+    if (introHeld()) return;
+    /* ScrollTrigger keeps its own scroll memory and puts it back on refresh —
+       which would drop you back where you were straight after the intro. The
+       intro only makes sense from the top, so that memory is cleared here. */
+    ScrollTrigger.clearScrollMemory("manual");
     window.scrollTo(0, 0);
+    /* A reload that lands mid-page has no intro on screen to wait for, so
+       holding the scroll there is just a frozen page. */
+    if (window.scrollY > 4) return;
     // both elements — html is the scrolling element, so body alone does nothing
     document.documentElement.classList.add("scroll-locked");
     document.body.classList.add("scroll-locked");
@@ -121,12 +158,45 @@ export default function LandingPage() {
     };
     const t = setTimeout(() => {
       unlock();
+      markIntroHeld();
       ScrollTrigger.refresh();
     }, 2300);
     return () => {
       clearTimeout(t);
       unlock();
     };
+  }, [assetsReady]);
+
+  /* Touch devices never get the hover that starts a demo clip, so there each
+     clip plays while its card is on screen and pauses the moment it leaves —
+     nothing downloads until the card is close, and nothing keeps decoding
+     off-screen. Pointer devices keep the hover behaviour and skip all of this. */
+  useEffect(() => {
+    if (window.matchMedia("(hover: hover)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const clips = Array.from(document.querySelectorAll<HTMLVideoElement>(".work-card-video"));
+    if (!clips.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const v = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            v.preload = "auto";
+            void v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        }
+      },
+      // most of the card has to be in view, so a clip does not start while it
+      // is still a sliver at the edge of the screen
+      { threshold: 0.6 }
+    );
+
+    clips.forEach((v) => io.observe(v));
+    return () => io.disconnect();
   }, []);
 
   // Background slideshow — one continuous backdrop for the whole page
@@ -569,13 +639,17 @@ export default function LandingPage() {
             .to(headRef.current, { keyframes: { rotation: nod(10) }, duration: ARRIVE }, 0)
             // --- turns around to face the word ---
             .to(kickerBodyRef.current, { scaleX: 1, duration: 0.12, ease: "power2.inOut" }, ARRIVE)
-            // --- winds up ---
-            .to(kickLegRef.current, { rotation: -42, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
-            .to(armRef.current, { rotation: 34, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
+            /* --- winds up ---
+               He has turned to face the word, which is to his left, so the leg
+               swings anticlockwise into it: back (positive) to wind up, through
+               (negative) on contact. The arm counters the leg, the body leans
+               away then into the kick. */
+            .to(kickLegRef.current, { rotation: 42, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
+            .to(armRef.current, { rotation: -34, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
             .to(kickerBodyRef.current, { rotation: 7, duration: 0.2, ease: "power2.out" }, ARRIVE + 0.12)
             // --- swings through ---
-            .to(kickLegRef.current, { rotation: 98, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
-            .to(armRef.current, { rotation: -36, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
+            .to(kickLegRef.current, { rotation: -98, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
+            .to(armRef.current, { rotation: 36, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
             .to(kickerBodyRef.current, { rotation: -9, duration: 0.16, ease: "power3.in" }, CONTACT - 0.16)
             // the head keeps going after the body stops — that is the bobble
             .to(headRef.current, { rotation: -26, duration: 0.2, ease: "power2.out" }, CONTACT - 0.08)
@@ -684,16 +758,25 @@ export default function LandingPage() {
   const subtitleText = "tech / film / art";
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className={assetsReady ? undefined : "assets-pending"}>
+      <div className="asset-gate" />
       <div className="grain" />
 
       {/* ONE PERSISTENT BACKDROP FOR THE WHOLE PAGE */}
       <div className="bg">
         {heroImages.map((src, i) => (
-          <img
+          <Image
             key={src}
             src={src}
             alt=""
+            fill
+            sizes="100vw"
+            /* only the frame on screen at load is preloaded — the rest are 5s
+               apart and stream in behind the intro */
+            priority={i === 0}
+            /* a decode failure still releases the gate — never hold on a 404 */
+            onLoad={i === 0 ? () => setAssetsReady(true) : undefined}
+            onError={i === 0 ? () => setAssetsReady(true) : undefined}
             className={`bg-slide ${i === currentSlide ? "active" : ""}`}
             style={{ objectPosition: heroPositions[i] }}
           />
@@ -704,7 +787,8 @@ export default function LandingPage() {
 
       {/* the career backdrop + leaves fade over the slideshow for the career beat */}
       <div className="bg-career">
-        <img src="/assets/landing/9.jpg" alt="" className="bg-career-shot" />
+        <Image src="/assets/landing/9.jpg" alt="" fill sizes="100vw"
+               className="bg-career-shot" />
       </div>
       <div className="leaf-layer">
         <FallingLeaves />
@@ -808,8 +892,11 @@ export default function LandingPage() {
                   <video src={`${p.video}#t=0.1`} className="work-card-shot work-card-video"
                          loop muted playsInline preload="metadata" />
                 )}
-                <img src={p.img} alt={p.title}
-                     className={`work-card-shot${p.video ? " work-card-still" : ""}`} />
+                <Image src={p.img} alt={p.title} fill
+                       /* one full-width column on the stacked layout, a fixed
+                          --col-w column once the three-column stage is live */
+                       sizes={`(max-width: ${STAGE_MIN}px) 100vw, 420px`}
+                       className={`work-card-shot${p.video ? " work-card-still" : ""}`} />
               </div>
               <div className="work-card-info">
                 <span className="work-card-title">{p.title}</span>
