@@ -340,6 +340,10 @@ export default function LandingPage() {
               ...(Flip.fit(title, mark, { scale: true, getVars: true }) as gsap.TweenVars),
             }, 0)
             .to(subtitleRef.current, { opacity: 0, y: -14, duration: 0.28, ease: "power2.in" }, 0)
+            /* the location/time strip is pinned to the viewport, so once the
+               hero is gone it would otherwise float over every section below —
+               on a short phone screen it sits right on top of the rows */
+            .to(".hero-bottom", { opacity: 0, duration: 0.3, ease: "power2.in" }, 0.6)
             // no crossfade: the travelling title IS the mark right up to the last
             // frame, then they swap in place, where the two are pixel-identical
             .set(title, { opacity: 0 }, 0.995)

@@ -122,3 +122,219 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ---- SHARED LIST ROWS ----
+   ExperienceList and EducationList carry their layout here rather than in
+   inline styles, so a media query can reach it. Only presentational rules
+   live here; anything driven by expand/collapse state stays inline in the
+   component, next to the state. Desktop values are the ones the inline
+   styles used to set, unchanged. */
+
+/* EXPERIENCE */
+.exp-row {
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-row-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+
+.exp-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.exp-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.exp-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* fixed company column, so the divider and the role line up down the list
+   instead of stepping in and out with the name length */
+.exp-head {
+  display: grid;
+  grid-template-columns: 128px auto 1fr;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.exp-company {
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.exp-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+}
+
+.exp-role {
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+.exp-period {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  margin: 4px 0 0;
+}
+
+.exp-chev {
+  width: 18px;
+  height: 18px;
+  color: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.exp-detail {
+  padding: 14px 0 8px 76px;
+}
+
+.exp-detail-text {
+  font-size: 13px;
+  color: var(--color-text-mid);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.exp-link {
+  font-size: 12px;
+  color: var(--color-amber-dim);
+  text-decoration: none;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+/* EDUCATION */
+/* a grid, not a flex row: the chevron column is reserved whether or not this
+   row has one, so the detail text starts on the same line down the list
+   instead of shifting by the chevron's width */
+.edu-head {
+  display: grid;
+  grid-template-columns: 52px 1fr auto 16px;
+  align-items: baseline;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.edu-period {
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+.edu-name {
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.edu-detail {
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+.edu-chev {
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.edu-body {
+  padding: 14px 0 10px 92px;
+}
+
+.edu-body-text {
+  font-size: 13px;
+  color: var(--color-text-mid);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ---- PHONE ----
+   Both rows drop their fixed pixel columns and stack. At 390px the desktop
+   chrome (logo + gaps + chevron + page gutter) leaves under 240px for a grid
+   whose first column alone is 128px, so the role and detail text had nowhere
+   to go — they overflowed and were clipped by body { overflow-x: hidden }. */
+@media (max-width: 480px) {
+  /* the chevron rides the first line rather than centring on a taller stack */
+  .exp-row-btn {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .exp-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .exp-head {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  /* it separated two columns that are now two lines */
+  .exp-sep { display: none; }
+
+  /* the longest name here is COLUMBIA UNIVERSITY — one unbroken token wider
+     than a 320px row, so it is allowed to break anywhere rather than push
+     the row out */
+  .exp-company { overflow-wrap: anywhere; }
+
+  .exp-chev { margin-top: 3px; }
+
+  .exp-detail { padding-left: 0; }
+
+  /* period / name / detail stack down the first column; the chevron holds
+     its own column beside them, on the first line */
+  .edu-head {
+    grid-template-columns: 1fr 16px;
+    align-items: start;
+    gap: 10px;
+  }
+
+  .edu-period,
+  .edu-name,
+  .edu-detail { grid-column: 1; }
+
+  .edu-name { overflow-wrap: anywhere; }
+
+  .edu-chev {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .edu-body { padding-left: 0; }
+}

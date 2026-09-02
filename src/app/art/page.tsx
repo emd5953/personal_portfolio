@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, type RefObject } from "react";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore, type RefObject } from "react";
 import Link from "next/link";
 
 const BG_TRACK = "/assets/art/Brent Faiyaz - Came Right Back.mp3";
@@ -37,6 +37,17 @@ const offsets = [
   { rotate: -1.8, y: 22 },
 ];
 
+/* `(hover: none)` as a subscribed value rather than effect-set state: the
+   server has no matchMedia, so it renders the pointer layout, and the client
+   corrects on its first commit without a second render pass. */
+const coarsePointerQuery = () => window.matchMedia("(hover: none)");
+
+function subscribeCoarsePointer(onChange: () => void) {
+  const mq = coarsePointerQuery();
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
 function FilmCard({ src, index, onSelect }: { src: string; index: number; onSelect: (src: string) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const o = offsets[index % offsets.length];
@@ -45,6 +56,15 @@ function FilmCard({ src, index, onSelect }: { src: string; index: number; onSele
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const cardRect = useRef<DOMRect | null>(null);
   const didDrag = useRef(false);
+  /* Drag-up-to-play is a pointer gesture; on a touch device it fights the
+     strip's own horizontal scroll and there is no hover to reveal the hint
+     that explains it. So a touch device gets tap-to-play and cards that are
+     already lit. */
+  const isTouch = useSyncExternalStore(
+    subscribeCoarsePointer,
+    () => coarsePointerQuery().matches,
+    () => false,
+  );
 
   useEffect(() => {
     const el = videoRef.current;
@@ -62,23 +82,29 @@ function FilmCard({ src, index, onSelect }: { src: string; index: number; onSele
 
   useEffect(() => {
     if (!dragging) return;
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e: PointerEvent) => {
       didDrag.current = true;
       setDragPos({ x: e.clientX, y: e.clientY });
     };
-    const onUp = (e: MouseEvent) => {
+    const onUp = (e: PointerEvent) => {
       setDragging(false);
       if (didDrag.current && e.clientY < window.innerHeight * 0.6) {
         onSelect(src);
       }
       didDrag.current = false;
     };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
   }, [dragging, src, onSelect]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (isTouch) return;
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).closest("div")!.getBoundingClientRect();
     cardRect.current = rect;
@@ -98,8 +124,11 @@ function FilmCard({ src, index, onSelect }: { src: string; index: number; onSele
           loop
           playsInline
           preload="metadata"
-          onMouseDown={handleMouseDown}
-          onClick={() => { if (!didDrag.current) setShowHint(true); }}
+          onPointerDown={handlePointerDown}
+          onClick={() => {
+            if (isTouch) { onSelect(src); return; }
+            if (!didDrag.current) setShowHint(true);
+          }}
           style={{
             height: 150,
             minWidth: 280,
@@ -108,15 +137,15 @@ function FilmCard({ src, index, onSelect }: { src: string; index: number; onSele
             borderRadius: 6,
             objectFit: "cover",
             display: "block",
-            filter: "brightness(0.45)",
+            filter: isTouch ? "brightness(0.85)" : "brightness(0.45)",
             transform: `rotate(${o.rotate}deg) translateY(${o.y}px)`,
             transition: dragging ? "none" : "transform 0.6s ease, filter 0.4s ease",
-            cursor: "grab",
+            cursor: isTouch ? "pointer" : "grab",
           }}
           onMouseEnter={(e) => { if (!dragging) { e.currentTarget.style.transform = "rotate(0deg) translateY(0) scale(1.05)"; e.currentTarget.style.filter = "brightness(1)"; } }}
           onMouseLeave={(e) => { if (!dragging) { e.currentTarget.style.transform = `rotate(${o.rotate}deg) translateY(${o.y}px)`; e.currentTarget.style.filter = "brightness(0.45)"; setShowHint(false); } }}
         />
-        {showHint && !dragging && (
+        {showHint && !dragging && !isTouch && (
           <div style={{
             position: "absolute", top: -40, left: "50%", transform: "translateX(-50%)",
             background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)",

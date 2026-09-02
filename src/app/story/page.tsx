@@ -523,7 +523,7 @@ export default function StoryPage() {
       </div>
 
       <section className="h-[42vh] relative flex items-end pb-12 px-6 md:px-16 max-md:h-[48vh] max-md:pb-14">
-        <div className="relative z-10 max-w-[1100px] w-full" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+        <div className="relative z-10 max-w-[1100px] w-full" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <p className="story-hero-eyebrow text-[11px] tracking-[3px] text-text-mid lowercase mb-7 opacity-0">sounds · music · thoughts . timeline</p>
           <h1 className="story-hero-title font-display text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-[-3px] leading-[0.95] text-text opacity-0">story</h1>
         </div>
@@ -532,7 +532,7 @@ export default function StoryPage() {
       {/* SOUNDS */}
       <section id="sounds" style={{ paddingTop: 56, paddingBottom: 40 }} className="relative px-6 md:px-16 mt-10 border-t border-border max-md:py-14 max-md:px-8">
         <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
-        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+        <div className="max-w-[1100px]" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10 opacity-0">sounds</h2>
 
           {/* Current track */}
@@ -570,7 +570,7 @@ export default function StoryPage() {
       {/* ART */}
       <section id="art" style={{ paddingTop: 40, paddingBottom: 48 }} className="relative px-6 md:px-16 border-t border-border max-md:py-14 max-md:px-8">
         <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
-        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+        <div className="max-w-[1100px]" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-10 opacity-0">music</h2>
 
           {/* Song covers */}
@@ -605,7 +605,7 @@ export default function StoryPage() {
       {/* THOUGHTS */}
       <section id="thoughts" style={{ paddingTop: 56, paddingBottom: 56 }} className="relative px-6 md:px-16 border-t border-border max-md:py-14 max-md:px-8">
         <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
-        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+        <div className="max-w-[1100px]" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14 opacity-0">thoughts</h2>
 
           {editMode && (
@@ -645,7 +645,7 @@ export default function StoryPage() {
       {/* TIMELINE */}
       <section id="timeline" style={{ paddingTop: 56, paddingBottom: 56 }} className="relative px-6 md:px-16 border-t border-border max-md:py-14 max-md:px-8">
         <div className="sec-rule absolute left-0 top-0 h-px w-full bg-white/15" />
-        <div className="max-w-[1100px]" style={{ marginLeft: "clamp(16px, 4vw, 40px)", textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
+        <div className="max-w-[1100px]" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)" }}>
           <h2 className="sec-heading font-display text-2xl font-semibold tracking-tight text-text lowercase mb-14 opacity-0">timeline</h2>
 
           {editMode && (

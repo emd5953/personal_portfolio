@@ -26,18 +26,17 @@ export default function EducationList({ rowClassName = "", bare = false }: { row
         return (
           <div key={i} className={rowClassName}>
             <div
+              className="edu-head"
               onClick={hasContent ? () => toggle(i) : undefined}
-              /* a grid, not a flex row: the chevron column is reserved whether or
-                 not this row has one, so the detail text starts on the same line
-                 down the list instead of shifting by the chevron's width */
-              style={{ display: "grid", gridTemplateColumns: "52px 1fr auto 16px", alignItems: "baseline", gap: 24, padding: "18px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: hasContent ? "pointer" : "default" }}
+              style={{ cursor: hasContent ? "pointer" : "default" }}
             >
-              <span style={{ fontSize: 12, color: "var(--color-text-dim)" }}>{row.period}</span>
-              <span style={{ fontSize: 12, color: "var(--color-text)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>{row.name}</span>
-              <span style={{ fontSize: 12, color: "var(--color-text-dim)" }}>{row.detail}</span>
+              <span className="edu-period">{row.period}</span>
+              <span className="edu-name">{row.name}</span>
+              <span className="edu-detail">{row.detail}</span>
               {hasContent && (
                 <svg
-                  style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)", flexShrink: 0, transition: "transform 0.3s", transform: expanded === i ? "rotate(180deg)" : "rotate(0)" }}
+                  className="edu-chev"
+                  style={{ transform: expanded === i ? "rotate(180deg)" : "rotate(0)" }}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -46,8 +45,8 @@ export default function EducationList({ rowClassName = "", bare = false }: { row
             </div>
             <div style={{ display: "grid", gridTemplateRows: expanded === i ? "1fr" : "0fr", transition: "grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease", opacity: expanded === i ? 1 : 0 }}>
               <div style={{ overflow: "hidden" }}>
-                <div style={{ padding: "14px 0 10px 92px" }}>
-                  {row.details && <p style={{ fontSize: 13, color: "var(--color-text-mid)", lineHeight: 1.7, margin: 0 }}>{row.details}</p>}
+                <div className="edu-body">
+                  {row.details && <p className="edu-body-text">{row.details}</p>}
                   <PhotoRow photos={row.photos} />
                 </div>
               </div>

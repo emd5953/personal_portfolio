@@ -986,6 +986,23 @@
   .nav-links { gap: 12px; }
   .subtitle { letter-spacing: 2px; font-size: 10px; }
   .work-banner-text { font-size: 18px; }
+
+  /* the stacked sections share the nav's 16px gutter — 8px per side back is
+     real width on a 320px row */
+  .about-stage { padding: 96px 16px; }
+  .career-lead-inner { padding: 72px 16px 8px; }
+  .career-body { padding: 24px 16px 48px; }
+  .projects { padding: 8px 16px 60px; }
+  .education { padding: 8px 16px 72px; }
+
+  .hero-bottom {
+    left: 16px;
+    right: 16px;
+    bottom: 20px;
+  }
+
+  .hero-loc,
+  .hero-now { font-size: 10px; letter-spacing: 2px; }
 }
 
 /* ---- REDUCED MOTION ----
@@ -1013,6 +1030,15 @@
      section below — so it scrolls away with its own section instead, and the
      nav mark (normally revealed at the end of that travel) is simply on. */
   .hero-content { position: absolute; }
+  /* same reasoning for the location/time strip: with no timeline to fade it
+     out at the end of the hero, it would stay pinned over every section. It
+     is a direct child of the unpositioned page root, so this offsets it from
+     the document origin — one viewport down, where the hero ends. */
+  .hero-bottom {
+    position: absolute;
+    top: calc(100dvh - 60px);
+    bottom: auto;
+  }
   .brand-mark { opacity: 1; }
 
   .resume-btn,
