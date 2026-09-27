@@ -1,4 +1,4 @@
-export async function getSpotifyData() {
+export async function getAccessToken(): Promise<string> {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
@@ -18,6 +18,48 @@ export async function getSpotifyData() {
 
   if (!tokenResponse.ok) throw new Error(`Token refresh failed: ${tokenResponse.status}`);
   const { access_token: accessToken } = await tokenResponse.json();
+  return accessToken;
+}
+
+export type TopTrack = {
+  id: string;
+  name: string;
+  artists: string[];
+  album: string;
+  image?: string;
+  durationMs: number;
+  explicit: boolean;
+  url: string;
+};
+
+// short_term is Spotify's ~4-week window, the same one behind its own
+// "Top tracks this month" list.
+export async function getTopTracks(limit = 10): Promise<TopTrack[]> {
+  const accessToken = await getAccessToken();
+  const res = await fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=${limit}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) throw new Error(`Top tracks fetch failed: ${res.status}`);
+  const { items = [] } = await res.json();
+
+  return items.map((t: { id: string; name: string; artists: Array<{ name: string }>; album: { name: string; images: Array<{ url: string; width: number }> }; duration_ms: number; explicit: boolean; external_urls: { spotify: string } }) => {
+    // Images come largest first; take the smallest one that still covers the 48px cell at 1x.
+    const image = [...t.album.images].reverse().find((i) => i.width >= 64) ?? t.album.images[0];
+    return {
+      id: t.id,
+      name: t.name,
+      artists: t.artists.map((a) => a.name),
+      album: t.album.name,
+      image: image?.url,
+      durationMs: t.duration_ms,
+      explicit: t.explicit,
+      url: t.external_urls.spotify,
+    };
+  });
+}
+
+export async function getSpotifyData() {
+  const accessToken = await getAccessToken();
 
   const userResponse = await fetch("https://api.spotify.com/v1/me", {
     headers: { Authorization: `Bearer ${accessToken}` },

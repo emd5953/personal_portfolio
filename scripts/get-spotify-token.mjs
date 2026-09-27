@@ -6,7 +6,7 @@ config({ path: ".env.local" });
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const redirectUri = "https://enrinjr.com/callback";
-const scopes = "user-read-recently-played user-read-private";
+const scopes = "user-read-recently-played user-read-private user-top-read";
 
 const code = process.argv[2];
 
